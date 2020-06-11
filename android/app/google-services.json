@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "45381212846",
+    "firebase_url": "https://flutterwebapp-c4662.firebaseio.com",
+    "project_id": "flutterwebapp-c4662",
+    "storage_bucket": "flutterwebapp-c4662.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:45381212846:android:b7f3241bbf0c5c50f66b3f",
+        "android_client_info": {
+          "package_name": "cz.baros.iothub"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "45381212846-f3hmsb9thaicijdji0ffvvb7ipb357ab.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAt9a3L24PkCaumKq0Ub9UOjDnF0fq5AvM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "45381212846-f3hmsb9thaicijdji0ffvvb7ipb357ab.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
