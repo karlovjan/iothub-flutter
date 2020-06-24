@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'src/widgets/IOThubMainWidged.dart';
-import 'src/charts/GaugeChart.dart';
+
+import 'src/widgets/IOTHubMainWidget.dart';
 
 void main() {
-  runApp(IOTHubMainWidged());
+  runApp(IOTHubMainWidget());
 }
-

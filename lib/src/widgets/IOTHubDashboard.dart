@@ -2,15 +2,23 @@ import 'package:flutter/material.dart';
 
 class IOTHubDashboard extends StatefulWidget {
   final String title;
+  final String body;
 
-  IOTHubDashboard({Key key, this.title}) : super(key: key);
+  IOTHubDashboard(this.title, this.body, {Key key})
+      : assert(title != null),
+        assert(body?.isNotEmpty ?? false),
+        super(key: key);
 
   @override
-  _IOTHubDashboardState createState() => _IOTHubDashboardState();
-
+  _IOTHubDashboardState createState() => _IOTHubDashboardState(title, body);
 }
 
 class _IOTHubDashboardState extends State<IOTHubDashboard> {
+  final String title;
+  final String body;
+
+  _IOTHubDashboardState(this.title, this.body);
+
   @override
   Widget build(BuildContext context) {
     // Scaffold is a layout for the major Material Components.
@@ -21,14 +29,12 @@ class _IOTHubDashboardState extends State<IOTHubDashboard> {
           tooltip: 'Navigation menu',
           onPressed: null,
         ),
-        title: Text('IOT Hub title'),
-
+        title: Text(title),
       ),
       // body is the majority of the screen.
       body: Center(
-        child: Text('Hurraa!'),
+        child: Text('Moje body: $body'),
       ),
-
     );
   }
 }

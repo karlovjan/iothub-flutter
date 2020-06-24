@@ -5,13 +5,12 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:iothub/main.dart';
-import 'package:iothub/src/widgets/IOThubMainWidged.dart';
+import 'package:iothub/src/widgets/IOTHubDashboard.dart';
+import 'package:iothub/src/widgets/IOTHubMainWidget.dart';
 
 void main() {
+  /*
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(IOTHubMainWidged());
@@ -27,5 +26,31 @@ void main() {
     // Verify that our counter has incremented.
     expect(find.text('0'), findsNothing);
     expect(find.text('1'), findsOneWidget);
+  });
+
+   */
+
+  testWidgets('Test main application is is started correctly',
+      (WidgetTester tester) async {
+    // Build our app and trigger a frame.
+    await tester.pumpWidget(IOTHubMainWidget());
+
+    final defaultTitleFinder = find.text('IOT hub');
+    final titleFinder = find.text('Praha dashboard');
+    final messageFinder = find.text('Moje body: Moje grafy');
+
+    expect(defaultTitleFinder, findsNothing);
+    expect(titleFinder, findsOneWidget);
+    expect(messageFinder, findsOneWidget);
+  });
+
+  testWidgets('Test default dashboard widged is shown',
+      (WidgetTester tester) async {
+    // Build our app and trigger a frame.
+    await tester.pumpWidget(IOTHubMainWidget());
+
+    final startingWidgetFinder = find.byType(IOTHubDashboard);
+
+    expect(startingWidgetFinder, findsOneWidget);
   });
 }

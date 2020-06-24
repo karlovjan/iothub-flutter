@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+
 import '../widgets/IOTHubDashboard.dart';
 
-class IOTHubMainWidged extends StatelessWidget {
-
-
+class IOTHubMainWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -24,10 +23,8 @@ class IOTHubMainWidged extends StatelessWidget {
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: IOTHubDashboard(title: 'Flutter Demo Home Page'),
+      home: IOTHubDashboard('Praha dashboard', 'Moje grafy'),
 //      home: GaugeChart.withSampleData(),
     );
-
   }
-
 }
