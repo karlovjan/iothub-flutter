@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../widgets/iot_hub_dashboard_widget.dart';
+import 'iot_hub_dashboard_widget.dart';
 
 class IOTHubMainWidget extends StatelessWidget {
   @override

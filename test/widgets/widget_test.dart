@@ -6,8 +6,8 @@
 // tree, read text, and verify that the values of widget properties are correct.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iothub/src/widgets/iot_hub_dashboard_widget.dart';
-import 'package:iothub/src/widgets/iot_hub_main_widget.dart';
+import 'package:iothub/src/ui/pages/iot_hub_dashboard_widget.dart';
+import 'package:iothub/src/ui/pages/iot_hub_main_widget.dart';
 
 void main() {
   /*
