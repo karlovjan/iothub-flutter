@@ -42,10 +42,19 @@ class _IOTHubDashboardState extends State<IOTHubDashboard> {
     return StreamBuilder<QuerySnapshot>(
       stream: Firestore.instance.collection('/iothubs').snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return LinearProgressIndicator();
 
-        return _buildList(context, snapshot.data.documents);
-      },
+        if (snapshot.hasError) {
+          return Text('Something went wrong');
+        }
+
+        if (!snapshot.hasData) {
+          return LinearProgressIndicator();
+        }
+
+
+          return _buildList(context, snapshot.data.documents);
+        }
+
     );
   }
 
@@ -69,6 +78,7 @@ class _IOTHubDashboardState extends State<IOTHubDashboard> {
         ),
         child: ListTile(
           title: Text(record.name),
+          subtitle: Text(record.gps.latitude.toString() + ';' + record.gps.longitude.toString() ),
           trailing: Text(record.createdAt.toString()),
          ),
       ),
