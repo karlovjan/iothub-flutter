@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+// Matches any document in the iothubs collection as well as any document
+    // in a subcollection.
+    //the recursive wildcard syntax, {name=**}
+    match /iothubs/{documents=**} {
+
+    // Applies to writes to nonexistent documents
+    //user uid najdu v google konzoli v autentification/user
+      allow create: if request.auth != null && request.auth.uid == 'muj-uid';
+
+    // Applies to writes to existing documents
+      allow update: if false;
+
+      // Applies to delete operations
+      allow delete: if false;
+
+      allow list: if request.auth != null && request.auth.uid == 'muj-uid'
+      //allow read: if request.auth != null;
+      //allow read: if true;
+    }
+  }
+}
