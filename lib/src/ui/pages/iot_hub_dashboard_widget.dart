@@ -5,13 +5,9 @@ import 'package:iothub/src/domain/entities/iothub.dart';
 
 import 'iot_hub_main_widget.dart';
 
-
-
 class IOTHubDashboard extends StatefulWidget {
   final String title;
   final String body;
-
-
 
   IOTHubDashboard(this.title, this.body, {Key key})
       : assert(title != null),
@@ -20,28 +16,13 @@ class IOTHubDashboard extends StatefulWidget {
 
   @override
   _IOTHubDashboardState createState() => _IOTHubDashboardState(title, body);
-
 }
 
 class _IOTHubDashboardState extends State<IOTHubDashboard> {
   final String title;
   final String body;
 
-
   _IOTHubDashboardState(this.title, this.body);
-
-  @override
-  void initState() {
-    super.initState();
-  }
-  @override
-  void dispose() {
-    signOut();
-    super.dispose();
-  }
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -62,50 +43,46 @@ class _IOTHubDashboardState extends State<IOTHubDashboard> {
 
   Widget _buildBody(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: Firestore.instance.collection('/iothubs').snapshots(),
-      builder: (context, snapshot) {
+        stream: Firestore.instance.collection('/iothubs').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Text('Something went wrong. ${snapshot.error.toString()}');
+          }
 
-        if (snapshot.hasError) {
-          return Text('Something went wrong. ${snapshot.error.toString()}');
-        }
-
-        if (!snapshot.hasData) {
-          return LinearProgressIndicator();
-        }
-
+          if (!snapshot.hasData) {
+            return LinearProgressIndicator();
+          }
 
           return _buildList(context, snapshot.data.documents);
-        }
+        });
+  }
 
+  Widget _buildList(BuildContext context, List<DocumentSnapshot> snapshot) {
+    return ListView(
+      padding: const EdgeInsets.only(top: 20.0),
+      children: snapshot.map((data) => _buildListItem(context, data)).toList(),
     );
   }
 
-    Widget _buildList(BuildContext context, List<DocumentSnapshot> snapshot) {
-      return ListView(
-        padding: const EdgeInsets.only(top: 20.0),
-        children: snapshot.map((data) => _buildListItem(context, data)).toList(),
-      );
-    }
+  Widget _buildListItem(BuildContext context, DocumentSnapshot data) {
+    final record = IOTHub.fromJson(data.data);
 
-    Widget _buildListItem(BuildContext context, DocumentSnapshot data) {
-      final record = IOTHub.fromJson(data.data);
-
-      return Padding(
-        key: ValueKey(record.name),
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey),
-            borderRadius: BorderRadius.circular(5.0),
-          ),
-          child: ListTile(
-            title: Text(record.name),
-            subtitle: Text(record.gps.latitude.toString() + ';' + record.gps.longitude.toString()),
-            trailing: Text(record.createdAt.toString()),
-          ),
+    return Padding(
+      key: ValueKey(record.name),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey),
+          borderRadius: BorderRadius.circular(5.0),
         ),
-      );
-    }
-
-
+        child: ListTile(
+          title: Text(record.name),
+          subtitle: Text(record.gps.latitude.toString() +
+              ';' +
+              record.gps.longitude.toString()),
+          trailing: Text(record.createdAt.toString()),
+        ),
+      ),
+    );
+  }
 }

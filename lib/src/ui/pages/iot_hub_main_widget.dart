@@ -3,30 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'iot_hub_dashboard_widget.dart';
 
-final FirebaseAuth auth = FirebaseAuth.instance;
-
-void signOut() async {
-  await auth.signOut();
-}
-
-void signInWithEmailAndPassword() async {
-  final user = await auth.signInWithEmailAndPassword(
-    email: 'mironb@seznam.cz',
-    password: 'Flutter753123',
-  );
-
-  if(user != null) {
-    print(user.user.uid);
-  }
-
-}
-
 class IOTHubMainWidget extends StatelessWidget {
-
-  IOTHubMainWidget(){
-   signInWithEmailAndPassword();
-  }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -49,8 +26,6 @@ class IOTHubMainWidget extends StatelessWidget {
       ),
       home: IOTHubDashboard('Praha dashboard', 'Moje grafy'),
 //      home: GaugeChart.withSampleData(),
-
     );
   }
-
 }
