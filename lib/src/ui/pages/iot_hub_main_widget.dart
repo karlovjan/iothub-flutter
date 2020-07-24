@@ -1,11 +1,42 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:iothub/src/data_source/auth_repository_impl.dart';
+import 'package:iothub/src/domain/entities/user.dart';
+import 'package:iothub/src/service/user_state.dart';
+import 'package:iothub/src/service/interfaces/auth_repository.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
+import 'home_widget.dart';
 import 'iot_hub_dashboard_widget.dart';
 
 class IOTHubMainWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    //uncomment the following line to consol log Widget rebuild
+    RM.debugWidgetsRebuild;
+    //uncomment this line to consol log and see the notification timeline
+    RM.debugPrintActiveRM = true;
+
+    return Injector(
+      inject: [
+        //Inject the AuthRepository implementation and register is via its IAuthRepository interface.
+        //This is important for testing (see bellow).
+        Inject<AuthRepository>(
+              () => AuthRepositoryImpl(),
+        ),
+        Inject<UserState>(
+              () => UserState(User(),
+            IN.get<AuthRepository>()
+          ),
+        )
+      ],
+      builder: _createMainWidget,
+    );
+
+  }
+
+  Widget _createMainWidget(BuildContext context){
     return MaterialApp(
       title: 'IOT hub',
       theme: ThemeData(
@@ -24,7 +55,8 @@ class IOTHubMainWidget extends StatelessWidget {
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: IOTHubDashboard('Praha dashboard', 'Moje grafy'),
+      home: HomeWidget(),
+//      home: IOTHubDashboard('Praha dashboard', 'Moje grafy'),
 //      home: GaugeChart.withSampleData(),
     );
   }

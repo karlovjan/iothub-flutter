@@ -5,7 +5,12 @@ import '../service/exceptions/auth_exception.dart';
 import '../service/interfaces/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  final FirebaseAuth auth = FirebaseAuth.instance;
+
+
+  AuthRepositoryImpl({FirebaseAuth firebaseAuth}) : _auth = firebaseAuth ?? FirebaseAuth.instance;
+
+  final FirebaseAuth _auth;
+
 
   @override
   Future<User> createUserWithEmailAndPassword(String email, String password) {
@@ -14,14 +19,14 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<User> currentUser() async {
-    final firebaseUser = await auth.currentUser();
+    final firebaseUser = await _auth.currentUser();
     return _fromFireBaseUserToUser(firebaseUser);
   }
 
   @override
   Future<User> signInWithEmailAndPassword(String email, String password) async {
     try {
-      final authResult = await auth.signInWithEmailAndPassword(
+      final authResult = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password
       );
@@ -37,7 +42,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> signOut() async {
-    return await auth.signOut();
+    await _auth.signOut();
   }
 
   User _fromFireBaseUserToUser(FirebaseUser user) {
@@ -47,4 +52,5 @@ class AuthRepositoryImpl implements AuthRepository {
     return User(
         uid: user.uid, email: user.email, displayName: user.displayName);
   }
+
 }
