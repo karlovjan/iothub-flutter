@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:iothub/src/domain/entities/iothub.dart';
+import 'package:iothub/src/service/user_state.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'iot_hub_main_widget.dart';
 
@@ -35,13 +37,31 @@ class _IOTHubDashboardState extends State<IOTHubDashboard> {
           onPressed: null,
         ),
         title: Text(title),
+        actions: [IconButton(
+      icon: Icon(Icons.close),
+      tooltip: 'Close app',
+      onPressed: () => {
+        UserState.signOut(RM.get<UserState>().state).then((value) => Navigator.pop(context))
+      }),],
       ),
       // body is the majority of the screen.
       body: _buildBody(context),
     );
   }
 
+  Widget _buildNoUserBody(BuildContext context) {
+    return Center(
+      child: RaisedButton(
+        onPressed: () {
+          // Navigate back to first route when tapped.
+          Navigator.pop(context);
+        },
+        child: Text('Go back!'),
+      ),
+    );
+  }
   Widget _buildBody(BuildContext context) {
+
     return StreamBuilder<QuerySnapshot>(
         stream: Firestore.instance.collection('/iothubs').snapshots(),
         builder: (context, snapshot) {
