@@ -39,7 +39,7 @@ class _IOTHubDashboardState extends State<IOTHubDashboard> {
         title: Text(title),
         actions: [IconButton(
       icon: Icon(Icons.close),
-      tooltip: 'Close app',
+      tooltip: 'Close IOT HUb',
       onPressed: () => {
         UserState.signOut(RM.get<UserState>().state).then((value) => Navigator.pop(context))
       }),],
