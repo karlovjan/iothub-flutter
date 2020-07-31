@@ -4,10 +4,10 @@ import '../domain/entities/user.dart';
 import '../service/exceptions/auth_exception.dart';
 import '../service/interfaces/auth_repository.dart';
 
-class AuthRepositoryImpl implements AuthRepository {
+class FirebaseAuthRepository implements AuthRepository {
 
 
-  AuthRepositoryImpl({FirebaseAuth firebaseAuth}) : _auth = firebaseAuth ?? FirebaseAuth.instance;
+  FirebaseAuthRepository({FirebaseAuth firebaseAuth}) : _auth = firebaseAuth ?? FirebaseAuth.instance;
 
   final FirebaseAuth _auth;
 

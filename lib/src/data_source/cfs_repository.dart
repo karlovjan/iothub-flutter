@@ -11,22 +11,18 @@ import 'package:iothub/src/service/interfaces/iothub_repository.dart';
 @immutable
 class CloudFileStoreDBRepository implements IOTHubRepository {
 
-
-  CloudFileStoreDBRepository(this._iothubId, [Firestore newFSDBClient]) : _dbClient = newFSDBClient ?? Firestore.instance;
-
-  //final private members
-  final String _iothubId;
-  final Firestore _dbClient;
+  final Firestore _dbClient = Firestore.instance;
 
   //private getters
-  String get _iothubCollectionPath => '/iothubs';
-  String get _deviceCollectionPath => '$_iothubCollectionPath/$_iothubId/devices';
+  static final String _IOTHUB_ROOT_COLLECTION_PATH = '/iothubs';
 
   @override
-  Future<List<Device>> loadAllDevices() async {
+  Future<List<Device>> loadAllDevices(String iothubDocumentId) async {
+    assert(iothubDocumentId != null);
+
     try {
       final snapshot =
-          await _dbClient.collection(_deviceCollectionPath).getDocuments();
+          await _dbClient.collection('$_IOTHUB_ROOT_COLLECTION_PATH/$iothubDocumentId/devices').getDocuments();
 
       var deviceList = <Device>[];
 
@@ -52,7 +48,7 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
   Future<List<IOTHub>> loadAllIOTHubs() async {
     try {
       final snapshot =
-          await _dbClient.collection(_iothubCollectionPath).getDocuments();
+          await _dbClient.collection(_IOTHUB_ROOT_COLLECTION_PATH).getDocuments();
 
       var iothubList = <IOTHub>[];
 

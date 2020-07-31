@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iothub/src/data_source/sqlite_db_repository.dart';
 import 'package:iothub/src/domain/entities/device.dart';
 import 'package:iothub/src/domain/entities/measured_property.dart';
 import 'package:mockito/mockito.dart';
@@ -15,11 +14,8 @@ void main() {
     test('read last temperature from sensor', () async {
       final client = MockitoSqliteClient();
 //      final dbRepo = MockitoDBRepository();
-      final dbRepo = SqliteDBRepository(client);
-
 
       final teplomer = TestingDevideFactory.getAqaraTemperatureSensor();
-
 
       //result is List<Map<String, dynamic>>
       when(client.query('table')).thenAnswer(
