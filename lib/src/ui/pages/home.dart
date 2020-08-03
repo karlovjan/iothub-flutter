@@ -20,9 +20,10 @@ class HomePage extends StatelessWidget {
       // body is the majority of the screen.
       body: Column(
         children: [
-          FlatButton(onPressed: () {
-            Navigator.pushNamed(context, StaticPages.hubs.routeName);
-          },
+          FlatButton(
+            onPressed: () {
+              Navigator.pushNamed(context, StaticPages.hubs.routeName);
+            },
             child: Text('IOT hub'),
           )
         ],

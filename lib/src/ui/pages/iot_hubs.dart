@@ -7,6 +7,7 @@ import 'package:iothub/src/service/interfaces/auth_repository.dart';
 import 'package:iothub/src/service/interfaces/iothub_repository.dart';
 import 'package:iothub/src/service/iothub_service.dart';
 import 'package:iothub/src/service/user_state.dart';
+import 'package:iothub/src/ui/pages/iothubs.dart';
 import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -37,7 +38,7 @@ class IOTHubsMainPage extends StatelessWidget {
           onWaiting: () => CommonDataLoadingIndicator(),
           builder: (context, authStateRM) =>
               authStateRM.state.signedUser.uid != null
-                  ? IOTHubDashboard('muj title', 'moje body')
+                  ? IOTHubList()
                   : Text('User was not signing in'));
     }
 

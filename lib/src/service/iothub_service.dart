@@ -1,3 +1,4 @@
+import 'dart:ffi';
 
 import 'package:flutter/foundation.dart';
 
@@ -17,16 +18,12 @@ class IOTHubService {
   IOTHub _selectedIOTHub;
 
   List<IOTHub> get iothubs => _iothubs ?? const [];
+
   bool get isIOTHubCollectionEmpty => iothubs.isEmpty;
 
   //CRUD methods
-  Future<List<IOTHub>> loadAllIOTHubs() async {
-//    if(!isIOTHubCollectionEmpty){
-//      return iothubs;
-//    }
+  Future<void> loadAllIOTHubs() async {
     _iothubs = await _dbRepository.loadAllIOTHubs();
-
-    return iothubs;
   }
 
   void loadAllDevices(String iothubDocumentId) async {
@@ -36,5 +33,4 @@ class IOTHubService {
   void loadLastMeasurement(Device device) async {
 //    _deviceMeasurment = await _dbRepository.loadLastMeasurement(device);
   }
-  
 }
