@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import 'measured_property.dart';
@@ -29,15 +30,15 @@ class Device {
         created = newCreatedAt ?? DateTime.now(),
         _properties = properties ?? [];
 
-  factory Device.fromJson(Map<String, dynamic> map) {
+  factory Device.fromJson(Map<String, dynamic> map, String documentID) {
     return Device(
       map['name'] as String,
-      id: map['id'] as String,
+      id: documentID,
       description: map['description'] as String,
       model: map['model'] as String,
       vendor: map['vendor'] as String,
       typeRef: map['typeRef'] as String,
-      newCreatedAt: map['created'] as DateTime,
+      newCreatedAt: (map['created'] as Timestamp).toDate(),
     );
   }
 

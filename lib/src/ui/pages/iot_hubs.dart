@@ -11,8 +11,6 @@ import 'package:iothub/src/ui/pages/iothubs.dart';
 import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import 'iot_hub_dashboard_widget.dart';
-
 /// Show a and manage IOT hubs
 class IOTHubsMainPage extends StatelessWidget {
   @override

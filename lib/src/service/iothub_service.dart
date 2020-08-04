@@ -1,6 +1,7 @@
 import 'dart:ffi';
 
 import 'package:flutter/foundation.dart';
+import 'package:iothub/src/service/exceptions/database_exception.dart';
 
 import '../domain/entities/device.dart';
 import '../domain/entities/iothub.dart';
@@ -14,20 +15,26 @@ class IOTHubService {
   final IOTHubRepository _dbRepository;
 
   List<IOTHub> _iothubs;
+  List<Device> _devices;
 
-  IOTHub _selectedIOTHub;
+  IOTHub selectedIOTHub;
 
   List<IOTHub> get iothubs => _iothubs ?? const [];
+  List<Device> get devices => _devices ?? const [];
 
   bool get isIOTHubCollectionEmpty => iothubs.isEmpty;
+
 
   //CRUD methods
   Future<void> loadAllIOTHubs() async {
     _iothubs = await _dbRepository.loadAllIOTHubs();
   }
 
-  void loadAllDevices(String iothubDocumentId) async {
-//    _devices = await _dbRepository.loadAllDevices(iothubDocumentId);
+  Future<void> loadAllDevices() async {
+    if(selectedIOTHub == null || selectedIOTHub.id == null || selectedIOTHub.id.isEmpty){
+      throw DatabaseException('NO IOT HUb selected');
+    }
+    _devices = await _dbRepository.loadAllDevices(selectedIOTHub.id);
   }
 
   void loadLastMeasurement(Device device) async {

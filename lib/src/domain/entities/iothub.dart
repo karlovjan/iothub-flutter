@@ -16,10 +16,10 @@ class IOTHub {
         createdAt = newCreatedAt ?? DateTime.now();
 
 
-  factory IOTHub.fromJson(Map<String, dynamic> map) {
+  factory IOTHub.fromJson(Map<String, dynamic> map, String documentID) {
     return IOTHub(
       map['name'] as String,
-      id: map['id'] as String,
+      id: documentID,
       gps: map['gps'] as GeoPoint,
       newCreatedAt: (map['createdAt'] as Timestamp).toDate(),
     );

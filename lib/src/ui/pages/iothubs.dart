@@ -3,6 +3,7 @@ import 'package:iothub/src/domain/entities/iothub.dart';
 import 'package:iothub/src/service/iothub_service.dart';
 import 'package:iothub/src/service/user_state.dart';
 import 'package:iothub/src/ui/exceptions/error_handler.dart';
+import 'package:iothub/src/ui/routes/iothub_routes.dart';
 import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -11,11 +12,6 @@ class IOTHubList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.menu),
-          tooltip: 'Navigation menu',
-          onPressed: null,
-        ),
         title: Text('IOT Hubs'),
         actions: [
           IconButton(
@@ -70,6 +66,10 @@ class IOTHubList extends StatelessWidget {
               ';' +
               iotHub.gps.longitude.toString()),
           trailing: Text(iotHub.createdAt.toString()),
+          onTap: () {
+            RM.get<IOTHubService>().state.selectedIOTHub = iotHub;
+            Navigator.pushNamed(context, IOTHUBStaticPages.devices.routeName);
+          },
         ),
       ),
     );

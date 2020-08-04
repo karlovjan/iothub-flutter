@@ -28,7 +28,7 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
 
       snapshot.documents.forEach(
             (item) {
-              deviceList.add(Device.fromJson(item.data));
+              deviceList.add(Device.fromJson(item.data, item.documentID));
         },
       );
 
@@ -54,7 +54,7 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
 
       snapshot.documents.forEach(
             (item) {
-          iothubList.add(IOTHub.fromJson(item.data));
+          iothubList.add(IOTHub.fromJson(item.data, item.documentID));
         },
       );
 
