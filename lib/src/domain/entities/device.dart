@@ -14,8 +14,6 @@ class Device {
 
   final List<MeasuredProperty> _properties;
 
-  final String measurementColl = 'data';
-
   final String typeRef;
 
   Device(this.name,

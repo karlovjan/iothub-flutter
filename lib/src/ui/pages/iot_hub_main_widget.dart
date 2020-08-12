@@ -4,6 +4,7 @@ import 'package:iothub/src/data_source/auth_repository_impl.dart';
 import 'package:iothub/src/domain/entities/user.dart';
 import 'package:iothub/src/service/user_state.dart';
 import 'package:iothub/src/service/interfaces/auth_repository.dart';
+import 'package:iothub/src/ui/pages/iothub/dashboard.dart';
 import 'package:iothub/src/ui/pages/iothub/devices.dart';
 import 'package:iothub/src/ui/routes/iothub_routes.dart';
 import 'package:iothub/src/ui/routes/main_routes.dart';
@@ -44,6 +45,7 @@ class IOTHubMainWidget extends StatelessWidget {
         StaticPages.home.routeName: (context) => HomePage(),
         StaticPages.hubs.routeName: (context) => IOTHubsMainPage(),
         IOTHUBStaticPages.devices.routeName: (context) => IOTHubDeviceListPage(),
+        IOTHUBStaticPages.dashboard.routeName: (context) => IOTHubDashboardPage(),
       },
 //      home: HomeWidget(),
 //      home: IOTHubDashboard('Praha dashboard', 'Moje grafy'),

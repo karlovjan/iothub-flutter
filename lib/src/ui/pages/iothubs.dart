@@ -68,7 +68,7 @@ class IOTHubList extends StatelessWidget {
           trailing: Text(iotHub.createdAt.toString()),
           onTap: () {
             RM.get<IOTHubService>().state.selectedIOTHub = iotHub;
-            Navigator.pushNamed(context, IOTHUBStaticPages.devices.routeName);
+            Navigator.pushNamed(context, IOTHUBStaticPages.dashboard.routeName);
           },
         ),
       ),

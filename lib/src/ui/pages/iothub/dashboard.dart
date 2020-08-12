@@ -5,7 +5,7 @@ import 'package:iothub/src/ui/exceptions/error_handler.dart';
 import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class IOTHubDeviceListPage extends StatelessWidget {
+class IOTHubDashboardPage extends StatelessWidget {
 
   final service = RM.get<IOTHubService>();
 
@@ -13,7 +13,16 @@ class IOTHubDeviceListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(service.state.selectedIOTHub?.name),
+        title: Text('Dashboard - ' + service.state.selectedIOTHub?.name),
+        actions: <Widget>[
+             IconButton(
+               icon: const Icon(Icons.add_circle),
+               tooltip: 'Add device',
+               onPressed: () {
+
+               },
+             ),
+           ],
       ),
       // body is the majority of the screen.
       body: _buildBody(context),

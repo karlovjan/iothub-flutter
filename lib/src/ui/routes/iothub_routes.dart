@@ -1,7 +1,7 @@
 import 'package:iothub/src/ui/routes/main_routes.dart';
 
 enum IOTHUBStaticPages{
-  devices
+  devices, dashboard
 }
 
 extension IOTHUBStaticPageRoute on IOTHUBStaticPages {
@@ -9,6 +9,9 @@ extension IOTHUBStaticPageRoute on IOTHUBStaticPages {
     var route = StaticPages.hubs.routeName;
 
     switch(this){
+      case IOTHUBStaticPages.dashboard:
+        route += '/dashboard';
+        break;
       case IOTHUBStaticPages.devices:
         route += '/devices';
         break;
