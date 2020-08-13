@@ -33,10 +33,10 @@ class GaugeChart extends StatelessWidget {
   /// Create one series with sample hard coded data.
   static List<charts.Series<GaugeSegment, String>> _createSampleData() {
     final data = [
-      new GaugeSegment('Low', 75),
-      new GaugeSegment('Acceptable', 100),
-      new GaugeSegment('High', 50),
-      new GaugeSegment('Highly Unusual', 5),
+      GaugeSegment('Low', 75),
+      GaugeSegment('Acceptable', 100),
+      GaugeSegment('High', 50),
+      GaugeSegment('Highly Unusual', 5),
     ];
 
     return [

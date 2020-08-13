@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iothub/src/domain/entities/device.dart';
 import 'package:iothub/src/service/iothub_service.dart';
 import 'package:iothub/src/ui/exceptions/error_handler.dart';
+import 'package:iothub/src/ui/routes/iothub_routes.dart';
 import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 

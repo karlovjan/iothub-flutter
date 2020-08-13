@@ -13,15 +13,13 @@ class IOTHubList extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('IOT Hubs'),
-        actions: [
-          IconButton(
-              icon: Icon(Icons.close),
-              tooltip: 'Close IOT HUb',
-              onPressed: () => {
-                    UserState.signOut(RM.get<UserState>().state)
-                        .then((value) => Navigator.pop(context))
-                  }),
-        ],
+        leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            tooltip: 'Close IOT HUb',
+            onPressed: () => {
+              UserState.signOut(RM.get<UserState>().state)
+                  .then((value) => Navigator.pop(context))
+            }),
       ),
       // body is the majority of the screen.
       body: _buildBody(context),

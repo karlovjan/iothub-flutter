@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:iothub/src/domain/entities/device.dart';
 import 'package:iothub/src/service/iothub_service.dart';
+import 'package:iothub/src/ui/charts/gauge_chart.dart';
 import 'package:iothub/src/ui/exceptions/error_handler.dart';
+import 'package:iothub/src/ui/pages/iothub/dashboard/manager.dart';
 import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -16,10 +18,13 @@ class IOTHubDashboardPage extends StatelessWidget {
         title: Text('Dashboard - ' + service.state.selectedIOTHub?.name),
         actions: <Widget>[
              IconButton(
-               icon: const Icon(Icons.add_circle),
-               tooltip: 'Add device',
+               icon: const Icon(Icons.build),
+               tooltip: 'Manage Dashboard',
                onPressed: () {
-
+                 Navigator.push(
+                   context,
+                   MaterialPageRoute<DashboardManagerPage>(builder: (context) => DashboardManagerPage()),
+                 );
                },
              ),
            ],
@@ -32,49 +37,7 @@ class IOTHubDashboardPage extends StatelessWidget {
 
 
   Widget _buildBody(BuildContext context) {
-    return WhenRebuilderOr<IOTHubService>(
-        key: Key('IOT HUb device list screen'),
-        observe: () => service
-          ..setState(
-                (s) => s.loadAllDevices(),
-            onError: ErrorHandler.showErrorSnackBar,
-          ),
-        watch: (rm) => rm.state.devices,
-        onWaiting: () => CommonDataLoadingIndicator(),
-        builder: (context, modelRM) {
-          return _buildList(context, modelRM.state.devices);
-        });
-  }
-
-  Widget _buildList(BuildContext context, List<Device> devices) {
-    return ListView(
-      padding: const EdgeInsets.only(top: 20.0),
-      children:
-      devices.map((device) => _buildListItem(context, device)).toList(),
-    );
-  }
-
-  Widget _buildListItem(BuildContext context, Device device) {
-    return Padding(
-      key: ValueKey(device.name),
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey),
-          borderRadius: BorderRadius.circular(5.0),
-        ),
-        child: ListTile(
-          title: Text(device.name),
-          subtitle: Text(device.description +
-              ' - ' +
-              device.vendor),
-          trailing: Text(device.created.toString()),
-          onTap: () {
-            Navigator.pushNamed(context, IOTHUBStaticPages.devices.routeName);
-          },
-        ),
-      ),
-    );
+    return GaugeChart.withSampleData();
   }
 
 }
