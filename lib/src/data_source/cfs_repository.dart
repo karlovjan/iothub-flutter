@@ -64,4 +64,40 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
     }
   }
 
+  @override
+  Stream<List<Measurement>> deviceAllMeasurementStream(String iothubDocumentId, Device device) async* {
+    assert(device != null);
+    assert(iothubDocumentId != null);
+    assert(device.id != null);
+    assert(device.properties != null);
+
+    try {
+      final snapshot =
+          await _dbClient.collection('$_IOTHUB_ROOT_COLLECTION_PATH/$iothubDocumentId/devices/${device.id}/data').orderBy('createdAt', descending: true).limit(1).snapshots();
+
+      var measurementList = <Measurement>[];
+
+      await for (var deviceMeasurement in snapshot) {
+        deviceMeasurement.documents.forEach((document) {
+          device.properties.forEach((deviceMeasuredProperty) {
+            measurementList.add( Measurement.fromJson(document.data, deviceMeasuredProperty));
+          });
+
+        });
+
+        yield measurementList;
+      }
+
+      yield measurementList;
+    } catch (e) {
+      throw DatabaseException('There is a problem in Device measurement stream : $e');
+    }
+  }
+
+  @override
+  Stream<Measurement> deviceFilteredMeasurementStream(String iothubDocumentId, String deviceId, Measurement<dynamic> watchedDeviceMeasurement) {
+    // TODO: implement deviceFilteredMeasurementStream
+    throw UnimplementedError();
+  }
+
 }
