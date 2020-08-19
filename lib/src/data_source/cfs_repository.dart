@@ -88,7 +88,7 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
         yield measurementList;
       }
 
-      yield measurementList;
+//      yield measurementList;
     } catch (e) {
       throw DatabaseException('There is a problem in Device measurement stream : $e');
     }
