@@ -73,20 +73,23 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
 
     try {
       final snapshot =
-          await _dbClient.collection('$_IOTHUB_ROOT_COLLECTION_PATH/$iothubDocumentId/devices/${device.id}/data').orderBy('createdAt', descending: true).limit(1).snapshots();
+          await _dbClient.collection('$_IOTHUB_ROOT_COLLECTION_PATH/$iothubDocumentId/devices/${device.id}/data').snapshots();
 
-      var measurementList = <Measurement>[];
+      final measurementList = <Measurement>[];
 
       await for (var deviceMeasurement in snapshot) {
-        deviceMeasurement.documents.forEach((document) {
+//        deviceMeasurement.documents.forEach((document) {
+
+      final data = deviceMeasurement.documents.first.data;
+
           device.properties.forEach((deviceMeasuredProperty) {
-            measurementList.add( Measurement.fromJson(document.data, deviceMeasuredProperty));
+            measurementList.add( Measurement.fromJson(data, deviceMeasuredProperty));
           });
 
-        });
+        };
 
         yield measurementList;
-      }
+
 
 //      yield measurementList;
     } catch (e) {

@@ -40,4 +40,8 @@ class IOTHubService {
   void loadLastMeasurement(Device device) async {
 //    _deviceMeasurment = await _dbRepository.loadLastMeasurement(device);
   }
+
+  Stream<List<Measurement>> deviceAllMeasurementStream(String iothubDocumentId, Device device) {
+    return _dbRepository.deviceAllMeasurementStream(iothubDocumentId, device);
+  }
 }
