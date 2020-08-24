@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
 
 import 'measured_property.dart';
 
@@ -16,24 +17,33 @@ class Measurement<T> {
   static Measurement fromJson(
       Map<String, dynamic> data, MeasuredProperty deviceMeasuredProperty) {
     final value = '${data[deviceMeasuredProperty.name]}';
-    final dt = DateTime.parse(data['createdAt'] as String);
+    DateTime createdAt;
+    try {
+      if (data['createdAt'] is Timestamp) {
+        createdAt = (data['createdAt'] as Timestamp).toDate();
+      } else {
+        createdAt = DateFormat.yMEd().parse((data['createdAt'] as String));
+      }
+    } catch (e){
+      print(e);
+    }
 
     final intValue = int.tryParse(value);
     if (intValue != null) {
       return Measurement<int>(
           MeasuredProperty.copyOf(deviceMeasuredProperty), intValue,
-          newCreatedAt: dt);
+          newCreatedAt: createdAt);
     }
 
     final doubleValue = double.tryParse(value);
     if (doubleValue != null) {
       return Measurement<double>(
           MeasuredProperty.copyOf(deviceMeasuredProperty), doubleValue,
-          newCreatedAt: dt);
+          newCreatedAt: createdAt);
     }
 
     return Measurement<String>(
         MeasuredProperty.copyOf(deviceMeasuredProperty), value,
-        newCreatedAt: dt);
+        newCreatedAt: createdAt);
   }
 }
