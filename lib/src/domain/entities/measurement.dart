@@ -22,7 +22,8 @@ class Measurement<T> {
       if (data['createdAt'] is Timestamp) {
         createdAt = (data['createdAt'] as Timestamp).toDate();
       } else {
-        createdAt = DateFormat.yMEd().parse((data['createdAt'] as String));
+        final sDateTime = data['createdAt'] as String;
+        createdAt = DateFormat('EEE MMM d yyyy HH:mm:ss').parse(sDateTime);
       }
     } catch (e){
       print(e);

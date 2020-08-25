@@ -1,4 +1,3 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:iothub/src/domain/entities/device.dart';
@@ -6,12 +5,15 @@ import 'package:iothub/src/domain/entities/iothub.dart';
 import 'package:iothub/src/domain/entities/measurement.dart';
 import 'package:iothub/src/service/exceptions/database_exception.dart';
 import 'package:iothub/src/service/interfaces/iothub_repository.dart';
-
+import 'package:logger/logger.dart';
 
 @immutable
 class CloudFileStoreDBRepository implements IOTHubRepository {
-
   final Firestore _dbClient = Firestore.instance;
+
+  var log = Logger(
+    printer: PrettyPrinter(),
+  );
 
   //private getters
   static final String _IOTHUB_ROOT_COLLECTION_PATH = '/iothubs';
@@ -21,14 +23,15 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
     assert(iothubDocumentId != null);
 
     try {
-      final snapshot =
-          await _dbClient.collection('$_IOTHUB_ROOT_COLLECTION_PATH/$iothubDocumentId/devices').getDocuments();
+      final snapshot = await _dbClient
+          .collection('$_IOTHUB_ROOT_COLLECTION_PATH/$iothubDocumentId/devices')
+          .getDocuments();
 
       var deviceList = <Device>[];
 
       snapshot.documents.forEach(
-            (item) {
-              deviceList.add(Device.fromJson(item.data, item.documentID));
+        (item) {
+          deviceList.add(Device.fromJson(item.data, item.documentID));
         },
       );
 
@@ -47,13 +50,14 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
   @override
   Future<List<IOTHub>> loadAllIOTHubs() async {
     try {
-      final snapshot =
-          await _dbClient.collection(_IOTHUB_ROOT_COLLECTION_PATH).getDocuments();
+      final snapshot = await _dbClient
+          .collection(_IOTHUB_ROOT_COLLECTION_PATH)
+          .getDocuments();
 
       var iothubList = <IOTHub>[];
 
       snapshot.documents.forEach(
-            (item) {
+        (item) {
           iothubList.add(IOTHub.fromJson(item.data, item.documentID));
         },
       );
@@ -65,42 +69,50 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
   }
 
   @override
-  Stream<List<Measurement>> deviceAllMeasurementStream(String iothubDocumentId, Device device) async* {
+  Stream<List<Measurement>> deviceAllMeasurementStream(
+      String iothubDocumentId, Device device) async* {
     assert(device != null);
     assert(iothubDocumentId != null);
     assert(device.id != null);
     assert(device.properties != null);
 
     try {
-      final snapshot =
-          await _dbClient.collection('$_IOTHUB_ROOT_COLLECTION_PATH/$iothubDocumentId/devices/${device.id}/data').orderBy('createdAt', descending: true).limit(1).snapshots();
+      final snapshot = await _dbClient
+          .collection(
+              '$_IOTHUB_ROOT_COLLECTION_PATH/$iothubDocumentId/devices/${device.id}/data')
+          .orderBy('createdAt', descending: true)
+          .snapshots();
+
+      log.i('snapshot created..');
+
+      var streamWithoutErrors = snapshot.handleError(() => log.e('snapshot error'));
 
       final measurementList = <Measurement>[];
 
-      await for (var deviceMeasurement in snapshot) {
+      await for (var deviceMeasurement in streamWithoutErrors) {
 //        deviceMeasurement.documents.forEach((document) {
 
-      final data = deviceMeasurement.documents.first.data;
+        final data = deviceMeasurement.documents.first.data;
 
-          device.properties.forEach((deviceMeasuredProperty) {
-            measurementList.add( Measurement.fromJson(data, deviceMeasuredProperty));
-          });
-
-        };
+        device.properties.forEach((deviceMeasuredProperty) {
+          measurementList
+              .add(Measurement.fromJson(data, deviceMeasuredProperty));
+        });
 
         yield measurementList;
-
+      }
 
 //      yield measurementList;
     } catch (e) {
-      throw DatabaseException('There is a problem in Device measurement stream : $e');
+      throw DatabaseException(
+          'There is a problem in Device measurement stream : $e');
     }
   }
 
   @override
-  Stream<Measurement> deviceFilteredMeasurementStream(String iothubDocumentId, String deviceId, Measurement<dynamic> watchedDeviceMeasurement) {
+  Stream<Measurement> deviceFilteredMeasurementStream(String iothubDocumentId,
+      String deviceId, Measurement<dynamic> watchedDeviceMeasurement) {
     // TODO: implement deviceFilteredMeasurementStream
     throw UnimplementedError();
   }
-
 }
