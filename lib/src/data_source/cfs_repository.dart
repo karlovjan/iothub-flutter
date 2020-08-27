@@ -85,14 +85,13 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
 
       log.i('snapshot created..');
 
-      var streamWithoutErrors = snapshot.handleError(() => log.e('snapshot error'));
-
-      final measurementList = <Measurement>[];
+      var streamWithoutErrors = snapshot.handleError(_printError);
 
       await for (var deviceMeasurement in streamWithoutErrors) {
 //        deviceMeasurement.documents.forEach((document) {
 
         final data = deviceMeasurement.documents.first.data;
+        final measurementList = <Measurement>[];
 
         device.properties.forEach((deviceMeasuredProperty) {
           measurementList
@@ -101,8 +100,6 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
 
         yield measurementList;
       }
-
-//      yield measurementList;
     } catch (e) {
       throw DatabaseException(
           'There is a problem in Device measurement stream : $e');
@@ -114,5 +111,9 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
       String deviceId, Measurement<dynamic> watchedDeviceMeasurement) {
     // TODO: implement deviceFilteredMeasurementStream
     throw UnimplementedError();
+  }
+
+  void _printError(Error e) {
+    log.e('Stream measurement error', e);
   }
 }
