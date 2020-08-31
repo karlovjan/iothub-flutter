@@ -3,6 +3,7 @@ import 'package:iothub/src/domain/entities/device.dart';
 import 'package:iothub/src/domain/entities/measured_property.dart';
 import 'package:iothub/src/domain/entities/measurement.dart';
 import 'package:iothub/src/service/iothub_service.dart';
+import 'package:iothub/src/ui/charts/gauge_chart.dart';
 import 'package:iothub/src/ui/exceptions/error_handler.dart';
 import 'package:iothub/src/ui/pages/iothub/dashboard/manager.dart';
 import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
@@ -65,41 +66,6 @@ class IOTHubDashboardPage extends StatelessWidget {
     );
   }
 
-  /*
-  Widget _deviceGaugeChart(BuildContext context) {
-    return Injector(
-      inject: [
-        // Injecting the stream
-        Inject<List<Measurement>>.stream(
-          () => service.state.deviceAllMeasurementStream(
-              service.state.selectedIOTHub.id,
-              Device('Test teplomer',
-                  id: '1', properties: _testMeasuredPropertyList())),
-          initialValue: <Measurement>[],
-        ),
-      ],
-      builder: (context) {
-        return WhenRebuilderOr<List<Measurement>>(
-          //Create a new ReactiveModel with the stream method.
-
-          observe: () => RM.get<List<Measurement>>(),
-          onWaiting: () => CommonDataLoadingIndicator(),
-          onSetState: (context, modelRM) {
-            if (modelRM.hasError) {
-              ErrorHandler.showErrorSnackBar(context, modelRM.error);
-            }
-          },
-          builder: (context, modelRM) {
-            return Column(
-              children: _listMeasurementWidgets(modelRM.state),
-            );
-          },
-        );
-      },
-    );
-  }
-  */
-
   List<Widget> _listMeasurementWidgets(
       List<Measurement<dynamic>> measurements) {
     if (measurements.isEmpty) {
@@ -109,7 +75,11 @@ class IOTHubDashboardPage extends StatelessWidget {
     for (var measurement in measurements) {
       widgets.add(Text(
           '${measurement.property.name}: ${measurement.value} - ${measurement.createdAt}'));
+
     }
+
+    // widgets.add(GaugeChart.thermometer(chartTitle: 'TeplomerObyvak', temperature: measurements[0].value as double));
+    // widgets.add(GaugeChart.withSampleData());
 
     return widgets;
   }

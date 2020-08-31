@@ -18,6 +18,14 @@ class GaugeChart extends StatelessWidget {
     );
   }
 
+  factory GaugeChart.thermometer({String chartTitle, double temperature}) {
+    return GaugeChart(
+      _createTemperatureGaugeData(temperature),
+      // Disable animations for image tests.
+      animate: false,
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +56,23 @@ class GaugeChart extends StatelessWidget {
       )
     ];
   }
+
+  static List<charts.Series<TemperatureGaugeSegment, String>> _createTemperatureGaugeData(double temperature) {
+    final data = [
+      TemperatureGaugeSegment('Low', 18),
+      TemperatureGaugeSegment('Actual', temperature),
+      TemperatureGaugeSegment('High', 25),
+    ];
+
+    return [
+      charts.Series<TemperatureGaugeSegment, String>(
+        id: 'DeviceThermometerNameGauge',
+        domainFn: (TemperatureGaugeSegment segment, _) => segment.segment,
+        measureFn: (TemperatureGaugeSegment segment, _) => segment.temperature,
+        data: data,
+      )
+    ];
+  }
 }
 
 /// Sample data type.
@@ -56,4 +81,11 @@ class GaugeSegment {
   final int size;
 
   GaugeSegment(this.segment, this.size);
+}
+
+class TemperatureGaugeSegment {
+  final String segment;
+  final double temperature;
+
+  TemperatureGaugeSegment(this.segment, this.temperature);
 }
