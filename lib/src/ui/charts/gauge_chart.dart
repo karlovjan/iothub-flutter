@@ -7,84 +7,78 @@ class GaugeChart extends StatelessWidget {
   final List<charts.Series> seriesList;
   final bool animate;
 
+  static const double _low = 16.0;
+  static const double _high = 26.0;
+
   GaugeChart(this.seriesList, {this.animate});
 
-  /// Creates a [PieChart] with sample data and no transition.
-  factory GaugeChart.withSampleData() {
+  /// Creates a [PieChart] with temperature data and no transition.
+  factory GaugeChart.thermometer(
+      {@required String chartTitle, @required double temperature}) {
     return GaugeChart(
-      _createSampleData(),
+      _createTemperatureGaugeData(chartTitle, temperature),
       // Disable animations for image tests.
       animate: false,
     );
   }
-
-  factory GaugeChart.thermometer({String chartTitle, double temperature}) {
-    return GaugeChart(
-      _createTemperatureGaugeData(temperature),
-      // Disable animations for image tests.
-      animate: false,
-    );
-  }
-
 
   @override
   Widget build(BuildContext context) {
-    return charts.PieChart<dynamic>(seriesList,
+    return charts.PieChart<String>(seriesList,
         animate: animate,
         // Configure the width of the pie slices to 30px. The remaining space in
         // the chart will be left as a hole in the center. Adjust the start
         // angle and the arc length of the pie so it resembles a gauge.
-        defaultRenderer: charts.ArcRendererConfig<dynamic>(
-            arcWidth: 30, startAngle: 4 / 5 * pi, arcLength: 7 / 5 * pi));
+        defaultRenderer: charts.ArcRendererConfig<String>(
+            arcWidth: 50,
+            startAngle: -pi,
+            arcLength: pi,
+            arcRendererDecorators: [charts.ArcLabelDecorator()]));
   }
 
-  /// Create one series with sample hard coded data.
-  static List<charts.Series<GaugeSegment, String>> _createSampleData() {
+  static List<charts.Series<double, String>> _createTemperatureGaugeData(
+      String title, double temperature) {
     final data = [
-      GaugeSegment('Low', 75),
-      GaugeSegment('Acceptable', 100),
-      GaugeSegment('High', 50),
-      GaugeSegment('Highly Unusual', 5),
+      // TemperatureGaugeSegment('Low', 18),
+      _low - 1.0,
+      temperature,
+      _high,
+      // TemperatureGaugeSegment('High', 25),
     ];
 
     return [
-      charts.Series<GaugeSegment, String>(
-        id: 'Segments',
-        domainFn: (GaugeSegment segment, _) => segment.segment,
-        measureFn: (GaugeSegment segment, _) => segment.size,
-        data: data,
-      )
-    ];
-  }
-
-  static List<charts.Series<TemperatureGaugeSegment, String>> _createTemperatureGaugeData(double temperature) {
-    final data = [
-      TemperatureGaugeSegment('Low', 18),
-      TemperatureGaugeSegment('Actual', temperature),
-      TemperatureGaugeSegment('High', 25),
-    ];
-
-    return [
-      charts.Series<TemperatureGaugeSegment, String>(
+      charts.Series<double, String>(
         id: 'DeviceThermometerNameGauge',
-        domainFn: (TemperatureGaugeSegment segment, _) => segment.segment,
-        measureFn: (TemperatureGaugeSegment segment, _) => segment.temperature,
+        domainFn: (double temperature, _) => temperature < _low
+            ? 'Low'
+            : (temperature >= _high ? 'High' : 'Normal'),
+        measureFn: (double temperature, _) => temperature,
         data: data,
-      )
+        displayName: title ?? 'Temperature',
+        // domainLowerBoundFn: (datum, index) => 'Low',
+        // domainUpperBoundFn: (datum, index) => 'High',
+        // measureLowerBoundFn: (datum, index) => 0,
+        // measureUpperBoundFn: (datum, index) => 40,
+        labelAccessorFn: (m, _) => '${m} C',
+        // fillColorFn: (m, _) => m < _low
+        //     ? charts.ColorUtil.fromDartColor(Color.fromARGB(255, 255, 128, 0))
+        //     : (m >= _high ? charts.ColorUtil.fromDartColor(Color.fromARGB(255, 255, 0, 0)) : charts.ColorUtil.fromDartColor(Color.fromARGB(255, 0, 255, 0))),
+        colorFn: (m, _) => m < _low
+            ? charts.ColorUtil.fromDartColor(Color.fromARGB(255, 255, 128, 0))
+            : (m >= _high
+                ? charts.ColorUtil.fromDartColor(Color.fromARGB(255, 255, 0, 0))
+                : charts.ColorUtil.fromDartColor(
+                    Color.fromARGB(255, 0, 255, 0))),
+        // areaColorFn: (m, _) => m < _low
+        //     ? charts.ColorUtil.fromDartColor(Color.fromARGB(255, 255, 128, 0))
+        //     : (m >= _high ? charts.ColorUtil.fromDartColor(Color.fromARGB(255, 255, 0, 0)) : charts.ColorUtil.fromDartColor(Color.fromARGB(255, 0, 255, 0))),
+      ),
     ];
   }
-}
-
-/// Sample data type.
-class GaugeSegment {
-  final String segment;
-  final int size;
-
-  GaugeSegment(this.segment, this.size);
 }
 
 class TemperatureGaugeSegment {
-  final String segment;
+  final int segment;
   final double temperature;
 
   TemperatureGaugeSegment(this.segment, this.temperature);

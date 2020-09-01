@@ -39,6 +39,9 @@ class IOTHubDashboardPage extends StatelessWidget {
   Widget _buildDashboardBody(BuildContext context) {
 //    return GaugeChart.withSampleData();
     return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [_deviceGaugeChart(context)],
     );
   }
@@ -46,7 +49,7 @@ class IOTHubDashboardPage extends StatelessWidget {
   Widget _deviceGaugeChart(BuildContext context) {
     return WhenRebuilderOr<List<Measurement>>(
       //Create a new ReactiveModel with the stream method.
-
+//TODO selected Device from dashboard Model
       observe: () => RM.stream(service.state.deviceAllMeasurementStream(
           service.state.selectedIOTHub.id,
           Device('Test teplomer',
@@ -57,11 +60,18 @@ class IOTHubDashboardPage extends StatelessWidget {
           ErrorHandler.showErrorSnackBar(context, modelRM.error);
         }
       },
-      // onError: (error) => Center(child: Text(error.toString())),
+      onError: (error) {
+        return Center(child: Text(error.toString()));
+        },
       builder: (context, modelRM) {
-        return Column(
-          children: _listMeasurementWidgets(modelRM.snapshot.data),
-        );
+        return Flexible(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: _listMeasurementWidgets(modelRM.snapshot.data),
+              ),
+            );
       },
     );
   }
@@ -72,14 +82,22 @@ class IOTHubDashboardPage extends StatelessWidget {
       return [Text('No Device data... ')];
     }
     final widgets = <Widget>[];
-    for (var measurement in measurements) {
+    measurements.forEach((measurement) {
       widgets.add(Text(
           '${measurement.property.name}: ${measurement.value} - ${measurement.createdAt}'));
+    });
+//TODO title from device name
 
-    }
+    widgets.add(Flexible(
+      child: GaugeChart.thermometer(
+          chartTitle: 'TeplomerObyvak',
+          temperature: measurements[0].value as double),
+    ));
 
-    // widgets.add(GaugeChart.thermometer(chartTitle: 'TeplomerObyvak', temperature: measurements[0].value as double));
-    // widgets.add(GaugeChart.withSampleData());
+    // widgets.add(GaugeChart.thermometer(
+    //       chartTitle: 'TeplomerObyvak',
+    //       temperature: measurements[0].value as double),
+    // );
 
     return widgets;
   }
