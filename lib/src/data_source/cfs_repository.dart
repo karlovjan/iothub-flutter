@@ -12,7 +12,7 @@ import 'package:logger/logger.dart';
 class CloudFileStoreDBRepository implements IOTHubRepository {
   final Firestore _dbClient = Firestore.instance;
 
-  var log = Logger(
+  final log = Logger(
     printer: PrettyPrinter(),
   );
 
