@@ -12,7 +12,7 @@ void main() {
 
       expect(files.length, 13);
       expect(files[0] is NASFileItem, true);
-      expect(DateTime.fromMillisecondsSinceEpoch(files[0].lastModified as int), DateTime(2020, 1, 1, 10, 10, 10));
+      expect(files[0].lastModified, DateTime(2017, 5, 30, 10, 18, 14));
 
     });
 
@@ -22,9 +22,7 @@ void main() {
 
       final files = await httpService.retrieveDirectoryItems('/home/mbaros/Documents/scriptsXXX');
 
-      expect(files.length, 13);
-      expect(files[0] is NASFileItem, true);
-      expect(DateTime.fromMillisecondsSinceEpoch(files[0].lastModified as int), DateTime(2020, 1, 1, 10, 10, 10));
+      expect(files.length, 0);
 
     });
 
