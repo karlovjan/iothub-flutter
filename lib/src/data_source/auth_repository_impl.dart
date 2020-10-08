@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
-import '../domain/entities/user.dart';
+import '../domain/entities/user.dart' as iothub_user;
 import '../service/exceptions/auth_exception.dart';
 import '../service/interfaces/auth_repository.dart';
 
@@ -13,18 +13,18 @@ class FirebaseAuthRepository implements AuthRepository {
 
 
   @override
-  Future<User> createUserWithEmailAndPassword(String email, String password) {
+  Future<iothub_user.User> createUserWithEmailAndPassword(String email, String password) {
     throw UnimplementedError();
   }
 
   @override
-  Future<User> currentUser() async {
-    final firebaseUser = await _auth.currentUser();
+  Future<iothub_user.User> currentUser() async {
+    final firebaseUser = await _auth.currentUser;
     return _fromFireBaseUserToUser(firebaseUser);
   }
 
   @override
-  Future<User> signInWithEmailAndPassword(String email, String password) async {
+  Future<iothub_user.User> signInWithEmailAndPassword(String email, String password) async {
     try {
       final authResult = await _auth.signInWithEmailAndPassword(
         email: email,
@@ -45,11 +45,11 @@ class FirebaseAuthRepository implements AuthRepository {
     await _auth.signOut();
   }
 
-  User _fromFireBaseUserToUser(FirebaseUser user) {
+  iothub_user.User _fromFireBaseUserToUser(User user) {
     if (user == null) {
-      return User();
+      return iothub_user.User();
     }
-    return User(
+    return iothub_user.User(
         uid: user.uid, email: user.email, displayName: user.displayName);
   }
 

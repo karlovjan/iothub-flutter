@@ -9,7 +9,7 @@ import 'package:logger/logger.dart';
 
 @immutable
 class CloudFileStoreDBRepository implements IOTHubRepository {
-  final Firestore _dbClient = Firestore.instance;
+  final FirebaseFirestore _dbClient = FirebaseFirestore.instance;
 
   final log = Logger(
     printer: PrettyPrinter(),
@@ -25,13 +25,13 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
     try {
       final snapshot = await _dbClient
           .collection('$_IOTHUB_ROOT_COLLECTION_PATH/$iothubDocumentId/devices')
-          .getDocuments();
+          .get();
 
       var deviceList = <Device>[];
 
-      snapshot.documents.forEach(
+      snapshot.docs.forEach(
         (item) {
-          deviceList.add(Device.fromJson(item.data, item.documentID));
+          deviceList.add(Device.fromJson(item.data(), item.id));
         },
       );
 
@@ -52,13 +52,12 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
     try {
       var iothubList = <IOTHub>[];
 
-      final snapshot = await _dbClient
-          .collection(_IOTHUB_ROOT_COLLECTION_PATH)
-          .getDocuments();
+      final snapshot =
+          await _dbClient.collection(_IOTHUB_ROOT_COLLECTION_PATH).get();
 
-      snapshot.documents.forEach(
+      snapshot.docs.forEach(
         (item) {
-          iothubList.add(IOTHub.fromJson(item.data, item.documentID));
+          iothubList.add(IOTHub.fromJson(item.data(), item.id));
         },
       );
 
@@ -90,7 +89,7 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
       await for (var deviceMeasurement in streamWithoutErrors) {
 //        deviceMeasurement.documents.forEach((document) {
 
-        final data = deviceMeasurement.documents.first.data;
+        final data = deviceMeasurement.docs.first.data();
         final measurementList = <Measurement>[];
 
         device.properties.forEach((deviceMeasuredProperty) {
