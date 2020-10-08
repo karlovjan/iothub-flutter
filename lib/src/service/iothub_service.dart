@@ -15,6 +15,7 @@ class IOTHubService {
   List<Device> _devices;
 
   IOTHub selectedIOTHub;
+  Device selectedDevice;
 
   List<IOTHub> get iothubs => _iothubs ?? const [];
 
