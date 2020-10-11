@@ -37,6 +37,10 @@ class IOTHubService {
     _devices = await _dbRepository.loadAllDevices(selectedIOTHub.id);
   }
 
+  bool devicesLoaded() {
+    return _devices != null;
+  }
+
   void loadLastMeasurement(Device device) async {
 //    _deviceMeasurment = await _dbRepository.loadLastMeasurement(device);
   }

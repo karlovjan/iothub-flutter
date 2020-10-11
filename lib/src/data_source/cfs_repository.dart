@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:iothub/src/domain/entities/device.dart';
 import 'package:iothub/src/domain/entities/iothub.dart';
+import 'package:iothub/src/domain/entities/measured_property.dart';
 import 'package:iothub/src/domain/entities/measurement.dart';
 import 'package:iothub/src/service/exceptions/database_exception.dart';
 import 'package:iothub/src/service/interfaces/iothub_repository.dart';
@@ -82,7 +83,7 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
           .orderBy('createdAt', descending: true)
           .snapshots();
 
-      log.i('snapshot created..');
+      log.i('snapshot created for device ${device.name}');
 
       var streamWithoutErrors = snapshot.handleError(_printError);
 
@@ -92,9 +93,12 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
         final data = deviceMeasurement.docs.first.data();
         final measurementList = <Measurement>[];
 
-        device.properties.forEach((deviceMeasuredProperty) {
-          measurementList
-              .add(Measurement.fromJson(data, deviceMeasuredProperty));
+        //TODO device.properties.forEach((deviceMeasuredProperty) {
+        allDeviceMeasuredPropertyList().forEach((deviceMeasuredProperty) {
+          if (data[deviceMeasuredProperty.name] != null) {
+            measurementList
+                .add(Measurement.fromJson(data, deviceMeasuredProperty));
+          }
         });
 
         yield measurementList;
@@ -103,6 +107,19 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
       throw DatabaseException(
           'There is a problem in the device measurement stream : $e');
     }
+  }
+
+  List<MeasuredProperty> allDeviceMeasuredPropertyList() {
+    final mp1 = MeasuredProperty('temperature', 'C');
+    final mp2 = MeasuredProperty('humidity', 'X');
+    final mp3 = MeasuredProperty('pressure', 'Pa');
+    final mp4 = MeasuredProperty('battery', '%');
+    final mp5 = MeasuredProperty('linkquality', '%');
+    final mp6 = MeasuredProperty('contact', 'Boolean');
+    final mp7 = MeasuredProperty('occupancy', 'Boolean');
+    final mp8 = MeasuredProperty('leak', 'Boolean');
+
+    return [mp1, mp2, mp3, mp4, mp5, mp6, mp7, mp8];
   }
 
   @override
