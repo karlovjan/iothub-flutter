@@ -16,7 +16,7 @@ class DashboardDeviceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: ListView(
-        padding: const EdgeInsets.only(top: 20.0),
+        padding: const EdgeInsets.only(top: 10.0),
         children: devices.map((device) => _buildCard(context, device)).toList(),
       ),
     );
@@ -32,14 +32,12 @@ class DashboardDeviceCard extends StatelessWidget {
           title: Text(device.name),
           subtitle: Text(device.description + ' - ' + device.vendor),
         ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: _deviceGaugeChart(context, device),
-        ),
+        _deviceGaugeChart(context, device),
       ]),
     );
   }
 
+  /*
   Widget _deviceGaugeChart(BuildContext context, Device device) {
     return WhenRebuilderOr<List<Measurement>>(
       //Create a new ReactiveModel with the stream method.
@@ -58,11 +56,37 @@ class DashboardDeviceCard extends StatelessWidget {
         return Center(child: Text(error.toString()));
       },
       builder: (context, modelRM) {
-        return Flexible(
+        return Container(
+          padding: EdgeInsets.all(10),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
+            children: _listMeasurementWidgets(modelRM.snapshot.data),
+          ),
+        );
+      },
+    );
+  }
+*/
+
+  Widget _deviceGaugeChart(BuildContext context, Device device) {
+    return WhenRebuilderOr<List<Measurement>>(
+      //Create a new ReactiveModel with the stream method.
+
+      observe: () => RM.future(
+        iotHubService.state.loadLastMeasurement(iotHubService.state.selectedIOTHub.id, device),
+      ),
+      onWaiting: () => CommonDataLoadingIndicator(),
+      onSetState: (context, modelRM) {
+        if (modelRM.hasError) {
+          ErrorHandler.showErrorSnackBar(context, modelRM.error);
+        }
+      },
+      onError: (error) {
+        return Center(child: Text(error.toString()));
+      },
+      builder: (context, modelRM) {
+        return Container(
+          padding: EdgeInsets.all(10),
+          child: Column(
             children: _listMeasurementWidgets(modelRM.snapshot.data),
           ),
         );
@@ -70,8 +94,7 @@ class DashboardDeviceCard extends StatelessWidget {
     );
   }
 
-  List<Widget> _listMeasurementWidgets(
-      List<Measurement<dynamic>> measurements) {
+  List<Widget> _listMeasurementWidgets(List<Measurement<dynamic>> measurements) {
     if (measurements.isEmpty) {
       return [Text('No Device data... ')];
     }

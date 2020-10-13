@@ -29,9 +29,7 @@ class IOTHubService {
   }
 
   Future<void> loadAllDevices() async {
-    if (selectedIOTHub == null ||
-        selectedIOTHub.id == null ||
-        selectedIOTHub.id.isEmpty) {
+    if (selectedIOTHub == null || selectedIOTHub.id == null || selectedIOTHub.id.isEmpty) {
       throw DatabaseException('NO IOT HUb selected');
     }
     _devices = await _dbRepository.loadAllDevices(selectedIOTHub.id);
@@ -41,12 +39,11 @@ class IOTHubService {
     return _devices != null;
   }
 
-  void loadLastMeasurement(Device device) async {
-//    _deviceMeasurment = await _dbRepository.loadLastMeasurement(device);
+  Future<List<Measurement>> loadLastMeasurement(String iothubId, Device device) async {
+    return await _dbRepository.loadLastMeasurement(iothubId, device);
   }
 
-  Stream<List<Measurement>> deviceAllMeasurementStream(
-      String iothubDocumentId, Device device) {
+  Stream<List<Measurement>> deviceAllMeasurementStream(String iothubDocumentId, Device device) {
     return _dbRepository.deviceAllMeasurementStream(iothubDocumentId, device);
   }
 }

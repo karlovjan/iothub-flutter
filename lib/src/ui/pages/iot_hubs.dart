@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:iothub/src/data_source/auth_repository_impl.dart';
@@ -7,6 +8,7 @@ import 'package:iothub/src/service/interfaces/auth_repository.dart';
 import 'package:iothub/src/service/interfaces/iothub_repository.dart';
 import 'package:iothub/src/service/iothub_service.dart';
 import 'package:iothub/src/service/user_state.dart';
+import 'package:iothub/src/ui/exceptions/error_handler.dart';
 import 'package:iothub/src/ui/pages/iothubs.dart';
 import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -28,23 +30,37 @@ class IOTHubsMainPage extends StatelessWidget {
                   if (user.signedUser.uid != null) {
                     return user;
                   }
-                  return UserState.signInWithEmailAndPassword(
-                      user, 'karlovjan@gmail.com', 'Flutter753123');
+                  return UserState.signInWithEmailAndPassword(user, 'karlovjan@gmail.com', 'Flutter753123');
                 });
               }),
           dispose: (_, userState) => UserState.signOut(userState.state),
           onWaiting: () => CommonDataLoadingIndicator(),
           builder: (context, authStateRM) =>
-              authStateRM.state.signedUser.uid != null
-                  ? IOTHubList()
-                  : Text('User was not signing in'));
+              authStateRM.state.signedUser.uid != null ? IOTHubList() : Text('User was not signing in'));
+    }
+
+    Widget _initializeFirebaseWidget(BuildContext context) {
+      return WhenRebuilderOr<FirebaseApp>(
+          observe: () => RM.future(
+                Firebase.initializeApp(),
+              ),
+          onWaiting: () => CommonDataLoadingIndicator(),
+          onSetState: (context, modelRM) {
+            if (modelRM.hasError) {
+              ErrorHandler.showErrorSnackBar(context, modelRM.error);
+            }
+          },
+          onError: (error) {
+            return Center(child: Text(error.toString()));
+          },
+          builder: (context, __) => _createMainWidget(context));
     }
 
     Widget _createMainWidgetTemplate(BuildContext context) {
       return Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(
-          child: _createMainWidget(context),
+        body: Container(
+          // child: _createMainWidget(context),
+          child: _initializeFirebaseWidget(context),
         ),
       );
     }

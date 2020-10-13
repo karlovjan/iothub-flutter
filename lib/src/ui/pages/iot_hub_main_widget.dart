@@ -24,7 +24,7 @@ class IOTHubMainWidget extends StatelessWidget {
 
     return MaterialApp(
       title: 'IOT hub',
-      theme: ThemeData(
+      theme: ThemeData.dark(
         // This is the theme of your application.
         //
         // Try running your application with "flutter run". You'll see the
@@ -34,11 +34,12 @@ class IOTHubMainWidget extends StatelessWidget {
         // or simply save your changes to "hot reload" in a Flutter IDE).
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
-        primarySwatch: Colors.blue,
+        // primarySwatch: Colors.blue,
         // This makes the visual density adapt to the platform that you run
         // the app on. For desktop platforms, the controls will be smaller and
         // closer together (more dense) than on mobile platforms.
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+        // visualDensity: VisualDensity.adaptivePlatformDensity,
+
       ),
       initialRoute: StaticPages.home.routeName,
       routes: {
