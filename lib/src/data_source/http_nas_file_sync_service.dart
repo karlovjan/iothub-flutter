@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:iothub/src/domain/entities/nas_file_item.dart';
+import 'package:iothub/src/domain/value_objects/sync_folder_result.dart';
+import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
 
 class HTTPNASFileSyncService implements NASFileSyncService {
@@ -16,6 +18,12 @@ class HTTPNASFileSyncService implements NASFileSyncService {
 
   @override
   Future<List<NASFileItem>> retrieveDirectoryItems(String folderPath) async {
+
+    if(folderPath == null){
+      print('folder is not set');
+      throw NASFileException('Empty folder path');
+    }
+
     try {
       var response = await http.post('http://127.0.0.1:5001/folderItems',
           body: 'path=${folderPath}',
@@ -38,16 +46,18 @@ class HTTPNASFileSyncService implements NASFileSyncService {
         // then throw an exception.
         // throw Exception('Failed to load NASFileItem list');
         print(response.body);
+        throw NASFileException('Failed to load NASFileItem list - Http code: ${response.statusCode}');
       }
     } catch (err) {
       print('Caught error: $err');
+      throw NASFileException('Empty folder path');
     }
 
     return await Future.sync(() => List<NASFileItem>.empty());
   }
 
   @override
-  Future<void> syncFolderWithNAS(String localFolderPath, String nasFolderPath) {
+  Future<SyncFolderResult> syncFolderWithNAS(String localFolderPath, String nasFolderPath) {
     // TODO: implement syncFolderWithNAS
     throw UnimplementedError();
   }
