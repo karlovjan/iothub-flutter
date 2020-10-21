@@ -5,23 +5,30 @@ import 'package:iothub/src/domain/value_objects/sync_folder_result.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
 
 class NASFileSyncState {
-  final NASFileSyncService _fileSyncService;
+  final NASFileSyncService _remoteFileTransferService;
 
-  NASFileSyncState(this._fileSyncService);
+  NASFileSyncState(this._remoteFileTransferService);
 
-  Future<List<NASFileItem>> retrieveDirectoryItems(String folderPath) async {
-    return await _fileSyncService.retrieveDirectoryItems(folderPath);
+  Future<List<NASFileItem>> retrieveRemoteDirectoryItems(String folderPath) async {
+    return await _remoteFileTransferService.retrieveDirectoryItems(folderPath);
   }
 
   Future<SyncFolderResult> syncFolderWithNAS(String localFolderPath, String nasFolderPath) async {
-    return await _fileSyncService.syncFolderWithNAS(localFolderPath, nasFolderPath);
+    assert(nasFolderPath != null);
+    assert(localFolderPath != null);
+
+    final targetFolderFileList = await retrieveRemoteDirectoryItems(nasFolderPath);
+    final fileToTransferList = await getFilesForSynchronization(targetFolderFileList, localFolderPath);
+
+    await _remoteFileTransferService.syncFolderWithNAS(fileToTransferList, nasFolderPath);
+
+    return SyncFolderResult(sourceFolderPath: localFolderPath, targetFolderPath: nasFolderPath, transferredFileCount: fileToTransferList.length);
   }
 
   Future<List<File>> getFilesForSynchronization(List<NASFileItem> allTargetFolderFiles, String localFolder,
       {bool includeUpdatedFiles = false, bool recursive = false}) async {
     assert(allTargetFolderFiles != null);
     assert(localFolder != null);
-    assert(allTargetFolderFiles.isNotEmpty);
 
     final localDir = Directory(localFolder);
 
