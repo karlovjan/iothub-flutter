@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:iothub/src/domain/entities/nas_file_item.dart';
-import 'package:iothub/src/domain/value_objects/sync_folder_result.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
 
 class NASFileSyncState {
@@ -13,16 +12,18 @@ class NASFileSyncState {
     return await _remoteFileTransferService.retrieveDirectoryItems(folderPath);
   }
 
-  Future<SyncFolderResult> syncFolderWithNAS(String localFolderPath, String nasFolderPath) async {
+  Stream<NASFileItem> syncFolderWithNAS(String localFolderPath, String nasFolderPath) async* {
     assert(nasFolderPath != null);
     assert(localFolderPath != null);
 
     final targetFolderFileList = await retrieveRemoteDirectoryItems(nasFolderPath);
     final fileToTransferList = await getFilesForSynchronization(targetFolderFileList, localFolderPath);
 
-    await _remoteFileTransferService.syncFolderWithNAS(fileToTransferList, nasFolderPath);
+    await for (NASFileItem sentFile in _remoteFileTransferService.sendFiles(fileToTransferList, nasFolderPath)) {
+      yield sentFile;
+    }
 
-    return SyncFolderResult(sourceFolderPath: localFolderPath, targetFolderPath: nasFolderPath, transferredFileCount: fileToTransferList.length);
+    // return SyncFolderResult(sourceFolderPath: localFolderPath, targetFolderPath: nasFolderPath, transferredFileCount: fileToTransferList.length);
   }
 
   Future<List<File>> getFilesForSynchronization(List<NASFileItem> allTargetFolderFiles, String localFolder,
