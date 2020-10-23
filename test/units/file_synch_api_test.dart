@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iothub/src/data_source/http_nas_file_sync_service.dart';
 import 'package:iothub/src/domain/entities/nas_file_item.dart';
-import 'package:iothub/src/domain/value_objects/sync_folder_result.dart';
 import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/nas_file_sync_state.dart';
 import 'package:mockito/mockito.dart';
@@ -57,26 +56,24 @@ void main() {
       expect(files[0].fileName, 'file1.txt');
     });
 
-    test('nas target folder not set', () {
+    test('nas target folder not set', () async {
       final client = NASFileSyncServiceMockClient();
       final httpService = NASFileSyncState(client);
 
-      when(client.retrieveDirectoryItems(null)).thenAnswer((_) => Future.sync(
-            () => throw NASFileException('test'),
-          ));
+      when(client.retrieveDirectoryItems(argThat(isNull))).thenAnswer((_) async => throw NASFileException('null'));
+      // when(client.retrieveDirectoryItems(argThat(isNull))).thenThrow(NASFileException('null'));
 
-      expect(httpService.retrieveRemoteDirectoryItems(null), throwsA(NASFileException));
+      expect(httpService.retrieveRemoteDirectoryItems(null), throwsA(isA<NASFileException>()));
     });
 
     test('nas target folder does not exist', () {
       final client = NASFileSyncServiceMockClient();
       final httpService = NASFileSyncState(client);
 
-      when(client.retrieveDirectoryItems('xxxFolder')).thenAnswer((_) => Future.sync(
-            () => throw NASFileException('test'),
-          ));
+      when(client.retrieveDirectoryItems(argThat(isNotNull)))
+          .thenAnswer((_) async => throw NASFileException('wrong file'));
 
-      expect(httpService.retrieveRemoteDirectoryItems('xxxFolder'), throwsA(NASFileException));
+      expect(httpService.retrieveRemoteDirectoryItems('xxxFolder'), throwsA(isA<NASFileException>()));
     });
   });
 
@@ -129,7 +126,6 @@ void main() {
   });
 
   group('send file to the nas server', () {
-
     final localFolder = 'test/resources/local';
     final nasFolder = 'test/resources/nas';
 
@@ -137,6 +133,7 @@ void main() {
       // Creates dir/ and dir/subdir/.
       // new Directory('dir/subdir').create(recursive: true)
 
+      //local
       var myFile = File('${localFolder}/file1.txt');
       await myFile.create(recursive: true);
       myFile = File('${localFolder}/file2.txt');
@@ -146,9 +143,9 @@ void main() {
       myFile = File('${localFolder}/file4.txt');
       await myFile.create();
 
+      //nas
       myFile = File('${nasFolder}/file4.txt');
       await myFile.create(recursive: true);
-
     });
 
     tearDown(() async {
@@ -157,40 +154,70 @@ void main() {
     });
 
     test('transfer file to the target location from local', () async {
-
       final client = NASFileSyncServiceMockClient();
       final httpService = NASFileSyncState(client);
 
-      final responseListNasFolder = [
-        NASFileItem('file4.txt', DateTime.now())
+      final responseListNasFolder = [NASFileItem('file4.txt', DateTime.now())];
+
+      // final responseSync = SyncFolderResult(sourceFolderPath: localFolder, targetFolderPath: nasFolder, transferredFileCount: 4);
+
+      when(client.retrieveDirectoryItems(nasFolder)).thenAnswer((_) => Future.delayed(
+            Duration(seconds: 1),
+            () => responseListNasFolder,
+          ));
+
+      final transferredFiles = [
+        NASFileItem('file1.txt', DateTime.now()),
+        NASFileItem('file2.txt', DateTime.now()),
+        NASFileItem('file3.txt', DateTime.now())
       ];
 
-      final responseSync = SyncFolderResult(sourceFolderPath: localFolder, targetFolderPath: nasFolder, transferredFileCount: 4);
+      when(client.sendFiles(argThat(isNotEmpty), nasFolder)).thenAnswer((_) => Stream.fromIterable(transferredFiles));
 
-      when(client.retrieveDirectoryItems(nasFolder))
-          .thenAnswer((_) => Future.delayed(
-        Duration(seconds: 1),
-            () => responseListNasFolder,
-      ));
+      final syncResultStream = await httpService.syncFolderWithNAS(localFolder, nasFolder);
 
+      expect(syncResultStream, emitsInOrder(transferredFiles));
 
-      when(client.syncFolderWithNAS(localFolder, nasFolder))
-          .thenAnswer((_) => Future.delayed(
-        Duration(seconds: 1),
-            () => responseSync,
-      ));
-
-      final result = await httpService.syncFolderWithNAS(localFolder, nasFolder);
-
-      expect(result.sourceFolderPath, localFolder);
-      expect(result.targetFolderPath, nasFolder);
-      expect(result.transferredFileCount, 3);
-
+      /*
+      //tady nedelam kopirovani na lokale ale testuju odesilani dat na Nas server
       final filesToTransfer = await httpService.getFilesForSynchronization(List.empty(), localFolder);
 
       expect(filesToTransfer.length, 4);
       expect(filesToTransfer[0].path, '${localFolder}/file3.txt');
 
+       */
+    });
+
+    test('nothing to transfer', () async {
+      final client = NASFileSyncServiceMockClient();
+      final httpService = NASFileSyncState(client);
+
+      final responseListNasFolder = [
+        NASFileItem('file1.txt', DateTime.now()),
+        NASFileItem('file2.txt', DateTime.now()),
+        NASFileItem('file3.txt', DateTime.now()),
+        NASFileItem('file4.txt', DateTime.now())
+      ];
+
+      when(client.retrieveDirectoryItems(nasFolder)).thenAnswer((_) => Future.delayed(
+            Duration(seconds: 1),
+            () => responseListNasFolder,
+          ));
+
+      when(client.sendFiles(argThat(isEmpty), nasFolder)).thenAnswer((_) => Stream.empty());
+
+      final syncResultStream = await httpService.syncFolderWithNAS(localFolder, nasFolder);
+
+      expect(syncResultStream, emitsInOrder([emitsDone]));
+
+      /*
+      //tady nedelam kopirovani na lokale ale testuju odesilani dat na Nas server
+      final filesToTransfer = await httpService.getFilesForSynchronization(List.empty(), localFolder);
+
+      expect(filesToTransfer.length, 4);
+      expect(filesToTransfer[0].path, '${localFolder}/file3.txt');
+
+       */
     });
   });
 }

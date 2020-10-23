@@ -49,8 +49,6 @@ class HTTPNASFileSyncService implements NASFileSyncService {
       print('Caught error: $err');
       throw NASFileException('Empty folder path');
     }
-
-    return await Future.sync(() => List<NASFileItem>.empty());
   }
 
   @override
@@ -62,15 +60,16 @@ class HTTPNASFileSyncService implements NASFileSyncService {
 
     if (transferringFileList.isEmpty) {
       print('there is no transferring files');
-      return;
+      //vraci  Stream . empty(), listener of the stream get only onDone event
+      return; //Stream generator is quit, Stream is not activated, Stream is not sending any items.
     }
 
     final client = http.Client();
     try {
-      transferringFileList.forEach((file) async {
+      transferringFileList.forEach((file) async* {
         final multipartFile = await http.MultipartFile.fromPath('file', transferringFileList.first.path);
 
-        var request = http.MultipartRequest('POST', Uri.parse('http://127.0.0.1:5001/folderItems'))
+        var request = http.MultipartRequest('POST', Uri.parse('http://127.0.0.1:5001/upload'))
           ..fields['dest'] = nasFolderPath
           ..files.add(multipartFile);
 
@@ -83,7 +82,7 @@ class HTTPNASFileSyncService implements NASFileSyncService {
         }
 
         if (response.statusCode == 200) {
-          return NASFileItem(file.path, DateTime.now());
+          yield NASFileItem(file.path, DateTime.now());
         } else {
           // If the server did not return a 200 OK response,
           // then throw an exception.

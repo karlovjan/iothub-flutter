@@ -23,7 +23,6 @@ class NASFileSyncState {
       yield sentFile;
     }
 
-    // return SyncFolderResult(sourceFolderPath: localFolderPath, targetFolderPath: nasFolderPath, transferredFileCount: fileToTransferList.length);
   }
 
   Future<List<File>> getFilesForSynchronization(List<NASFileItem> allTargetFolderFiles, String localFolder,
