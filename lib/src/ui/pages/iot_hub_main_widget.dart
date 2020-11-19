@@ -6,6 +6,7 @@ import 'package:iothub/src/service/user_state.dart';
 import 'package:iothub/src/service/interfaces/auth_repository.dart';
 import 'package:iothub/src/ui/pages/iothub/dashboard.dart';
 import 'package:iothub/src/ui/pages/iothub/devices.dart';
+import 'package:iothub/src/ui/pages/nas/nas_sync_page.dart';
 import 'package:iothub/src/ui/routes/iothub_routes.dart';
 import 'package:iothub/src/ui/routes/main_routes.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -45,6 +46,7 @@ class IOTHubMainWidget extends StatelessWidget {
       routes: {
         StaticPages.home.routeName: (context) => HomePage(),
         StaticPages.hubs.routeName: (context) => IOTHubsMainPage(),
+        StaticPages.nasSync.routeName: (context) => NASSyncMainPage(),
         IOTHUBStaticPages.devices.routeName: (context) => IOTHubDeviceListPage(),
         IOTHUBStaticPages.dashboard.routeName: (context) => IOTHubDashboardPage(),
       },

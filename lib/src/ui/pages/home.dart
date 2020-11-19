@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iothub/src/ui/routes/main_routes.dart';
+import 'package:iothub/src/ui/widgets/tile_navigation_button.dart';
 
 class HomePage extends StatelessWidget {
   @override
@@ -9,14 +10,14 @@ class HomePage extends StatelessWidget {
         title: Text('Home page'),
       ),
       // body is the majority of the screen.
-      body: Column(
+      body: GridView.extent(
+        maxCrossAxisExtent: 100,
+        crossAxisSpacing: 4.0,
+        mainAxisSpacing: 4.0,
+        padding: const EdgeInsets.all(4.0),
         children: [
-          FlatButton(
-            onPressed: () {
-              Navigator.pushNamed(context, StaticPages.hubs.routeName);
-            },
-            child: Text('IOT hub'),
-          )
+          TileNavigationButton(routeName: StaticPages.hubs.routeName, title: 'IOT Hub'),
+          TileNavigationButton(routeName: StaticPages.nasSync.routeName, title: 'NAS Sync'),
         ],
       ),
     );
