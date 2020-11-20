@@ -3,20 +3,17 @@ enum StaticPages { home, hubs, nasSync }
 extension StaticPageRoute on StaticPages {
   String get routeName {
     const defaultRoute = '/';
-    var route = defaultRoute;
 
     switch (this) {
       case StaticPages.home:
-        route = defaultRoute;
-        break;
+        return defaultRoute;
       case StaticPages.hubs:
-        route = '/hubs';
-        break;
+        return '/hubs';
       case StaticPages.nasSync:
-        route = '/nasSync';
-        break;
+        return '/nasSync';
+      default:
+        return defaultRoute;
     }
 
-    return route;
   }
 }
