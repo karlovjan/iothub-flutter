@@ -98,11 +98,22 @@ class DashboardDeviceCard extends StatelessWidget {
     if (measurements.isEmpty) {
       return [Text('No Device data... ')];
     }
+
     final widgets = <Widget>[];
-    widgets.add(Text('${measurements[0].createdAt}'));
-    measurements.forEach((measurement) {
-      widgets.add(Text('${measurement.property.name}: ${measurement.value}'));
-    });
+    widgets.add(Text(
+      '${measurements[0].createdAt}',
+      style: TextStyle(fontWeight: FontWeight.bold),
+    ));
+
+    final termometer = measurements.where((element) => element.property.name == 'temperature').take(1).isNotEmpty;
+
+    if (termometer) {
+      widgets.addAll(_temperatureSensorDashboardWidget(measurements));
+    } else {
+      measurements.forEach((measurement) {
+        widgets.add(_commonSensorDashboardWidget(measurement));
+      });
+    }
 
     // widgets.add(Flexible(
     //   child: GaugeChart.thermometer(
@@ -115,5 +126,79 @@ class DashboardDeviceCard extends StatelessWidget {
     // );
 
     return widgets;
+  }
+
+  Widget _commonSensorDashboardWidget(final Measurement<dynamic> measurement) {
+    return Text.rich(
+      TextSpan(
+        text: '${measurement.property.name}:    ',
+        children: <TextSpan>[
+          TextSpan(
+            text: '${measurement.value}',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _temperatureSensorDashboardWidget(final List<Measurement<dynamic>> measurements) {
+    assert(measurements != null);
+    assert(measurements.isNotEmpty);
+
+    Measurement<dynamic> temperature;
+    Measurement<dynamic> humidity;
+    Measurement<dynamic> pressure;
+
+    var otherMeasurments = <Measurement<dynamic>>[];
+
+    measurements.forEach((measurement) {
+      if (measurement.property.name == 'temperature') {
+        temperature = measurement;
+      } else if (measurement.property.name == 'humidity') {
+        humidity = measurement;
+      } else if (measurement.property.name == 'pressure') {
+        pressure = measurement;
+      } else {
+        otherMeasurments.add(measurement);
+      }
+    });
+
+    final widgets = <Widget>[];
+    widgets.add(
+      Row(
+        children: [
+          _termometerMeasurementWidget(temperature, Colors.deepOrange),
+          if (humidity != null) _termometerMeasurementWidget(humidity, Colors.green),
+          if (pressure != null) _termometerMeasurementWidget(pressure, Colors.blue),
+        ],
+      ),
+    );
+
+    otherMeasurments.forEach((measurement) {
+      widgets.add(_commonSensorDashboardWidget(measurement));
+    });
+
+    return widgets;
+  }
+
+  Widget _termometerMeasurementWidget(final Measurement<dynamic> measurement, final MaterialColor color) {
+    return Text.rich(
+      TextSpan(
+        text: '${measurement.property.name}\n',
+        style: TextStyle(
+          fontSize: 14,
+        ),
+        children: <TextSpan>[
+          TextSpan(
+            text: '${measurement.value}',
+            style: TextStyle(
+              fontSize: 16,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
