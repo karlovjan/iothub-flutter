@@ -150,7 +150,7 @@ class DashboardDeviceCard extends StatelessWidget {
     Measurement<dynamic> humidity;
     Measurement<dynamic> pressure;
 
-    var otherMeasurments = <Measurement<dynamic>>[];
+    var otherMeasurements = <Measurement<dynamic>>[];
 
     measurements.forEach((measurement) {
       if (measurement.property.name == 'temperature') {
@@ -160,13 +160,15 @@ class DashboardDeviceCard extends StatelessWidget {
       } else if (measurement.property.name == 'pressure') {
         pressure = measurement;
       } else {
-        otherMeasurments.add(measurement);
+        otherMeasurements.add(measurement);
       }
     });
 
     final widgets = <Widget>[];
     widgets.add(
       Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        verticalDirection: VerticalDirection.down,
         children: [
           _termometerMeasurementWidget(temperature, Colors.deepOrange),
           if (humidity != null) _termometerMeasurementWidget(humidity, Colors.green),
@@ -175,7 +177,7 @@ class DashboardDeviceCard extends StatelessWidget {
       ),
     );
 
-    otherMeasurments.forEach((measurement) {
+    otherMeasurements.forEach((measurement) {
       widgets.add(_commonSensorDashboardWidget(measurement));
     });
 
@@ -195,6 +197,7 @@ class DashboardDeviceCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               color: color,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],
