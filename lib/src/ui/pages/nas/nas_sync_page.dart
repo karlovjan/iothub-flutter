@@ -1,5 +1,7 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 //  https://github.com/GIfatahTH/states_rebuilder/tree/master/examples/ex_009_1_3_ca_todo_mvc_with_state_persistence
 //https://flutter.dev/docs/cookbook/forms
@@ -22,16 +24,63 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
 
   // String _localFolder;
 
+  String _extension;
+  bool _multiPick = false;
+  FileType _pickingType = FileType.any;
+
   @override
   void dispose() {
     _localFolderPathTextFieldController.dispose();
+    _clearCachedFiles();
     super.dispose();
   }
 
   void _selectFolder() {
-    FilePicker.platform.getDirectoryPath().then((value) {
-      setState(() => _localFolderPathTextFieldController.text = value);
+    if (kIsWeb) {
+      _openFileExplorer();
+    } else {
+      FilePicker.platform.getDirectoryPath().then((value) {
+        setState(() => _localFolderPathTextFieldController.text = value);
+      });
+    }
+  }
+
+  void _openFileExplorer() async {
+    List<PlatformFile> paths;
+    try {
+      paths = (await FilePicker.platform.pickFiles(
+        type: _pickingType,
+        allowMultiple: _multiPick,
+        allowedExtensions: (_extension?.isNotEmpty ?? false) ? _extension?.replaceAll(' ', '')?.split(',') : null,
+      ))
+          ?.files;
+    } on PlatformException catch (e) {
+      print('Unsupported operation' + e.toString());
+    } catch (ex) {
+      print(ex);
+    }
+    if (!mounted) return;
+    setState(() {
+      // _loadingPath = false;
+      _localFolderPathTextFieldController.text = paths != null ? paths.map((e) => e.name).toString() : '...';
     });
+  }
+
+  void _clearCachedFiles() {
+    if (kIsWeb) {
+      return; //not implemented on Web
+    }
+
+    FilePicker.platform.clearTemporaryFiles().then(
+      (result) {
+        if (result) {
+          print('Temporary files removed with success.');
+        } else {
+          print('Temporary files was not removed.');
+        }
+      },
+      onError: (e) => print('Failed to clean temporary files ${e.toString()}'),
+    );
   }
 
   @override
@@ -67,10 +116,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
               ),
               Row(
                 children: [
-                  SizedBox(
-                    width: 400,
+                  Expanded(
                     child: TextFormField(
-                      //TODO open file manager to select a folder
                       key: Key('__LocalFolderField'),
                       // initialValue: '',
                       style: Theme.of(context).textTheme.headline5,
@@ -85,7 +132,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                   ElevatedButton(
                     onPressed: () => _selectFolder(),
                     child: Text('Pick local folder'),
-                  )
+                  ),
                 ],
               ),
               Padding(
