@@ -2,10 +2,20 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:iothub/src/data_source/http_nas_file_sync_service.dart';
+import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
+import 'package:iothub/src/service/nas_file_sync_state.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 //  https://github.com/GIfatahTH/states_rebuilder/tree/master/examples/ex_009_1_3_ca_todo_mvc_with_state_persistence
 //https://flutter.dev/docs/cookbook/forms
 //https://github.com/miguelpruivo/flutter_file_picker/blob/master/example/lib/src/file_picker_demo.dart
+
+//Although foo is global, the state is not.
+//The state is automatically cleaned when no longer used.
+//The state is easily mocked and tested
+final nasFileSyncState =
+    RM.inject(() => NASFileSyncState(RM.inject<NASFileSyncService>(() => HTTPNASFileSyncService()).state));
 
 ///Class showing a page for setting a NAS folder
 class NASSyncMainPage extends StatefulWidget {
@@ -25,8 +35,9 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   // String _localFolder;
 
   String _extension;
-  bool _multiPick = false;
+  bool _multiPick = true;
   FileType _pickingType = FileType.any;
+  List<PlatformFile> _paths;
 
   @override
   void dispose() {
@@ -46,9 +57,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   }
 
   void _openFileExplorer() async {
-    List<PlatformFile> paths;
     try {
-      paths = (await FilePicker.platform.pickFiles(
+      _paths = (await FilePicker.platform.pickFiles(
         type: _pickingType,
         allowMultiple: _multiPick,
         allowedExtensions: (_extension?.isNotEmpty ?? false) ? _extension?.replaceAll(' ', '')?.split(',') : null,
@@ -62,7 +72,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
     if (!mounted) return;
     setState(() {
       // _loadingPath = false;
-      _localFolderPathTextFieldController.text = paths != null ? paths.map((e) => e.name).toString() : '...';
+      _localFolderPathTextFieldController.text = _paths != null ? _paths.map((e) => e.name).toString() : '...';
     });
   }
 
@@ -138,16 +148,26 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     final form = _formKey.currentState;
                     if (form.validate()) {
                       form.save();
-                      //TODO call synch service
-                      //use local variables _nasFolder a _localFolder
+
+                      final transferedFileStream = nasFileSyncState.state
+                          .syncFolderWithNAS(_localFolderPathTextFieldController.value.text, _nasFolder);
+
+                      await for (var transferedFile in transferedFileStream) {
+                        await nasFileSyncState.setState((s) => s.transferedFile = transferedFile.fileName);
+                      }
                     }
                   },
                   child: Text('Synchronize'),
                 ),
+              ),
+              nasFileSyncState.whenRebuilderOr(
+                onIdle: () => Text('No transferred file'),
+                onError: (e) => Text('error : $e'),
+                builder: () => Text(nasFileSyncState.state.transferedFile ?? '...'),
               ),
             ],
           ),

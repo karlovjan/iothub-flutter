@@ -8,8 +8,9 @@ import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
 
 class HTTPNASFileSyncService implements NASFileSyncService {
-  // A function that converts a response body into a List<Photo>.
-  List<NASFileItem> parseNASFileItems(String responseBody) {
+
+  /// A function that converts a response body into a List<NASFileItem>.
+  List<NASFileItem> _parseNASFileItems(String responseBody) {
     final parsed = jsonDecode(responseBody) as List;
 
     return parsed.map<NASFileItem>((json) => NASFileItem.fromJson(json)).toList();
@@ -35,7 +36,7 @@ class HTTPNASFileSyncService implements NASFileSyncService {
         // then parse the JSON.
 
         // Use the compute function to run parsePhotos in a separate isolate.
-        return compute(parseNASFileItems, response.body);
+        return compute(_parseNASFileItems, response.body);
         // return parseNASFileItems(response.body);
         // return Album.fromJson(json.decode(response.body));
       } else {

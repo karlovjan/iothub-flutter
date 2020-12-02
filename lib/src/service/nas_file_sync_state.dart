@@ -8,6 +8,8 @@ class NASFileSyncState {
 
   NASFileSyncState(this._remoteFileTransferService);
 
+  String transferedFile = '';
+
   Future<List<NASFileItem>> retrieveRemoteDirectoryItems(String folderPath) async {
     return await _remoteFileTransferService.retrieveDirectoryItems(folderPath);
   }
