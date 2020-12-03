@@ -3,8 +3,10 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iothub/src/data_source/http_nas_file_sync_service.dart';
+import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
 import 'package:iothub/src/service/nas_file_sync_state.dart';
+import 'package:iothub/src/ui/exceptions/error_handler.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 //  https://github.com/GIfatahTH/states_rebuilder/tree/master/examples/ex_009_1_3_ca_todo_mvc_with_state_persistence
@@ -27,7 +29,7 @@ class NASSyncMainPage extends StatefulWidget {
 
 class _SyncPathEditFormState extends State<NASSyncMainPage> {
   final _formKey = GlobalKey<FormState>();
-  final _localFolderPathTextFieldController = TextEditingController();
+  final _localFolderPathTextFieldController = TextEditingController(text: '/home/mbaros/Pictures/Prukaz');
 
   // Here we use a StatefulWidget to hold local fields _nasFolder and _localFolder
   String _nasFolder;
@@ -47,13 +49,9 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   }
 
   void _selectFolder() {
-    if (kIsWeb) {
-      _openFileExplorer();
-    } else {
-      FilePicker.platform.getDirectoryPath().then((value) {
-        setState(() => _localFolderPathTextFieldController.text = value);
-      });
-    }
+    FilePicker.platform.getDirectoryPath().then((value) {
+      setState(() => _localFolderPathTextFieldController.text = value);
+    });
   }
 
   void _openFileExplorer() async {
@@ -114,7 +112,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
             children: [
               TextFormField(
                 key: Key('__NASFolderField'),
-                initialValue: 'public/photos/miron/phonePhotos',
+                initialValue: '/home/mbaros/Pictures/test',
+                // initialValue: 'public/photos/miron/phonePhotos',
                 //public/photos/miron/phoneVideos
                 //public/photos/miron/whatsapp/2020_photos
                 //public/photos/miron/whatsapp/2020_video
@@ -129,7 +128,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                   Expanded(
                     child: TextFormField(
                       key: Key('__LocalFolderField'),
-                      // initialValue: '',
+                      // initialValue: '', nesmi byt nastaven kdyz se pouzije controller
                       style: Theme.of(context).textTheme.headline5,
                       decoration: InputDecoration(
                         hintText: 'Enter local folder',
@@ -140,7 +139,14 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: () => _selectFolder(),
+                    onPressed: () {
+                      if (!kIsWeb) {
+                        _selectFolder();
+                      } else {
+                        ErrorHandler.showErrorDialog(context, NASFileException('Opening a folder is not allowed on the Web!'));
+                      }
+
+                      },
                     child: Text('Pick local folder'),
                   ),
                 ],
@@ -153,11 +159,18 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                     if (form.validate()) {
                       form.save();
 
-                      final transferedFileStream = nasFileSyncState.state
-                          .syncFolderWithNAS(_localFolderPathTextFieldController.value.text, _nasFolder);
+                      nasFileSyncState.state.initSync();
 
-                      await for (var transferedFile in transferedFileStream) {
-                        await nasFileSyncState.setState((s) => s.transferedFile = transferedFile.fileName);
+                      try {
+                        final transferedFileStream = nasFileSyncState.state
+                            .syncFolderWithNAS(_localFolderPathTextFieldController.value.text, _nasFolder);
+
+                        await for (var transferedFile in transferedFileStream) {
+                          await nasFileSyncState.setState((s) => s.transferedFile = transferedFile.fileName);
+                        }
+                      } catch (e) {
+
+                        ErrorHandler.showErrorDialog(context, e);
                       }
                     }
                   },

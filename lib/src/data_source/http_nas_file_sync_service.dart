@@ -23,9 +23,13 @@ class HTTPNASFileSyncService implements NASFileSyncService {
       throw NASFileException('Empty folder path');
     }
 
+    const nasURL = 'http://127.0.0.1:5001/folderItems';
+
+    final bodyToSend = 'path=${folderPath}';
     try {
-      var response = await http.post('http://127.0.0.1:5001/folderItems',
-          body: 'path=${folderPath}', headers: {'Content-Type': 'application/x-www-form-urlencoded'});
+      var response = await http.post(nasURL,
+          body: bodyToSend, headers: {'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Length': bodyToSend.length.toString()});
 
       // body='path=${folderPath}', headers={'Content-Type' = 'application/x-www-form-urlencoded'}
       // request.headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -37,7 +41,7 @@ class HTTPNASFileSyncService implements NASFileSyncService {
 
         // Use the compute function to run parsePhotos in a separate isolate.
         return compute(_parseNASFileItems, response.body);
-        // return parseNASFileItems(response.body);
+        // return _parseNASFileItems(response.body);
         // return Album.fromJson(json.decode(response.body));
       } else {
         // If the server did not return a 200 OK response,
@@ -48,7 +52,7 @@ class HTTPNASFileSyncService implements NASFileSyncService {
       }
     } catch (err) {
       print('Caught error: $err');
-      throw NASFileException('Empty folder path');
+      throw NASFileException('Connection to the ${nasURL} : ${err}');
     }
   }
 

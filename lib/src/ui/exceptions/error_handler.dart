@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
+
 import '../../service/exceptions/auth_exception.dart';
 import '../../service/exceptions/database_exception.dart';
 
@@ -17,8 +19,11 @@ class ErrorHandler {
     if (error is AuthorizationException) {
       return error.message;
     }
+    if (error is NASFileException) {
+      return error.message;
+    }
 
-    throw (error);
+    return 'Unknown error';
   }
 
   static void showErrorSnackBar(BuildContext context, dynamic error) {
