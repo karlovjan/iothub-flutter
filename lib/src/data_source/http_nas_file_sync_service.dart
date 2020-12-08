@@ -8,13 +8,15 @@ import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
 
 class HTTPNASFileSyncService implements NASFileSyncService {
-
   /// A function that converts a response body into a List<NASFileItem>.
   List<NASFileItem> _parseNASFileItems(String responseBody) {
     final parsed = jsonDecode(responseBody) as List;
 
     return parsed.map<NASFileItem>((json) => NASFileItem.fromJson(json)).toList();
   }
+
+  //https://en.wikipedia.org/wiki/Cross-site_request_forgery
+  //https://dev.to/matheusguimaraes/fast-way-to-enable-cors-in-flask-servers-42p0
 
   @override
   Future<List<NASFileItem>> retrieveDirectoryItems(String folderPath) async {
@@ -23,13 +25,11 @@ class HTTPNASFileSyncService implements NASFileSyncService {
       throw NASFileException('Empty folder path');
     }
 
-    const nasURL = 'http://127.0.0.1:5001/folderItems';
+    final requestUrl = Uri.http('127.0.0.1:5001', '/folderItems'); // 'http://127.0.0.1:5001/folderItems';
 
-    final bodyToSend = 'path=${folderPath}';
+    // final bodyToSend = 'path=${folderPath}';
     try {
-      var response = await http.post(nasURL,
-          body: bodyToSend, headers: {'Content-Type': 'application/x-www-form-urlencoded',
-          'Content-Length': bodyToSend.length.toString()});
+      var response = await http.post(requestUrl, body: {'path': folderPath});
 
       // body='path=${folderPath}', headers={'Content-Type' = 'application/x-www-form-urlencoded'}
       // request.headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -52,7 +52,7 @@ class HTTPNASFileSyncService implements NASFileSyncService {
       }
     } catch (err) {
       print('Caught error: $err');
-      throw NASFileException('Connection to the ${nasURL} : ${err}');
+      throw NASFileException('Connection to the ${requestUrl} : ${err}');
     }
   }
 

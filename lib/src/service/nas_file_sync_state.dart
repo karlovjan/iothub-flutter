@@ -5,9 +5,7 @@ import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
 import 'package:logger/logger.dart';
 
-
 class NASFileSyncState {
-
   final _log = Logger(
     printer: PrettyPrinter(),
   );
@@ -19,7 +17,7 @@ class NASFileSyncState {
   bool _synchronizing = false;
   String transferedFile = '';
 
-  void initSync(){
+  void initSync() {
     _synchronizing = false;
   }
 
@@ -31,31 +29,24 @@ class NASFileSyncState {
     assert(nasFolderPath != null);
     assert(localFolderPath != null);
 
-    if(_synchronizing){
+    if (_synchronizing) {
       _synchronizing = false;
       throw NASFileException('Synchronization is already running!');
     }
 
-    try {
-      
-      final targetFolderFileList = await retrieveRemoteDirectoryItems(nasFolderPath);
-      final fileToTransferList = await getFilesForSynchronization(targetFolderFileList, localFolderPath);
+    final targetFolderFileList = await retrieveRemoteDirectoryItems(nasFolderPath);
+    final fileToTransferList = await getFilesForSynchronization(targetFolderFileList, localFolderPath);
 
-    
-      await for (NASFileItem sentFile in _remoteFileTransferService.sendFiles(fileToTransferList, nasFolderPath)) {
-        if (_synchronizing) {
-          yield sentFile;
-        } else {
-          _log.i('Synchronization was aborted');
-        }
+    await for (NASFileItem sentFile in _remoteFileTransferService.sendFiles(fileToTransferList, nasFolderPath)) {
+      if (_synchronizing) {
+        yield sentFile;
+      } else {
+        _log.i('Synchronization was aborted');
+        throw NASFileException('Synchronization was aborted!');
       }
-    } catch (e) {
-      
-      _log.e('Synchronization failed...', e);
     }
 
     _synchronizing = false;
-    
   }
 
   Future<List<File>> getFilesForSynchronization(List<NASFileItem> allTargetFolderFiles, String localFolder,
