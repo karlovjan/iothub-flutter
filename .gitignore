@@ -31,7 +31,7 @@ web/firebase-config.js
 .pub-cache/
 .pub/
 /build/
-/assets/
+/assets/certs/
 /web/assets/certs/
 
 # Web related
