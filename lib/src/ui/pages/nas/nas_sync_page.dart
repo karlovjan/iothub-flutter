@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:iothub/src/data_source/http_dio_nas_file_sync_service.dart';
 import 'package:iothub/src/data_source/http_nas_file_sync_service.dart';
 import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
@@ -16,8 +17,11 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 //Although foo is global, the state is not.
 //The state is automatically cleaned when no longer used.
 //The state is easily mocked and tested
+
+//TODO prevest do konfigurace, staci jen staticke - a zavisle na prostredi - devel, test, produkce - nas.local:8443
 final nasFileSyncState =
-    RM.inject(() => NASFileSyncState(RM.inject<NASFileSyncService>(() => HTTPNASFileSyncService()).state));
+    // RM.inject(() => NASFileSyncState(RM.inject<NASFileSyncService>(() => HTTPNASFileSyncService('smbrest.home')).state));
+    RM.inject(() => NASFileSyncState(RM.inject<NASFileSyncService>(() => DIOHTTPNASFileSyncService('smbrest.home')).state));
 
 ///Class showing a page for setting a NAS folder
 class NASSyncMainPage extends StatefulWidget {
@@ -29,7 +33,7 @@ class NASSyncMainPage extends StatefulWidget {
 
 class _SyncPathEditFormState extends State<NASSyncMainPage> {
   final _formKey = GlobalKey<FormState>();
-  final _localFolderPathTextFieldController = TextEditingController(text: '/home/mbaros/Pictures/Prukaz');
+  final _localFolderPathTextFieldController = TextEditingController();
 
   // Here we use a StatefulWidget to hold local fields _nasFolder and _localFolder
   String _nasFolder;
@@ -103,7 +107,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
         padding: EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          autovalidate: false,
+          autovalidateMode: AutovalidateMode.always,
           onWillPop: () {
             return Future(() => true);
           },
@@ -112,11 +116,12 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
             children: [
               TextFormField(
                 key: Key('__NASFolderField'),
-                initialValue: '/home/mbaros/Pictures/test',
-                // initialValue: 'public/photos/miron/phonePhotos',
-                //public/photos/miron/phoneVideos
-                //public/photos/miron/whatsapp/2020_photos
-                //public/photos/miron/whatsapp/2020_video
+                // initialValue: '/home/mbaros/Pictures/test',
+                initialValue: 'films',
+                // initialValue: 'photos/miron/phonePhotos/2020',
+                //photos/miron/phoneVideos
+                //photos/miron/whatsapp/2020_photos
+                //photos/miron/whatsapp/2020_video
                 autofocus: false,
                 style: Theme.of(context).textTheme.headline5,
                 decoration: InputDecoration(hintText: 'Enter NAS folder'),

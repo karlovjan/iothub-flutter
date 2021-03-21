@@ -18,8 +18,7 @@ import 'iot_hubs.dart';
 class IOTHubMainWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    //uncomment the following line to consol log Widget rebuild
-    RM.debugWidgetsRebuild;
+
     //uncomment this line to consol log and see the notification timeline
     RM.debugPrintActiveRM = true;
 
@@ -42,9 +41,12 @@ class IOTHubMainWidget extends StatelessWidget {
         // visualDensity: VisualDensity.adaptivePlatformDensity,
 
       ),
+      // To navigate and show snackBars without the BuildContext, we define
+      // the navigator key
+      navigatorKey: RM.navigate.navigatorKey,
       initialRoute: StaticPages.home.routeName,
       routes: {
-        StaticPages.home.routeName: (context) => HomePage(),
+        StaticPages.home.routeName: (context) => const HomePage(),
         StaticPages.hubs.routeName: (context) => IOTHubsMainPage(),
         StaticPages.nasSync.routeName: (context) => const NASSyncMainPage(),
         IOTHUBStaticPages.devices.routeName: (context) => IOTHubDeviceListPage(),

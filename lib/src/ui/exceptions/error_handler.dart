@@ -27,8 +27,8 @@ class ErrorHandler {
   }
 
   static void showErrorSnackBar(BuildContext context, dynamic error) {
-    Scaffold.of(context).hideCurrentSnackBar();
-    Scaffold.of(context).showSnackBar(
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: <Widget>[

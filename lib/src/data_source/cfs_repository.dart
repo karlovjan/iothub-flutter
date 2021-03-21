@@ -17,7 +17,7 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
   );
 
   //private getters
-  static final String _IOTHUB_ROOT_COLLECTION_PATH = '/iothubs';
+  static const String _IOTHUB_ROOT_COLLECTION_PATH = '/iothubs';
 
   @override
   Future<List<Device>> loadAllDevices(String iotHubId) async {

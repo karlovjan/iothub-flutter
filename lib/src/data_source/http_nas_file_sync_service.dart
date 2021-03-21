@@ -1,13 +1,62 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:iothub/src/domain/entities/nas_file_item.dart';
 import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'dart:convert';
 
 class HTTPNASFileSyncService implements NASFileSyncService {
+  HTTPNASFileSyncService(String serverName) : _serverName = serverName;
+
+  final String  _serverName;
+  SecurityContext _securityContext;
+
+
+  static Future<ByteData> loadCACert() async {
+    //public certificate of CA
+    return await rootBundle.load('assets/certs/ca.crt');
+  }
+
+  static Future<ByteData> loadPKCS12() async {
+    //client a kew and certificate package
+    // return await rootBundle.load('assets/certs/iothubclient.p12');
+    return await rootBundle.load('assets/certs/smbresthomeclient.p12');
+  }
+
+
+  static Future<SecurityContext> createSecurityContext() async {
+    // final sc = SecurityContext(withTrustedRoots: true);
+    final sc = SecurityContext();
+
+
+    try {
+
+      final cacertBytes = await loadCACert();
+      sc.setTrustedCertificatesBytes(cacertBytes.buffer.asUint8List(cacertBytes.offsetInBytes, cacertBytes.lengthInBytes));
+
+      // sc.setTrustedCertificates('assets/certs/ca.crt');
+      final p12 = await loadPKCS12();
+      sc.setClientAuthoritiesBytes(p12.buffer.asUint8List(p12.offsetInBytes, p12.lengthInBytes));
+
+      // sc.setClientAuthorities('assets/certs/smbresthomeclient.p12');
+
+    } catch (err) {
+      print('Caught error: $err');
+      throw NASFileException('load certificates error: ${err}' );
+    }
+
+    return sc;
+  }
+
+  Future<SecurityContext> get _get_security_Context async {
+    return _securityContext ??= await createSecurityContext();
+  }
+
   /// A function that converts a response body into a List<NASFileItem>.
   List<NASFileItem> _parseNASFileItems(String responseBody) {
     final parsed = jsonDecode(responseBody) as List;
@@ -25,11 +74,27 @@ class HTTPNASFileSyncService implements NASFileSyncService {
       throw NASFileException('Empty folder path');
     }
 
-    final requestUrl = Uri.http('127.0.0.1:5001', '/folderItems'); // 'http://127.0.0.1:5001/folderItems';
+    final sc = await _get_security_Context;
 
-    // final bodyToSend = 'path=${folderPath}';
+    final client = HttpClient(context: sc);
+    
+    
+    // final requestUrl = Uri.http('nas.local:8443', '/folderItems');
+    final requestUrl = Uri.https(_serverName, '/folderItems');
+
+    final bodyToSend = 'path=${folderPath}';
     try {
-      var response = await http.post(requestUrl, body: {'path': folderPath});
+
+      await client.postUrl(requestUrl)
+          .then((HttpClientRequest request) {
+        
+            request.write(bodyToSend);
+
+        return request.close();
+      }).then((HttpClientResponse response) async {
+
+
+      // var response = await http.post(requestUrl, body: {'path': folderPath});
 
       // body='path=${folderPath}', headers={'Content-Type' = 'application/x-www-form-urlencoded'}
       // request.headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -40,19 +105,21 @@ class HTTPNASFileSyncService implements NASFileSyncService {
         // then parse the JSON.
 
         // Use the compute function to run parsePhotos in a separate isolate.
-        return compute(_parseNASFileItems, response.body);
-        // return _parseNASFileItems(response.body);
+        return compute(_parseNASFileItems, await response.transform(utf8.decoder).join());
+        // return _parseNASFileItems(await response.transform(utf8.decoder).join());
         // return Album.fromJson(json.decode(response.body));
       } else {
         // If the server did not return a 200 OK response,
         // then throw an exception.
         // throw Exception('Failed to load NASFileItem list');
-        print(response.body);
+        print(await response.transform(utf8.decoder).join());
         throw NASFileException('Failed to load NASFileItem list - Http code: ${response.statusCode}');
       }
+
+      });
     } catch (err) {
       print('Caught error: $err');
-      throw NASFileException('Connection to the ${requestUrl} : ${err}');
+      throw NASFileException('Connection to the ${requestUrl} : ${err}' );
     }
   }
 
@@ -69,12 +136,13 @@ class HTTPNASFileSyncService implements NASFileSyncService {
       return; //Stream generator is quit, Stream is not activated, Stream is not sending any items.
     }
 
+    final requestUrl = Uri.https(_serverName, '/upload');
     final client = http.Client();
     try {
       transferringFileList.forEach((file) async* {
         final multipartFile = await http.MultipartFile.fromPath('file', transferringFileList.first.path);
 
-        var request = http.MultipartRequest('POST', Uri.parse('http://127.0.0.1:5001/upload'))
+        var request = http.MultipartRequest('POST', requestUrl)
           ..fields['dest'] = nasFolderPath
           ..files.add(multipartFile);
 
@@ -104,4 +172,5 @@ class HTTPNASFileSyncService implements NASFileSyncService {
       client.close();
     }
   }
+
 }
