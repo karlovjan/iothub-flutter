@@ -107,7 +107,7 @@ void main() {
 
       final sourceFolder = 'test/resources/local';
 
-      final filesToTransfer = await httpService.getFilesForSynchronization(targetFiles, sourceFolder);
+      final filesToTransfer = await httpService.getFilesForSynchronization(targetFiles, sourceFolder, FileTypeForSync.doc);
 
       expect(filesToTransfer.length, 2);
       expect(filesToTransfer[0] is File, true);

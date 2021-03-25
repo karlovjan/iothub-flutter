@@ -1,9 +1,13 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:iothub/src/domain/entities/nas_file_item.dart';
 import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
 import 'package:logger/logger.dart';
+import 'package:path/path.dart' as path;
+
+enum FileTypeForSync { image, video, doc }
 
 class NASFileSyncState {
   final _log = Logger(
@@ -12,49 +16,51 @@ class NASFileSyncState {
 
   final NASFileSyncService _remoteFileTransferService;
 
+  //TODO make const constructor
   NASFileSyncState(this._remoteFileTransferService);
 
-  bool _synchronizing = false;
-  String transferedFile = '';
+  // bool _synchronizing = false;
+
+  List<File> transferringFileList = <File>[];
 
   void initSync() {
-    _synchronizing = false;
+    // _synchronizing = false;
   }
 
   Future<List<NASFileItem>> retrieveRemoteDirectoryItems(String folderPath) async {
     return await _remoteFileTransferService.retrieveDirectoryItems(folderPath);
   }
 
-  Stream<NASFileItem> syncFolderWithNAS(String localFolderPath, String nasFolderPath) async* {
+  Stream<NASFileItem> syncFolderWithNAS(List<NASFileItem> allTargetFolderFiles, String nasFolderPath) async* {
+    assert(allTargetFolderFiles != null);
+    assert(nasFolderPath != null);
+
+    // if (_synchronizing) {
+    //   _synchronizing = false;
+    //   throw NASFileException('Synchronization is already running!');
+    // }
+
+
+    await for (NASFileItem sentFile in _remoteFileTransferService.sendFiles(transferringFileList, nasFolderPath)) {
+      // if (_synchronizing) {
+        yield sentFile;
+      // } else {
+      //   _log.i('Synchronization was aborted');
+      //   throw NASFileException('Synchronization was aborted!');
+      // }
+    }
+
+    // _synchronizing = false;
+  }
+
+  Future<List<File>> getFilesForSynchronization(String localFolderPath, String nasFolderPath, FileTypeForSync fileType,
+      {bool includeUpdatedFiles = false, bool recursive = false}) async {
     assert(nasFolderPath != null);
     assert(localFolderPath != null);
 
-    if (_synchronizing) {
-      _synchronizing = false;
-      throw NASFileException('Synchronization is already running!');
-    }
+    final allTargetFolderFiles = await retrieveRemoteDirectoryItems(nasFolderPath);
 
-    final targetFolderFileList = await retrieveRemoteDirectoryItems(nasFolderPath);
-    final fileToTransferList = await getFilesForSynchronization(targetFolderFileList, localFolderPath);
-
-    await for (NASFileItem sentFile in _remoteFileTransferService.sendFiles(fileToTransferList, nasFolderPath)) {
-      if (_synchronizing) {
-        yield sentFile;
-      } else {
-        _log.i('Synchronization was aborted');
-        throw NASFileException('Synchronization was aborted!');
-      }
-    }
-
-    _synchronizing = false;
-  }
-
-  Future<List<File>> getFilesForSynchronization(List<NASFileItem> allTargetFolderFiles, String localFolder,
-      {bool includeUpdatedFiles = false, bool recursive = false}) async {
-    assert(allTargetFolderFiles != null);
-    assert(localFolder != null);
-
-    final localDir = Directory(localFolder);
+    final localDir = Directory(localFolderPath);
 
     final entityList = localDir.list(recursive: true, followLinks: false);
 
@@ -63,11 +69,13 @@ class NASFileSyncState {
     final streamWithoutErrors = entityList.handleError(_onListingFileError);
 
     await for (FileSystemEntity entity in streamWithoutErrors) {
-      var fileType = await FileSystemEntity.type(entity.path);
-      if (!recursive && fileType == FileSystemEntityType.file) {
-        if (!_isFileInNasList(entity.path, allTargetFolderFiles)) {
-          resultFiles.add(File(entity.path));
-        }
+      if(filterFileByType(entity, fileType)) {
+          var fileType = await FileSystemEntity.type(entity.path);
+          if (!recursive && fileType == FileSystemEntityType.file) {
+            if (!_isFileInNasList(entity.path, allTargetFolderFiles)) {
+              resultFiles.add(File(entity.path));
+            }
+          }
       }
       //TODO implemnts recurcive and file updated
     }
@@ -78,11 +86,31 @@ class NASFileSyncState {
   void _onListingFileError(Object error, StackTrace stackTrace) {
     print('Caught error: $error');
   }
+
+  bool _isFileInNasList(String filePath, List<NASFileItem> nasFiles) {
+    return nasFiles
+        .firstWhere((element) => filePath.endsWith(element.fileName), orElse: () => NASFileItem('', null))
+        .fileName
+        .isNotEmpty;
+  }
+
+  bool filterFileByType(FileSystemEntity entity, FileTypeForSync type) {
+    switch (type) {
+      case FileTypeForSync.image:
+        return ['.jpg', '.JPG'].contains(path.extension(entity.path));
+      case FileTypeForSync.video:
+        return ['.mp4', '.avi', '.mpeg'].contains(path.extension(entity.path));
+      case FileTypeForSync.doc:
+        return ['.txt', '.doc', '.pdf'].contains(path.extension(entity.path));
+      default:
+        throw NASFileException('Unknown file type!');
+    }
+  }
+
+  void removeFileFromList(File imgFile) {
+    transferringFileList.remove(imgFile);
+    transferringFileList = List<File>.of(transferringFileList);
+  }
 }
 
-bool _isFileInNasList(String filePath, List<NASFileItem> nasFiles) {
-  return nasFiles
-      .firstWhere((element) => filePath.endsWith(element.fileName), orElse: () => NASFileItem('', null))
-      .fileName
-      .isNotEmpty;
-}
+

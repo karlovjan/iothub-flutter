@@ -15,7 +15,7 @@ class HomePage extends StatelessWidget {
       ),
       // body is the majority of the screen.
       body: GridView.extent(
-        maxCrossAxisExtent: 100,
+        maxCrossAxisExtent: 120.0,
         crossAxisSpacing: 4.0,
         mainAxisSpacing: 4.0,
         padding: const EdgeInsets.all(4.0),
