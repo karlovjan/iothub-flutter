@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:http/http.dart' as http;
 import 'package:iothub/src/domain/entities/nas_file_item.dart';
 import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
@@ -69,25 +68,25 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
     // final requestUrl = Uri.http('nas.local:8443', '/folderItems');
     final requestUrl = Uri.https(_serverName, '/folderItems');
 
+    //Instance level
+    client.options.contentType = Headers.formUrlEncodedContentType;
+    client.options.responseType = ResponseType.json;
+
+    (client.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client) {
+      final httpClient = HttpClient(context: sc);
+      httpClient.badCertificateCallback = (X509Certificate cert, String host, int port) {
+        if (host == _serverName) {
+          // Verify the certificate
+          return true; // allow self-signed certificate in development only!!!
+        }
+        print('Bad certification for host ${host} and port ${port}');
+        return false;
+      };
+      return httpClient;
+    };
+
     // final bodyToSend = 'path=${folderPath}';
     try {
-      //Instance level
-      client.options.contentType = Headers.formUrlEncodedContentType;
-      client.options.responseType = ResponseType.json;
-
-      (client.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client) {
-        final httpClient = HttpClient(context: sc);
-        httpClient.badCertificateCallback = (X509Certificate cert, String host, int port) {
-          if (host == _serverName) {
-            // Verify the certificate
-            return true; // allow self-signed certificate in development only!!!
-          }
-          print('Bad certification for host ${host} and port ${port}');
-          return false;
-        };
-        return httpClient;
-      };
-
 //or works once
       final response = await client.postUri(requestUrl, data: {'path': folderPath});
 
@@ -104,7 +103,15 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
     } catch (err) {
       print('Caught error: $err');
       throw NASFileException('Connection to the ${requestUrl} : ${err}');
+    } finally {
+      client.close();
     }
+  }
+
+  Future<FormData> _createFormData(String filePath) async {
+    return FormData.fromMap({
+      'file': await MultipartFile.fromFile(filePath),
+    });
   }
 
   @override
@@ -120,40 +127,61 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
       return; //Stream generator is quit, Stream is not activated, Stream is not sending any items.
     }
 
+    final sc = await get_security_Context;
+
+    final client = Dio();
+
+    // (client.transformer as DefaultTransformer).jsonDecodeCallback = _parseJsonInIsolation;
+
+    // final requestUrl = Uri.http('nas.local:8443', '/folderItems');
     final requestUrl = Uri.https(_serverName, '/upload');
-    final client = http.Client();
+
+    (client.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client) {
+      return HttpClient(context: sc);
+    };
+
     try {
       transferringFileList.forEach((file) async* {
-        final multipartFile = await http.MultipartFile.fromPath('file', transferringFileList.first.path);
-
-        var request = http.MultipartRequest('POST', requestUrl)
-          ..fields['dest'] = nasFolderPath
-          ..files.add(multipartFile);
-
-        var response;
         try {
-          response = await client.send(request);
+          final response = await client.postUri(
+            requestUrl,
+            data: await _createFormData(file.path),
+          );
+
+          if (response.statusCode == 200) {
+            yield NASFileItem(file.path, DateTime.now());
+          } else {
+            // If the server did not return a 200 OK response,
+            // then throw an exception.
+            // throw Exception('Failed to load NASFileItem list');
+            final errorJson = response.data;
+
+            print(errorJson);
+
+            throw NASFileException(
+                'Failed to send file ${file.path} - Http code: ${response.statusCode} - error: ${errorJson}');
+          }
         } catch (err) {
           print('Caught error: $err');
           throw NASFileException('Empty folder path');
         }
-
-        if (response.statusCode == 200) {
-          yield NASFileItem(file.path, DateTime.now());
-        } else {
-          // If the server did not return a 200 OK response,
-          // then throw an exception.
-          // throw Exception('Failed to load NASFileItem list');
-          final errorJson = await response.stream.bytesToString();
-
-          print(errorJson);
-
-          throw NASFileException(
-              'Failed to send file ${file.path} - Http code: ${response.statusCode} - error: ${errorJson}');
-        }
       });
     } finally {
-      client.close();
+      client?.close();
     }
   }
+
+  /*
+  Future<Response> sendFile(String url, File file) async {
+  Dio dio = new Dio();
+  var len = await file.length();
+  var response = await dio.post(url,
+      data: file.openRead(),
+      options: Options(headers: {
+        Headers.contentLengthHeader: len,
+      } // set content-length
+          ));
+  return response;
+}
+   */
 }

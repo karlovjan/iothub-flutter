@@ -41,7 +41,10 @@ class ErrorHandler {
     );
   }
 
-  static void showErrorDialog(BuildContext context, dynamic error) {
+  static void showErrorDialog(BuildContext context, dynamic error, [bool dismissView = false]) {
+    if (dismissView) {
+      Navigator.of(context).pop();
+    }
     showDialog<AlertDialog>(
       context: context,
       builder: (context) {

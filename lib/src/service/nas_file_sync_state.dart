@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:iothub/src/domain/entities/nas_file_item.dart';
 import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
@@ -40,10 +39,9 @@ class NASFileSyncState {
     //   throw NASFileException('Synchronization is already running!');
     // }
 
-
     await for (NASFileItem sentFile in _remoteFileTransferService.sendFiles(transferringFileList, nasFolderPath)) {
       // if (_synchronizing) {
-        yield sentFile;
+      yield sentFile;
       // } else {
       //   _log.i('Synchronization was aborted');
       //   throw NASFileException('Synchronization was aborted!');
@@ -53,12 +51,14 @@ class NASFileSyncState {
     // _synchronizing = false;
   }
 
-  Future<List<File>> getFilesForSynchronization(String localFolderPath, String nasFolderPath, FileTypeForSync fileType,
+  Future<List<File>> getFilesForSynchronization(
+      String localFolderPath, String nasFolderPath, FileTypeForSync fileTypeForSync, DateTime dateFrom,
       {bool includeUpdatedFiles = false, bool recursive = false}) async {
     assert(nasFolderPath != null);
     assert(localFolderPath != null);
 
-    final allTargetFolderFiles = await retrieveRemoteDirectoryItems(nasFolderPath);
+    // throw NASFileException("message test");
+    // final allTargetFolderFiles = await retrieveRemoteDirectoryItems(nasFolderPath);
 
     final localDir = Directory(localFolderPath);
 
@@ -69,14 +69,17 @@ class NASFileSyncState {
     final streamWithoutErrors = entityList.handleError(_onListingFileError);
 
     await for (FileSystemEntity entity in streamWithoutErrors) {
-      if(filterFileByType(entity, fileType)) {
-          var fileType = await FileSystemEntity.type(entity.path);
-          if (!recursive && fileType == FileSystemEntityType.file) {
-            if (!_isFileInNasList(entity.path, allTargetFolderFiles)) {
-              resultFiles.add(File(entity.path));
-            }
-          }
+      final fileType = await FileSystemEntity.type(entity.path);
+      final isNewerThan = await isDateNewerThen(entity, dateFrom);
+      if (!recursive &&
+          fileType == FileSystemEntityType.file &&
+          filterFileByType(entity, fileTypeForSync) &&
+          isNewerThan) {
+        // if (!_isFileInNasList(entity.path, allTargetFolderFiles)) {
+        resultFiles.add(File(entity.path));
+        // }
       }
+
       //TODO implemnts recurcive and file updated
     }
 
@@ -111,6 +114,18 @@ class NASFileSyncState {
     transferringFileList.remove(imgFile);
     transferringFileList = List<File>.of(transferringFileList);
   }
+
+  Future<bool> isDateNewerThen(FileSystemEntity entity, [DateTime dateFrom]) async {
+    final fileStat = await entity.stat();
+
+    dateFrom ??= DateTime.now().subtract(const Duration(days: 1));
+
+    var modified = fileStat.modified;
+    modified ??= fileStat.changed;
+
+    final modifiedDate = DateTime(modified.year, modified.month, modified.day);
+    final dataOnlyFrom = (DateTime(dateFrom.year, dateFrom.month, dateFrom.day));
+
+    return modifiedDate.isAtSameMomentAs(dataOnlyFrom) || modifiedDate.isAfter(dataOnlyFrom);
+  }
 }
-
-

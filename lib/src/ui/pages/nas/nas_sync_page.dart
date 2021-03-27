@@ -40,6 +40,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   final _formKey = GlobalKey<FormState>();
   final _localFolderPathTextFieldController = TextEditingController();
   var _fileTypeForSync = FileTypeForSync.image;
+  var _selectedDate = DateTime.now();
 
   // Here we use a StatefulWidget to hold local fields _nasFolder and _localFolder
   String _nasFolder;
@@ -114,9 +115,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              height: 260,
-            child: Form(
+            Form(
               key: _formKey,
               autovalidateMode: AutovalidateMode.always,
               onWillPop: () {
@@ -125,20 +124,6 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextFormField(
-                    key: Key('__NASFolderField'),
-                    // initialValue: '/home/mbaros/Pictures/test',
-                    // initialValue: 'films',
-                    initialValue: 'photos/miron/phonePhotos/2020',
-                    //photos/miron/phoneVideos
-                    //photos/miron/whatsapp/2020_photos
-                    //photos/miron/whatsapp/2020_video
-                    autofocus: false,
-                    style: Theme.of(context).textTheme.headline5,
-                    decoration: InputDecoration(hintText: 'Enter NAS folder'),
-                    validator: (val) => val.trim().isEmpty ? 'Cannot be empty' : null,
-                    onSaved: (value) => _nasFolder = value,
-                  ),
                   Row(
                     children: [
                       Expanded(
@@ -167,6 +152,28 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                       ),
                     ],
                   ),
+                  TextFormField(
+                    key: Key('__NASFolderField'),
+                    // initialValue: '/home/mbaros/Pictures/test',
+                    // initialValue: 'films',
+                    initialValue: 'photos/miron/phonePhotos/2020',
+                    //photos/miron/phoneVideos
+                    //photos/miron/whatsapp/2020_photos
+                    //photos/miron/whatsapp/2020_video
+                    autofocus: false,
+                    style: Theme.of(context).textTheme.headline5,
+                    decoration: InputDecoration(hintText: 'Enter NAS folder'),
+                    validator: (val) => val.trim().isEmpty ? 'Cannot be empty' : null,
+                    onSaved: (value) => _nasFolder = value,
+                  ),
+                  InputDatePickerFormField(
+                    firstDate: DateTime(2020, 12),
+                    lastDate: DateTime.now(),
+                    fieldHintText: 'date from',
+                    fieldLabelText: 'Date from',
+                    initialDate: _selectedDate,
+                    onDateSaved: (value) => _selectedDate = value,
+                  ),
                   createRadiobuttonFileTypeList(),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -178,31 +185,31 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
 
                           nasFileSyncState.state.initSync();
 
-                          CommonDataLoadingIndicator();
                           try {
-
-
-                            await nasFileSyncState.setState((s) async => {
-
-                            s.transferringFileList = await nasFileSyncState.state.getFilesForSynchronization(
-                                _localFolderPathTextFieldController.value.text, _nasFolder, _fileTypeForSync)
-
-                              },
-                            shouldAwait: true,
-                            onError: ErrorHandler.showErrorDialog);
+                            await nasFileSyncState.setState(
+                                (s) async => {
+                                      s.transferringFileList = await nasFileSyncState.state.getFilesForSynchronization(
+                                          _localFolderPathTextFieldController.value.text,
+                                          _nasFolder,
+                                          _fileTypeForSync,
+                                          _selectedDate)
+                                    },
+                                shouldAwait: true,
+                                onError: (context, error) => ErrorHandler.showErrorDialog(context, error, true));
                           } catch (e) {
+                            //TODO neobjevi se okno s chybou, zustava data loader
+                            Navigator.of(context).pop(); //dismiss data loader
                             ErrorHandler.showErrorDialog(context, e);
                           }
                         }
                       },
-                      child: Text('Synchronize'),
+                      child: Text('Show files'),
                     ),
                   ),
                 ],
               ),
             ),
-            ),
-            Flexible(
+            Expanded(
               child: nasFileSyncState.whenRebuilderOr(
                 onIdle: () => Text('No transferred file'),
                 onWaiting: () => CommonDataLoadingIndicator(),
@@ -211,24 +218,46 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
 
                   return Text('${e}');
                 },
-                builder: () => _showImagesToTransfer(context, nasFileSyncState.state.transferringFileList),
+                builder: () {
+                  switch (_fileTypeForSync) {
+                    case FileTypeForSync.image:
+                      return _showImagesToTransfer(context, nasFileSyncState.state.transferringFileList);
+                    default:
+                      return showFileAsText(context, nasFileSyncState.state.transferringFileList);
+                  }
+                  ;
+                },
               ),
             ),
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          //TODO Add your onPressed code here!
+        },
+        child: const Icon(Icons.send),
+        backgroundColor: Colors.green,
+      ),
     );
   }
 
   Widget _showImagesToTransfer(BuildContext context, List<File> transferringFileList) {
-    return GridView.count(
-      primary: false,
-      padding: const EdgeInsets.all(4),
-      crossAxisSpacing: 4,
-      mainAxisSpacing: 4,
-      crossAxisCount: 4,
-      shrinkWrap: true,
-      children: transferringFileList.take(25).map((imgFile) => _createThumbnail(context, imgFile)).toList(),
+    return Column(
+      children: [
+        Text('All: ${transferringFileList.length}'),
+        Expanded(
+          child: GridView.count(
+            primary: false,
+            padding: const EdgeInsets.all(4),
+            crossAxisSpacing: 4,
+            mainAxisSpacing: 4,
+            crossAxisCount: 4,
+            shrinkWrap: true,
+            children: transferringFileList.take(25).map((imgFile) => _createThumbnail(context, imgFile)).toList(),
+          ),
+        ),
+      ],
     );
   }
 
@@ -239,28 +268,30 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
       fit: BoxFit.cover,
       width: 120.0,
       height: 120.0,
-      onImageError: (exception, stackTrace) => { },
+      onImageError: (exception, stackTrace) => {},
       child: InkWell(
         splashColor: Colors.blueGrey,
         onTap: () {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            backgroundColor: Theme.of(context).backgroundColor,
-            padding: EdgeInsets.only(left: 10, right: 10),
-            action: SnackBarAction(
-              label: 'Remove',
-              onPressed: () async {
-                await nasFileSyncState.setState((s) => s.transferringFileList.remove(imgFile));
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    backgroundColor: Theme.of(context).backgroundColor,
-                content: const Text('Foto Removed'),
-                ),
-                );
-              },
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Theme.of(context).backgroundColor,
+              padding: EdgeInsets.only(left: 10, right: 10),
+              action: SnackBarAction(
+                label: 'Remove',
+                onPressed: () async {
+                  await nasFileSyncState.setState((s) => s.transferringFileList.remove(imgFile));
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: Theme.of(context).backgroundColor,
+                      content: const Text('Foto Removed'),
+                    ),
+                  );
+                },
+              ),
+              content: Text(imgFile.path),
             ),
-            content: Text(imgFile.path),
-          ),
           );
         },
       ),
@@ -319,6 +350,26 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget showFileAsText(BuildContext context, List<File> transferringFileList) {
+    return ListView(
+      padding: const EdgeInsets.only(top: 20.0),
+      children: transferringFileList.map((file) => _buildListFileTextItem(context, file)).toList(),
+    );
+  }
+
+  Widget _buildListFileTextItem(BuildContext context, File file) {
+    return Padding(
+      key: ValueKey(file.path),
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      child: Column(
+        children: [
+          Text(file.path),
+          Text('${file.lastModifiedSync()}'),
+        ],
+      ),
     );
   }
 }
