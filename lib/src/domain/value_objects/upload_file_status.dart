@@ -1,0 +1,17 @@
+import 'package:flutter/foundation.dart';
+
+@immutable
+class UploadFileStatus {
+  final String uploadingFilePath;
+  final DateTime timestamp;
+  final bool uploaded;
+
+  UploadFileStatus({this.uploadingFilePath, this.timestamp, this.uploaded = false});
+
+  static UploadFileStatus copyOf(UploadFileStatus newStatus) {
+    return UploadFileStatus(
+        uploadingFilePath: newStatus?.uploadingFilePath,
+        timestamp: newStatus?.timestamp,
+        uploaded: newStatus?.uploaded);
+  }
+}

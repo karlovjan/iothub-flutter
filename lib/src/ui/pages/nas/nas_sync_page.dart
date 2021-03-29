@@ -52,6 +52,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   final FileType _pickingType = FileType.any;
   List<PlatformFile> _paths;
 
+  bool _showingFiles = false;
+
   @override
   void dispose() {
     _localFolderPathTextFieldController.dispose();
@@ -156,7 +158,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                     key: Key('__NASFolderField'),
                     // initialValue: '/home/mbaros/Pictures/test',
                     // initialValue: 'films',
-                    initialValue: 'photos/miron/phonePhotos/2020',
+                    initialValue: 'photos/miron/phonePhotos/2021',
                     //photos/miron/phoneVideos
                     //photos/miron/whatsapp/2020_photos
                     //photos/miron/whatsapp/2020_video
@@ -183,24 +185,26 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                         if (form.validate()) {
                           form.save();
 
-                          nasFileSyncState.state.initSync();
+                          _showingFiles = true;
 
-                          try {
-                            await nasFileSyncState.setState(
-                                (s) async => {
-                                      s.transferringFileList = await nasFileSyncState.state.getFilesForSynchronization(
-                                          _localFolderPathTextFieldController.value.text,
-                                          _nasFolder,
-                                          _fileTypeForSync,
-                                          _selectedDate)
-                                    },
-                                shouldAwait: true,
-                                onError: (context, error) => ErrorHandler.showErrorDialog(context, error, true));
-                          } catch (e) {
-                            //TODO neobjevi se okno s chybou, zustava data loader
-                            Navigator.of(context).pop(); //dismiss data loader
-                            ErrorHandler.showErrorDialog(context, e);
-                          }
+                          await nasFileSyncState.setState(
+                            (s) async {
+                              if (nasFileSyncState.state.allTransferringFilesCount == 0) {
+                                // try {
+                                await s.getFilesForSynchronization(_localFolderPathTextFieldController.value.text,
+                                    _nasFolder, _fileTypeForSync, _selectedDate);
+                              }
+
+                              //vezmi prvni dva soubory
+                              s.showNextFiles();
+                              // } catch (e) {
+                              //   //TODO neobjevi se okno s chybou, zustava data loader
+                              //   Navigator.of(context).pop(); //dismiss data loader
+                              //   ErrorHandler.showErrorDialog(context, e);
+                              // }
+                            },
+                            onError: (context, error) => ErrorHandler.showErrorDialog(context, error, true),
+                          );
                         }
                       },
                       child: Text('Show files'),
@@ -211,6 +215,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
             ),
             Expanded(
               child: nasFileSyncState.whenRebuilderOr(
+                watch: () => nasFileSyncState.state.transferringFileList,
                 onIdle: () => Text('No transferred file'),
                 onWaiting: () => CommonDataLoadingIndicator(),
                 onError: (e) {
@@ -218,46 +223,116 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
 
                   return Text('${e}');
                 },
-                builder: () {
-                  switch (_fileTypeForSync) {
-                    case FileTypeForSync.image:
-                      return _showImagesToTransfer(context, nasFileSyncState.state.transferringFileList);
-                    default:
-                      return showFileAsText(context, nasFileSyncState.state.transferringFileList);
-                  }
-                  ;
-                },
+                builder: () => _buildUploadingFilesSection(context, nasFileSyncState.state.transferringFileList),
               ),
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          //TODO Add your onPressed code here!
-        },
+        onPressed: _uploadingFileButtonOnPressed,
         child: const Icon(Icons.send),
         backgroundColor: Colors.green,
       ),
     );
   }
 
-  Widget _showImagesToTransfer(BuildContext context, List<File> transferringFileList) {
+  Widget _buildUploadingFilesSection(BuildContext context, List<File> transferringFileList) {
     return Column(
       children: [
-        Text('All: ${transferringFileList.length}'),
-        Expanded(
-          child: GridView.count(
-            primary: false,
-            padding: const EdgeInsets.all(4),
-            crossAxisSpacing: 4,
-            mainAxisSpacing: 4,
-            crossAxisCount: 4,
-            shrinkWrap: true,
-            children: transferringFileList.take(25).map((imgFile) => _createThumbnail(context, imgFile)).toList(),
-          ),
-        ),
+        _createTransferingStatusBar(),
+        _showFilesToTransfer(context, transferringFileList),
       ],
+    );
+  }
+
+  Widget _createTransferingStatusBar() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Transferred / All - '),
+            nasFileSyncState.whenRebuilderOr(
+              watch: () => nasFileSyncState.state.transferredFilesCount,
+              builder: () => Text('${nasFileSyncState.state.transferredFilesCount}'),
+            ),
+            Text('/'),
+            Text('${nasFileSyncState.state.allTransferringFilesCount}'),
+          ],
+        ),
+        _uploadingFileStatusBar(),
+      ],
+    );
+  }
+
+  Widget _uploadingFileStatusBar() {
+    return nasFileSyncState.whenRebuilderOr(
+        watch: () => nasFileSyncState.state.uploadedFileStatus,
+        builder: () {
+          if (nasFileSyncState.state.uploading &&
+              nasFileSyncState.state.uploadedFileStatus != null &&
+              !nasFileSyncState.state.uploadedFileStatus.uploaded) {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    'Uploading...  ${nasFileSyncState.state.uploadedFileStatus.uploadingFilePath}',
+                  ),
+                ),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (nasFileSyncState.state.uploading) {
+                          print('Cancel upload');
+                          nasFileSyncState.state.cancelUploading();
+                        } else {
+                          print('No file is uploading! Canceling is dismissed');
+                        }
+                      },
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }
+          return Text('');
+        });
+  }
+
+  Widget _showFilesToTransfer(BuildContext context, List<File> transferringFileList) {
+    if (!_showingFiles) {
+      return const Text('Uploading files is running in background.....');
+    }
+
+    switch (_fileTypeForSync) {
+      case FileTypeForSync.image:
+        return _showImagesToTransfer(context, transferringFileList);
+      case FileTypeForSync.video:
+      case FileTypeForSync.doc:
+        return showFileAsText(context, transferringFileList);
+      default:
+        return const Text('Unknown file sync type!!!!');
+    }
+  }
+
+  Widget _showImagesToTransfer(BuildContext context, List<File> transferringFileList) {
+    return Expanded(
+      child: GridView.count(
+        primary: false,
+        padding: const EdgeInsets.all(4),
+        crossAxisSpacing: 4,
+        mainAxisSpacing: 4,
+        crossAxisCount: 4,
+        shrinkWrap: true,
+        children: transferringFileList.map((imgFile) => _createThumbnail(context, imgFile)).toList(),
+      ),
     );
   }
 
@@ -280,12 +355,12 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
               action: SnackBarAction(
                 label: 'Remove',
                 onPressed: () async {
-                  await nasFileSyncState.setState((s) => s.transferringFileList.remove(imgFile));
+                  await nasFileSyncState.setState((s) => s.removeFile(imgFile.path));
                   ScaffoldMessenger.of(context).hideCurrentSnackBar();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       backgroundColor: Theme.of(context).backgroundColor,
-                      content: const Text('Foto Removed'),
+                      content: const Text('File removed'),
                     ),
                   );
                 },
@@ -371,5 +446,46 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
         ],
       ),
     );
+  }
+
+  Future<void> _uploadingFileButtonOnPressed() async {
+    if (nasFileSyncState.state.uploading) {
+      return null; //disable button
+    }
+
+    final form = _formKey.currentState;
+    if (form.validate()) {
+      form.save();
+
+      if (!_showingFiles && nasFileSyncState.state.allTransferringFilesCount == 0) {
+        try {
+          await nasFileSyncState.state.getFilesForSynchronization(
+              _localFolderPathTextFieldController.value.text, _nasFolder, _fileTypeForSync, _selectedDate);
+        } catch (e) {
+          nasFileSyncState.state.uploading = false;
+          //TODO neobjevi se okno s chybou, zustava data loader
+          Navigator.of(context).pop(); //dismiss data loader
+          ErrorHandler.showErrorDialog(context, e);
+        }
+      }
+
+      try {
+        await nasFileSyncState.setState(
+          (s) {
+            nasFileSyncState.state.showNextFiles();
+            return s.syncFolderWithNAS(s.transferringFileList, _nasFolder);
+          },
+          onError: (context, error) {
+            nasFileSyncState.state.uploading = false;
+            ErrorHandler.showErrorDialog(context, error, true);
+          },
+        );
+      } catch (e) {
+        nasFileSyncState.state.uploading = false;
+        //TODO neobjevi se okno s chybou, zustava data loader
+        Navigator.of(context).pop(); //dismiss data loader
+        ErrorHandler.showErrorDialog(context, e);
+      }
+    }
   }
 }

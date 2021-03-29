@@ -5,6 +5,7 @@ import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:iothub/src/domain/entities/nas_file_item.dart';
+import 'package:iothub/src/domain/value_objects/upload_file_status.dart';
 import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
 
@@ -48,6 +49,7 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
   DIOHTTPNASFileSyncService(String serverName) : _serverName = serverName;
 
   final String _serverName;
+  final _cancelRequestToken = CancelToken();
 
   //https://en.wikipedia.org/wiki/Cross-site_request_forgery
   //https://dev.to/matheusguimaraes/fast-way-to-enable-cors-in-flask-servers-42p0
@@ -108,14 +110,15 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
     }
   }
 
-  Future<FormData> _createFormData(String filePath) async {
+  Future<FormData> _createFormData(String filePath, String nasFolderPath) async {
     return FormData.fromMap({
       'file': await MultipartFile.fromFile(filePath),
+      'dest': nasFolderPath,
     });
   }
 
   @override
-  Stream<NASFileItem> sendFiles(List<File> transferringFileList, String nasFolderPath) async* {
+  Stream<UploadFileStatus> sendFiles(List<File> transferringFileList, String nasFolderPath) async* {
     assert(transferringFileList != null);
     assert(nasFolderPath != null);
 
@@ -140,38 +143,54 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
       return HttpClient(context: sc);
     };
 
-    try {
-      transferringFileList.forEach((file) async* {
-        try {
-          final response = await client.postUri(
-            requestUrl,
-            data: await _createFormData(file.path),
-          );
+    for (var file in transferringFileList) {
+      /*
+      yield UploadFileStatus(uploadingFilePath: file.path,  timestamp: DateTime.now());
 
-          if (response.statusCode == 200) {
-            yield NASFileItem(file.path, DateTime.now());
-          } else {
-            // If the server did not return a 200 OK response,
-            // then throw an exception.
-            // throw Exception('Failed to load NASFileItem list');
-            final errorJson = response.data;
+      // await Future.delayed(Duration(seconds: 4), () => throw NASFileException('test error'));
+      await Future.delayed(Duration(seconds: 4));
 
-            print(errorJson);
+      yield UploadFileStatus(uploadingFilePath: file.path,  timestamp: DateTime.now(), uploaded: true);
 
-            throw NASFileException(
-                'Failed to send file ${file.path} - Http code: ${response.statusCode} - error: ${errorJson}');
-          }
-        } catch (err) {
-          print('Caught error: $err');
-          throw NASFileException('Empty folder path');
+       */
+
+      yield UploadFileStatus(uploadingFilePath: file.path, timestamp: DateTime.now());
+
+      ///media/nasraid1/shared/public/photos/miron/phonePhotos/2021/
+      try {
+        final response = await client.postUri(
+          requestUrl,
+          data: await _createFormData(file.path, nasFolderPath),
+          cancelToken: _cancelRequestToken,
+        );
+
+        if (response.statusCode == 200) {
+          yield UploadFileStatus(uploadingFilePath: file.path, timestamp: DateTime.now(), uploaded: true);
+        } else {
+          // If the server did not return a 200 OK response,
+          // then throw an exception.
+          // throw Exception('Failed to load NASFileItem list');
+          final errorJson = response.data;
+
+          print(errorJson);
+
+          throw NASFileException(
+              'Failed to send file ${file.path} - Http code: ${response.statusCode} - error: ${errorJson}');
         }
-      });
-    } finally {
-      client?.close();
+      } catch (err) {
+        print('Caught error: $err');
+        throw NASFileException('Empty folder path');
+      }
     }
+    ;
   }
 
-  /*
+  @override
+  void cancelRequest() {
+    _cancelRequestToken.cancel();
+  }
+
+/*
   Future<Response> sendFile(String url, File file) async {
   Dio dio = new Dio();
   var len = await file.length();
