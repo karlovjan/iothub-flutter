@@ -176,7 +176,7 @@ class NASFileSyncState {
 
   void showNextFiles() {
     final fileListLength = allTransferringFilesCount;
-    final endIndex = 2 <= fileListLength ? 2 : fileListLength;
+    final endIndex = 20 <= fileListLength ? 20 : fileListLength;
     transferringFileList = _allTransferringFileList.sublist(0, endIndex);
   }
 }

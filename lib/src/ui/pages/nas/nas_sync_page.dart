@@ -169,7 +169,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                     onSaved: (value) => _nasFolder = value,
                   ),
                   InputDatePickerFormField(
-                    firstDate: DateTime(2020, 12),
+                    firstDate: DateTime(2020, 01),
                     lastDate: DateTime.now(),
                     fieldHintText: 'date from',
                     fieldLabelText: 'Date from',
