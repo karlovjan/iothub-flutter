@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:iothub/src/data_source/http_dio_nas_file_sync_service.dart';
+import 'package:iothub/src/service/common/datetime_ext.dart';
 import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
 import 'package:iothub/src/service/nas_file_sync_state.dart';
@@ -40,7 +41,9 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   final _formKey = GlobalKey<FormState>();
   final _localFolderPathTextFieldController = TextEditingController();
   var _fileTypeForSync = FileTypeForSync.image;
-  var _selectedDate = DateTime.now();
+  final nowDate = DateTime.now();
+  var _selectedDateFrom = DateTime.now().dateNow(); //only date from midnight
+  var _selectedDateTo = DateTime.now(); //date up to now including time
 
   // Here we use a StatefulWidget to hold local fields _nasFolder and _localFolder
   String _nasFolder;
@@ -58,6 +61,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   void dispose() {
     _localFolderPathTextFieldController.dispose();
     _clearCachedFiles();
+    nasFileSyncState.state.clearFileList();
     super.dispose();
   }
 
@@ -168,14 +172,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                     validator: (val) => val.trim().isEmpty ? 'Cannot be empty' : null,
                     onSaved: (value) => _nasFolder = value,
                   ),
-                  InputDatePickerFormField(
-                    firstDate: DateTime(2020, 01),
-                    lastDate: DateTime.now(),
-                    fieldHintText: 'date from',
-                    fieldLabelText: 'Date from',
-                    initialDate: _selectedDate,
-                    onDateSaved: (value) => _selectedDate = value,
-                  ),
+                  createInputDateBar(),
                   createRadiobuttonFileTypeList(),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -192,7 +189,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                               if (nasFileSyncState.state.allTransferringFilesCount == 0) {
                                 // try {
                                 await s.getFilesForSynchronization(_localFolderPathTextFieldController.value.text,
-                                    _nasFolder, _fileTypeForSync, _selectedDate);
+                                    _nasFolder, _fileTypeForSync, _selectedDateFrom, _selectedDateTo);
                               }
 
                               //vezmi prvni dva soubory
@@ -459,8 +456,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
 
       if (!_showingFiles && nasFileSyncState.state.allTransferringFilesCount == 0) {
         try {
-          await nasFileSyncState.state.getFilesForSynchronization(
-              _localFolderPathTextFieldController.value.text, _nasFolder, _fileTypeForSync, _selectedDate);
+          await nasFileSyncState.state.getFilesForSynchronization(_localFolderPathTextFieldController.value.text,
+              _nasFolder, _fileTypeForSync, _selectedDateFrom, _selectedDateTo);
         } catch (e) {
           nasFileSyncState.state.uploading = false;
           //TODO neobjevi se okno s chybou, zustava data loader
@@ -472,7 +469,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
       try {
         await nasFileSyncState.setState(
           (s) {
-            nasFileSyncState.state.showNextFiles();
+            nasFileSyncState.state.showNextFiles(nasFileSyncState.state.allTransferringFilesCount);
             return s.syncFolderWithNAS(s.transferringFileList, _nasFolder);
           },
           onError: (context, error) {
@@ -487,5 +484,32 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
         ErrorHandler.showErrorDialog(context, e);
       }
     }
+  }
+
+  Widget createInputDateBar() {
+    return Row(
+      children: [
+        Expanded(child:
+        InputDatePickerFormField(
+          firstDate: DateTime(2020, 01),
+          lastDate: DateTime.now(),
+          fieldHintText: 'date from',
+          fieldLabelText: 'Date from',
+          initialDate: _selectedDateFrom,
+          onDateSaved: (value) => _selectedDateFrom = value,
+        ),
+        ),
+        Expanded(child:
+        InputDatePickerFormField(
+          firstDate: DateTime(2020, 01),
+          lastDate: DateTime.now(),
+          fieldHintText: 'date to',
+          fieldLabelText: 'Date to',
+          initialDate: _selectedDateTo,
+          onDateSaved: (value) => _selectedDateTo = value,
+        ),
+        ),
+      ],
+    );
   }
 }

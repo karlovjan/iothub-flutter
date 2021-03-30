@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:iothub/src/domain/entities/nas_file_item.dart';
 import 'package:iothub/src/domain/value_objects/upload_file_status.dart';
+import 'package:iothub/src/service/common/datetime_ext.dart';
 import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
 import 'package:logger/logger.dart';
@@ -76,10 +77,12 @@ class NASFileSyncState {
   }
 
   Future<void> getFilesForSynchronization(
-      String localFolderPath, String nasFolderPath, FileTypeForSync fileTypeForSync, DateTime dateFrom,
+      String localFolderPath, String nasFolderPath, FileTypeForSync fileTypeForSync, DateTime dateFrom, DateTime dateTo,
       {bool includeUpdatedFiles = false, bool recursive = false}) async {
     assert(nasFolderPath != null);
     assert(localFolderPath != null);
+    assert(dateFrom != null);
+    assert(dateTo != null);
 
     transferredFilesCount = 0;
     _allTransferringFileList.clear();
@@ -94,14 +97,15 @@ class NASFileSyncState {
 
     await for (FileSystemEntity entity in streamWithoutErrors) {
       final fileType = await FileSystemEntity.type(entity.path);
-      final isNewerThan = await isDateNewerThen(entity, dateFrom);
       if (!recursive &&
           fileType == FileSystemEntityType.file &&
-          filterFileByType(entity, fileTypeForSync) &&
-          isNewerThan) {
-        // if (!_isFileInNasList(entity.path, allTargetFolderFiles)) {
-        _allTransferringFileList.add(File(entity.path));
-        // }
+          filterFileByType(entity, fileTypeForSync)) {
+        final dateInRange = await isDateInRange(entity, dateFrom, dateTo);
+        if(dateInRange) {
+          // if (!_isFileInNasList(entity.path, allTargetFolderFiles)) {
+          _allTransferringFileList.add(File(entity.path));
+          // }
+        }
       }
 
       //TODO implemnts recurcive and file updated
@@ -134,18 +138,23 @@ class NASFileSyncState {
     }
   }
 
-  Future<bool> isDateNewerThen(FileSystemEntity entity, [DateTime dateFrom]) async {
+  Future<bool> isDateInRange(FileSystemEntity entity, DateTime dateFrom, DateTime dateTo) async {
     final fileStat = await entity.stat();
 
-    dateFrom ??= DateTime.now().subtract(const Duration(days: 1));
+    dateFrom ??= DateTime.now().dateNow();
+    dateTo ??= DateTime.now();
 
     var modified = fileStat.modified;
     modified ??= fileStat.changed;
 
-    final modifiedDate = DateTime(modified.year, modified.month, modified.day);
-    final dataOnlyFrom = (DateTime(dateFrom.year, dateFrom.month, dateFrom.day));
+    // final result = modified.isAtSameMomentAs(dateFrom) || (modified.isAfter(dateFrom) && modified.isBefore(dateTo));
+    return modified.isBetween(dateFrom, dateTo);
+  }
 
-    return modifiedDate.isAtSameMomentAs(dataOnlyFrom) || modifiedDate.isAfter(dataOnlyFrom);
+  void clearFileList() {
+    _allTransferringFileList.clear();
+    transferringFileList.clear();
+    transferredFilesCount = 0;
   }
 
   void cancelUploading() {
@@ -174,9 +183,9 @@ class NASFileSyncState {
     }
   }
 
-  void showNextFiles() {
+  void showNextFiles([int filesCount = 20]) {
     final fileListLength = allTransferringFilesCount;
-    final endIndex = 20 <= fileListLength ? 20 : fileListLength;
+    final endIndex = filesCount <= fileListLength ? filesCount : fileListLength;
     transferringFileList = _allTransferringFileList.sublist(0, endIndex);
   }
 }

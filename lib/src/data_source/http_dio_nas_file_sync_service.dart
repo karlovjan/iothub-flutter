@@ -110,10 +110,14 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
     }
   }
 
-  Future<FormData> _createFormData(String filePath, String nasFolderPath) async {
+  Future<FormData> _createFormData(File file, String nasFolderPath) async {
+    final lastModif = await file.lastModified();
+    //milisec to second
+    final mtime = (lastModif.millisecondsSinceEpoch * 0.001).toInt();
     return FormData.fromMap({
-      'file': await MultipartFile.fromFile(filePath),
+      'file': await MultipartFile.fromFile(file.path),
       'dest': nasFolderPath,
+      'mtime': mtime,
     });
   }
 
@@ -160,7 +164,7 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
       try {
         final response = await client.postUri(
           requestUrl,
-          data: await _createFormData(file.path, nasFolderPath),
+          data: await _createFormData(file, nasFolderPath),
           cancelToken: _cancelRequestToken,
         );
 
