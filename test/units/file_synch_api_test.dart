@@ -41,14 +41,14 @@ void main() {
         NASFileItem('file3.txt', DateTime.now())
       ];
 
-      when(client.retrieveDirectoryItems('/home/mbaros/projects/my/flutter/iothub/test/resources/nas'))
+      when(client.retrieveDirectoryItems('/home/mbaros/projects/my/flutter/iothub/test/resources/nas', 0.0, 0.0, FileTypeForSync.image))
           .thenAnswer((_) => Future.delayed(
                 Duration(seconds: 2),
                 () => response,
               ));
 
       final files =
-          await httpService.retrieveRemoteDirectoryItems('/home/mbaros/projects/my/flutter/iothub/test/resources/nas');
+          await httpService.retrieveRemoteDirectoryItems('/home/mbaros/projects/my/flutter/iothub/test/resources/nas', 0.0, 0.0, FileTypeForSync.image);
 
       expect(files.length, 3);
       expect(files[0] is NASFileItem, true);

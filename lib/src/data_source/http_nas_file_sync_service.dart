@@ -8,6 +8,7 @@ import 'package:iothub/src/domain/entities/nas_file_item.dart';
 import 'package:iothub/src/domain/value_objects/upload_file_status.dart';
 import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
+import 'package:iothub/src/service/nas_file_sync_state.dart';
 
 class HTTPNASFileSyncService implements NASFileSyncService {
   HTTPNASFileSyncService(String serverName) : _serverName = serverName;
@@ -26,7 +27,8 @@ class HTTPNASFileSyncService implements NASFileSyncService {
   //https://dev.to/matheusguimaraes/fast-way-to-enable-cors-in-flask-servers-42p0
 
   @override
-  Future<List<NASFileItem>> retrieveDirectoryItems(String folderPath) async {
+  Future<List<NASFileItem>> retrieveDirectoryItems(
+      String folderPath, double dateFromSeconds, double dateToSeconds, FileTypeForSync fileTypeForSync) async {
     if (folderPath == null) {
       print('folder is not set');
       throw NASFileException('Empty folder path');
@@ -75,7 +77,8 @@ class HTTPNASFileSyncService implements NASFileSyncService {
   }
 
   @override
-  Stream<UploadFileStatus> sendFiles(List<File> transferringFileList, String nasFolderPath) async* {
+  Stream<UploadFileStatus> sendFiles(
+      List<File> transferringFileList, String nasFolderPath, FileTypeForSync fileType) async* {
     assert(transferringFileList != null);
     assert(nasFolderPath != null);
 

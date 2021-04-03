@@ -7,12 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:iothub/src/data_source/http_dio_nas_file_sync_service.dart';
-import 'package:iothub/src/service/common/datetime_ext.dart';
 import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
 import 'package:iothub/src/service/nas_file_sync_state.dart';
 import 'package:iothub/src/ui/exceptions/error_handler.dart';
-import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 //  https://github.com/GIfatahTH/states_rebuilder/tree/master/examples/ex_009_1_3_ca_todo_mvc_with_state_persistence
@@ -42,7 +40,9 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   final _localFolderPathTextFieldController = TextEditingController();
   var _fileTypeForSync = FileTypeForSync.image;
   final nowDate = DateTime.now();
-  var _selectedDateFrom = DateTime.now().dateNow(); //only date from midnight
+
+  // var _selectedDateFrom = DateTime.now().dateNow(); //only date from midnight
+  var _selectedDateFrom = DateTime.now(); //now -> date input field format datetime to only date
   var _selectedDateTo = DateTime.now(); //date up to now including time
 
   // Here we use a StatefulWidget to hold local fields _nasFolder and _localFolder
@@ -174,38 +174,63 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                   ),
                   createInputDateBar(),
                   createRadiobuttonFileTypeList(),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        final form = _formKey.currentState;
-                        if (form.validate()) {
-                          form.save();
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            if (nasFileSyncState.state.uploading) {
+                              return;
+                            }
+                            final form = _formKey.currentState;
+                            if (form.validate()) {
+                              form.save();
 
-                          _showingFiles = true;
+                              _showingFiles = true;
 
-                          await nasFileSyncState.setState(
-                            (s) async {
-                              if (nasFileSyncState.state.allTransferringFilesCount == 0) {
-                                // try {
-                                await s.getFilesForSynchronization(_localFolderPathTextFieldController.value.text,
-                                    _nasFolder, _fileTypeForSync, _selectedDateFrom, _selectedDateTo);
-                              }
+                              await nasFileSyncState.setState(
+                                (s) async {
+                                  if (nasFileSyncState.state.allTransferringFilesCount == 0) {
+                                    // try {
+                                    await s.getFilesForSynchronization(_localFolderPathTextFieldController.value.text,
+                                        _nasFolder, _fileTypeForSync, _selectedDateFrom, _selectedDateTo);
+                                  }
 
-                              //vezmi prvni dva soubory
-                              s.showNextFiles();
-                              // } catch (e) {
-                              //   //TODO neobjevi se okno s chybou, zustava data loader
-                              //   Navigator.of(context).pop(); //dismiss data loader
-                              //   ErrorHandler.showErrorDialog(context, e);
-                              // }
-                            },
-                            onError: (context, error) => ErrorHandler.showErrorDialog(context, error, true),
-                          );
-                        }
-                      },
-                      child: Text('Show files'),
-                    ),
+                                  s.showFirstFiles();
+                                  // } catch (e) {
+                                  //   //TODO neobjevi se okno s chybou, zustava data loader
+                                  //   Navigator.of(context).pop(); //dismiss data loader
+                                  //   ErrorHandler.showErrorDialog(context, e);
+                                  // }
+                                },
+                                onError: (context, error) => ErrorHandler.showErrorDialog(context, error, true),
+                              );
+                            }
+                          },
+                          child: Text('Show files'),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            if (nasFileSyncState.state.uploading) {
+                              return;
+                            }
+
+                            await nasFileSyncState.setState(
+                              (s) async {
+                                _showingFiles = false;
+                                s.clearFileList();
+                              },
+                              onError: (context, error) => ErrorHandler.showErrorDialog(context, error, true),
+                            );
+                          },
+                          child: Text('Clear files'),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -214,7 +239,6 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
               child: nasFileSyncState.whenRebuilderOr(
                 watch: () => nasFileSyncState.state.transferringFileList,
                 onIdle: () => Text('No transferred file'),
-                onWaiting: () => CommonDataLoadingIndicator(),
                 onError: (e) {
                   log('ERROR: ${e}');
 
@@ -449,6 +473,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
     if (nasFileSyncState.state.uploading) {
       return null; //disable button
     }
+    print('uploading starting');
 
     final form = _formKey.currentState;
     if (form.validate()) {
@@ -466,11 +491,26 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
         }
       }
 
+      if (nasFileSyncState.state.allTransferringFilesCount == 0) {
+        //there is no files to upload
+        print('there is no files to upload');
+        nasFileSyncState.state.uploading = false;
+        return;
+      }
+
       try {
         await nasFileSyncState.setState(
           (s) {
-            nasFileSyncState.state.showNextFiles(nasFileSyncState.state.allTransferringFilesCount);
-            return s.syncFolderWithNAS(s.transferringFileList, _nasFolder);
+            // nasFileSyncState.state.showNextFiles(nasFileSyncState.state.allTransferringFilesCount);
+
+            try {
+              return s.syncFolderWithNAS(s.filesForUploading, _nasFolder, _fileTypeForSync);
+            } catch (e) {
+              nasFileSyncState.state.uploading = false;
+              //TODO neobjevi se okno s chybou, zustava data loader
+              Navigator.of(context).pop(); //dismiss data loader
+              ErrorHandler.showErrorDialog(context, e);
+            }
           },
           onError: (context, error) {
             nasFileSyncState.state.uploading = false;
@@ -489,25 +529,25 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   Widget createInputDateBar() {
     return Row(
       children: [
-        Expanded(child:
-        InputDatePickerFormField(
-          firstDate: DateTime(2020, 01),
-          lastDate: DateTime.now(),
-          fieldHintText: 'date from',
-          fieldLabelText: 'Date from',
-          initialDate: _selectedDateFrom,
-          onDateSaved: (value) => _selectedDateFrom = value,
+        Expanded(
+          child: InputDatePickerFormField(
+            firstDate: DateTime(2020, 01),
+            lastDate: DateTime.now(),
+            fieldHintText: 'date from',
+            fieldLabelText: 'Date from',
+            initialDate: _selectedDateFrom,
+            onDateSaved: (value) => _selectedDateFrom = value,
+          ),
         ),
-        ),
-        Expanded(child:
-        InputDatePickerFormField(
-          firstDate: DateTime(2020, 01),
-          lastDate: DateTime.now(),
-          fieldHintText: 'date to',
-          fieldLabelText: 'Date to',
-          initialDate: _selectedDateTo,
-          onDateSaved: (value) => _selectedDateTo = value,
-        ),
+        Expanded(
+          child: InputDatePickerFormField(
+            firstDate: DateTime(2020, 01),
+            lastDate: DateTime.now(),
+            fieldHintText: 'date to',
+            fieldLabelText: 'Date to',
+            initialDate: _selectedDateTo,
+            onDateSaved: (value) => _selectedDateTo = value,
+          ),
         ),
       ],
     );

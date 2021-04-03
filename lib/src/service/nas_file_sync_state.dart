@@ -35,26 +35,26 @@ class NASFileSyncState {
 
   int transferredFilesCount = 0;
 
-  Future<List<NASFileItem>> retrieveRemoteDirectoryItems(String folderPath) async {
-    return await _remoteFileTransferService.retrieveDirectoryItems(folderPath);
-  }
+  List<File> get filesForUploading => List.of(_allTransferringFileList);
 
-  Stream<UploadFileStatus> syncFolderWithNAS(List<File> allTargetFolderFiles, String nasFolderPath) async* {
-    assert(allTargetFolderFiles != null);
+  Stream<UploadFileStatus> syncFolderWithNAS(
+      List<File> uploadingFiles, String nasFolderPath, FileTypeForSync fileType) async* {
+    assert(uploadingFiles != null);
     assert(nasFolderPath != null);
+    assert(fileType != null);
 
     if (uploading) {
-      print('Synchronization is already running!');
+      _log.i('Synchronization is already running!');
       // throw NASFileException('Synchronization is already running!');
       return;
     }
 
     uploading = true;
-    transferredFilesCount = 0;
+    // transferredFilesCount = 0;
 
     try {
       await for (UploadFileStatus sentFile
-          in _remoteFileTransferService.sendFiles(List<File>.of(transferringFileList), nasFolderPath)) {
+          in _remoteFileTransferService.sendFiles(uploadingFiles, nasFolderPath, fileType)) {
         // if (_synchronizing) {
 
         if (sentFile.uploaded) {
@@ -62,16 +62,19 @@ class NASFileSyncState {
         } else {
           //whatching only uploading file
           uploadedFileStatus = sentFile;
+          yield sentFile;
         }
-        yield sentFile;
+
         // } else {
         //   _log.i('Synchronization was aborted');
         //   throw NASFileException('Synchronization was aborted!');
         // }
       }
     } finally {
+      _log.i('uploading finished');
       uploading = false;
       uploadedFileStatus = UploadFileStatus(uploadingFilePath: '', uploaded: false, timestamp: DateTime.now());
+      yield uploadedFileStatus;
     }
     // _synchronizing = false;
   }
@@ -83,11 +86,14 @@ class NASFileSyncState {
     assert(localFolderPath != null);
     assert(dateFrom != null);
     assert(dateTo != null);
+    assert(fileTypeForSync != null);
 
-    transferredFilesCount = 0;
-    _allTransferringFileList.clear();
+    _log.i('Load files for synchronization');
+
+    clearFileList();
     // throw NASFileException("message test");
-    // final allTargetFolderFiles = await retrieveRemoteDirectoryItems(nasFolderPath);
+    final allTargetFolderFiles = await _remoteFileTransferService.retrieveDirectoryItems(
+        nasFolderPath, dateFrom.secondsSinceEpoch, _dateToMidnight(dateTo).secondsSinceEpoch, fileTypeForSync);
 
     final localDir = Directory(localFolderPath);
 
@@ -95,44 +101,45 @@ class NASFileSyncState {
 
     final streamWithoutErrors = entityList.handleError(_onListingFileError);
 
+    // try {
     await for (FileSystemEntity entity in streamWithoutErrors) {
       final fileType = await FileSystemEntity.type(entity.path);
-      if (!recursive &&
-          fileType == FileSystemEntityType.file &&
-          filterFileByType(entity, fileTypeForSync)) {
+      if (!recursive && fileType == FileSystemEntityType.file && filterFileByType(entity, fileTypeForSync)) {
         final dateInRange = await isDateInRange(entity, dateFrom, dateTo);
-        if(dateInRange) {
-          // if (!_isFileInNasList(entity.path, allTargetFolderFiles)) {
-          _allTransferringFileList.add(File(entity.path));
-          // }
+        if (dateInRange) {
+          if (!_isFileInNasList(entity.path, allTargetFolderFiles)) {
+            _allTransferringFileList.add(File(entity.path));
+          }
         }
       }
 
       //TODO implemnts recurcive and file updated
     }
-
-    return;
+    // } catch (err) {
+    //   throw NASFileException('Error: ${err}');
+    // }
   }
 
   void _onListingFileError(Object error, StackTrace stackTrace) {
-    print('Caught error: $error');
+    _log.e('Caught error:', error, stackTrace);
   }
 
   bool _isFileInNasList(String filePath, List<NASFileItem> nasFiles) {
     return nasFiles
-        .firstWhere((element) => filePath.endsWith(element.fileName), orElse: () => NASFileItem('', null))
+        .firstWhere((nasFile) => filePath.endsWith(nasFile.fileName), orElse: () => NASFileItem('', null))
         .fileName
         .isNotEmpty;
   }
 
   bool filterFileByType(FileSystemEntity entity, FileTypeForSync type) {
+    final ext = path.extension(entity.path)?.toLowerCase();
     switch (type) {
       case FileTypeForSync.image:
-        return ['.jpg', '.JPG'].contains(path.extension(entity.path));
+        return ['.jpg', '.jpeg', '.gif', '.png', '.dng'].contains(ext);
       case FileTypeForSync.video:
-        return ['.mp4', '.avi', '.mpeg'].contains(path.extension(entity.path));
+        return ['.mp4', '.avi', '.mkv'].contains(ext);
       case FileTypeForSync.doc:
-        return ['.txt', '.doc', '.pdf'].contains(path.extension(entity.path));
+        return ['.txt', '.pdf', '.docx', '.odt', '.doc'].contains(ext);
       default:
         throw NASFileException('Unknown file type!');
     }
@@ -142,7 +149,7 @@ class NASFileSyncState {
     final fileStat = await entity.stat();
 
     dateFrom ??= DateTime.now().dateNow();
-    dateTo ??= DateTime.now();
+    dateTo = _dateToMidnight(dateTo); //aby datum byl az do konce aktualniho dne, exclude date to
 
     var modified = fileStat.modified;
     modified ??= fileStat.changed;
@@ -151,13 +158,23 @@ class NASFileSyncState {
     return modified.isBetween(dateFrom, dateTo);
   }
 
+  DateTime _dateToMidnight(DateTime dateTo) {
+    dateTo ??= DateTime.now().dateNow();
+
+    dateTo.add(Duration(days: 1)).dateNow(); //aby datum byl az do konce aktualniho dne, exclude date to
+    return dateTo;
+  }
+
   void clearFileList() {
+    _log.i('clear files');
     _allTransferringFileList.clear();
     transferringFileList.clear();
+    transferringFileList = List.empty(growable: true);
     transferredFilesCount = 0;
   }
 
   void cancelUploading() {
+    _log.i('cancel upload request');
     uploading = false;
     _remoteFileTransferService.cancelRequest();
   }
@@ -170,20 +187,19 @@ class NASFileSyncState {
   void removeFile(String filePath) {
     // var newList = List<File>.of(transferringFileList);
     // newList.removeWhere((e) => e.path == filePath);
-    final removingFile = transferringFileList.firstWhere(
+    final removingFile = _allTransferringFileList.firstWhere(
       (element) => element.path == filePath,
       orElse: () => File(''),
     );
     //was item found
     if (removingFile.path.isNotEmpty) {
-      var newList = List<File>.of(transferringFileList);
       _allTransferringFileList.remove(removingFile);
-      newList.remove(removingFile);
-      transferringFileList = newList;
+
+      showFirstFiles();
     }
   }
 
-  void showNextFiles([int filesCount = 20]) {
+  void showFirstFiles([int filesCount = 20]) {
     final fileListLength = allTransferringFilesCount;
     final endIndex = filesCount <= fileListLength ? filesCount : fileListLength;
     transferringFileList = _allTransferringFileList.sublist(0, endIndex);

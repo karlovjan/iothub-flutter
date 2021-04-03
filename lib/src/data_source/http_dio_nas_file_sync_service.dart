@@ -3,11 +3,14 @@ import 'dart:typed_data';
 
 import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:iothub/src/domain/entities/nas_file_item.dart';
 import 'package:iothub/src/domain/value_objects/upload_file_status.dart';
+import 'package:iothub/src/service/common/datetime_ext.dart';
 import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
+import 'package:iothub/src/service/nas_file_sync_state.dart';
 
 SecurityContext httpSecurityContext;
 
@@ -55,7 +58,8 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
   //https://dev.to/matheusguimaraes/fast-way-to-enable-cors-in-flask-servers-42p0
 
   @override
-  Future<List<NASFileItem>> retrieveDirectoryItems(String folderPath) async {
+  Future<List<NASFileItem>> retrieveDirectoryItems(
+      String folderPath, double dateFromSeconds, double dateToSeconds, FileTypeForSync fileTypeForSync) async {
     if (folderPath == null) {
       print('folder is not set');
       throw NASFileException('Empty folder path');
@@ -73,24 +77,18 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
     //Instance level
     client.options.contentType = Headers.formUrlEncodedContentType;
     client.options.responseType = ResponseType.json;
+    client.options.connectTimeout = 5000; //5s
+    client.options.receiveTimeout = 60000; //1min
 
     (client.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client) {
-      final httpClient = HttpClient(context: sc);
-      httpClient.badCertificateCallback = (X509Certificate cert, String host, int port) {
-        if (host == _serverName) {
-          // Verify the certificate
-          return true; // allow self-signed certificate in development only!!!
-        }
-        print('Bad certification for host ${host} and port ${port}');
-        return false;
-      };
-      return httpClient;
+      return HttpClient(context: sc);
     };
 
     // final bodyToSend = 'path=${folderPath}';
     try {
 //or works once
-      final response = await client.postUri(requestUrl, data: {'path': folderPath});
+      final response = await client.postUri(requestUrl,
+          data: {'path': folderPath, 'from': dateFromSeconds, 'to': dateToSeconds, 'type': describeEnum(fileTypeForSync)});
 
       if (response.statusCode == 200) {
         // Use the compute function to run parsePhotos in a separate isolate.
@@ -104,25 +102,29 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
       }
     } catch (err) {
       print('Caught error: $err');
+      // closeConnection(client);
       throw NASFileException('Connection to the ${requestUrl} : ${err}');
-    } finally {
-      client.close();
     }
   }
 
-  Future<FormData> _createFormData(File file, String nasFolderPath) async {
+  void closeConnection(Dio client) {
+    client.clear();
+    client.close();
+  }
+
+  Future<FormData> _createFormData(File file, String nasFolderPath, FileTypeForSync fileType) async {
     final lastModif = await file.lastModified();
-    //milisec to second
-    final mtime = (lastModif.millisecondsSinceEpoch * 0.001).toInt();
     return FormData.fromMap({
       'file': await MultipartFile.fromFile(file.path),
       'dest': nasFolderPath,
-      'mtime': mtime,
+      'mtime': lastModif.secondsSinceEpochInt,
+      'type': describeEnum(fileType),
     });
   }
 
   @override
-  Stream<UploadFileStatus> sendFiles(List<File> transferringFileList, String nasFolderPath) async* {
+  Stream<UploadFileStatus> sendFiles(
+      List<File> transferringFileList, String nasFolderPath, FileTypeForSync fileType) async* {
     assert(transferringFileList != null);
     assert(nasFolderPath != null);
 
@@ -136,12 +138,21 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
 
     final sc = await get_security_Context;
 
-    final client = Dio();
+    final options = BaseOptions(
+      baseUrl: 'https://${_serverName}',
+      connectTimeout: 5000,
+      receiveTimeout: 1 * 60 * 60 * 1000,
+      sendTimeout: 1 * 60 * 60 * 1000,
+    );
+
+    final client = Dio(options);
 
     // (client.transformer as DefaultTransformer).jsonDecodeCallback = _parseJsonInIsolation;
 
     // final requestUrl = Uri.http('nas.local:8443', '/folderItems');
     final requestUrl = Uri.https(_serverName, '/upload');
+
+    print('Url: ${requestUrl}');
 
     (client.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client) {
       return HttpClient(context: sc);
@@ -160,11 +171,13 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
 
       yield UploadFileStatus(uploadingFilePath: file.path, timestamp: DateTime.now());
 
+      // await Future.delayed(Duration(seconds: 1));
+
       ///media/nasraid1/shared/public/photos/miron/phonePhotos/2021/
       try {
-        final response = await client.postUri(
-          requestUrl,
-          data: await _createFormData(file, nasFolderPath),
+        final response = await client.post(
+          '/upload',
+          data: await _createFormData(file, nasFolderPath, fileType),
           cancelToken: _cancelRequestToken,
         );
 
@@ -183,7 +196,8 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
         }
       } catch (err) {
         print('Caught error: $err');
-        throw NASFileException('Empty folder path');
+        // closeConnection(client);
+        throw NASFileException('Request ${requestUrl} ERROR : ${err}');
       }
     }
     ;
@@ -192,6 +206,14 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
   @override
   void cancelRequest() {
     _cancelRequestToken.cancel();
+  }
+
+  static BaseOptions _getDefaultOptions(String serverName) {
+    return BaseOptions(
+      baseUrl: 'https://${serverName}',
+      connectTimeout: 3000,
+      receiveTimeout: 5 * 60 * 1000,
+    );
   }
 
 /*
