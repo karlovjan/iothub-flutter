@@ -140,7 +140,7 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
 
     final options = BaseOptions(
       baseUrl: 'https://${_serverName}',
-      connectTimeout: 5000,
+      connectTimeout: 1*60*1000,
       receiveTimeout: 1 * 60 * 60 * 1000,
       sendTimeout: 1 * 60 * 60 * 1000,
     );
@@ -208,12 +208,53 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
     _cancelRequestToken.cancel();
   }
 
-  static BaseOptions _getDefaultOptions(String serverName) {
-    return BaseOptions(
-      baseUrl: 'https://${serverName}',
-      connectTimeout: 3000,
-      receiveTimeout: 5 * 60 * 1000,
-    );
+  @override
+  Future<List<String>> listSambaFolders(String baseFolder) async {
+    if (baseFolder == null) {
+      print('base folder is not set');
+      throw NASFileException('List samba folder error - base folder is not set');
+    }
+
+    final sc = await get_security_Context;
+
+    final client = Dio();
+
+    // (client.transformer as DefaultTransformer).jsonDecodeCallback = _parseJsonInIsolation;
+
+    // final requestUrl = Uri.http('nas.local:8443', '/folderItems');
+    final requestUrl = Uri.https(_serverName, '/folders');
+
+    //Instance level
+    client.options.contentType = Headers.formUrlEncodedContentType;
+    client.options.responseType = ResponseType.json;
+    client.options.connectTimeout = 5000; //5s
+    client.options.receiveTimeout = 60000; //1min
+
+    (client.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client) {
+      return HttpClient(context: sc);
+    };
+
+    // final bodyToSend = 'path=${folderPath}';
+    try {
+//or works once
+      final response = await client.postUri(requestUrl,
+          data: {'path': baseFolder});
+
+      if (response.statusCode == 200) {
+        // Use the compute function to run parsePhotos in a separate isolate.
+        // return compute(_parseNASFileItems, response.data.toString());
+        // return _parseNASFileItems(await response.transform(utf8.decoder).join());
+        // return _parseNASFileItems(response.data.toString());
+        return (response.data as List).map<String>((item) => '${item}').toList();
+      } else {
+        print(response.data);
+        throw NASFileException('Failed get list folders - Http code: ${response.statusCode}');
+      }
+    } catch (err) {
+      print('Caught error: $err');
+      // closeConnection(client);
+      throw NASFileException('Connection to the ${requestUrl} : ${err}');
+    }
   }
 
 /*

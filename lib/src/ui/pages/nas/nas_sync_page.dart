@@ -11,6 +11,8 @@ import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
 import 'package:iothub/src/service/nas_file_sync_state.dart';
 import 'package:iothub/src/ui/exceptions/error_handler.dart';
+import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
+import 'package:path/path.dart' as p;
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 //  https://github.com/GIfatahTH/states_rebuilder/tree/master/examples/ex_009_1_3_ca_todo_mvc_with_state_persistence
@@ -36,6 +38,7 @@ class NASSyncMainPage extends StatefulWidget {
 }
 
 class _SyncPathEditFormState extends State<NASSyncMainPage> {
+  static const _BASE_SAMBA_FOLDER = 'photos/miron';
   final _formKey = GlobalKey<FormState>();
   final _localFolderPathTextFieldController = TextEditingController();
   var _fileTypeForSync = FileTypeForSync.image;
@@ -56,6 +59,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   List<PlatformFile> _paths;
 
   bool _showingFiles = false;
+
+  String get _joinedSambaFolder => p.join(_BASE_SAMBA_FOLDER, _nasFolder).toString();
 
   @override
   void dispose() {
@@ -116,140 +121,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
           'Synchronize to NAS',
         ),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(4.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Form(
-              key: _formKey,
-              autovalidateMode: AutovalidateMode.always,
-              onWillPop: () {
-                return Future(() => true);
-              },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          key: Key('__LocalFolderField'),
-                          // initialValue: '', nesmi byt nastaven kdyz se pouzije controller
-                          style: Theme.of(context).textTheme.headline5,
-                          decoration: InputDecoration(
-                            hintText: 'Enter local folder',
-                          ),
-                          validator: (val) => val.trim().isEmpty ? 'Cannot be empty' : null,
-                          controller: _localFolderPathTextFieldController,
-                          // onSaved: (value) => _localFolder = value,
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          if (!kIsWeb) {
-                            _selectFolder();
-                          } else {
-                            ErrorHandler.showErrorDialog(
-                                context, NASFileException('Opening a folder is not allowed on the Web!'));
-                          }
-                        },
-                        child: Text('Pick local folder'),
-                      ),
-                    ],
-                  ),
-                  TextFormField(
-                    key: Key('__NASFolderField'),
-                    // initialValue: '/home/mbaros/Pictures/test',
-                    // initialValue: 'films',
-                    initialValue: 'photos/miron/phonePhotos/2021',
-                    //photos/miron/phoneVideos
-                    //photos/miron/whatsapp/2020_photos
-                    //photos/miron/whatsapp/2020_video
-                    autofocus: false,
-                    style: Theme.of(context).textTheme.headline5,
-                    decoration: InputDecoration(hintText: 'Enter NAS folder'),
-                    validator: (val) => val.trim().isEmpty ? 'Cannot be empty' : null,
-                    onSaved: (value) => _nasFolder = value,
-                  ),
-                  createInputDateBar(),
-                  createRadiobuttonFileTypeList(),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16.0),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            if (nasFileSyncState.state.uploading) {
-                              return;
-                            }
-                            final form = _formKey.currentState;
-                            if (form.validate()) {
-                              form.save();
-
-                              _showingFiles = true;
-
-                              await nasFileSyncState.setState(
-                                (s) async {
-                                  if (nasFileSyncState.state.allTransferringFilesCount == 0) {
-                                    // try {
-                                    await s.getFilesForSynchronization(_localFolderPathTextFieldController.value.text,
-                                        _nasFolder, _fileTypeForSync, _selectedDateFrom, _selectedDateTo);
-                                  }
-
-                                  s.showFirstFiles();
-                                  // } catch (e) {
-                                  //   //TODO neobjevi se okno s chybou, zustava data loader
-                                  //   Navigator.of(context).pop(); //dismiss data loader
-                                  //   ErrorHandler.showErrorDialog(context, e);
-                                  // }
-                                },
-                                onError: (context, error) => ErrorHandler.showErrorDialog(context, error, true),
-                              );
-                            }
-                          },
-                          child: Text('Show files'),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            if (nasFileSyncState.state.uploading) {
-                              return;
-                            }
-
-                            await nasFileSyncState.setState(
-                              (s) async {
-                                _showingFiles = false;
-                                s.clearFileList();
-                              },
-                              onError: (context, error) => ErrorHandler.showErrorDialog(context, error, true),
-                            );
-                          },
-                          child: Text('Clear files'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: nasFileSyncState.whenRebuilderOr(
-                watch: () => nasFileSyncState.state.transferringFileList,
-                onIdle: () => Text('No transferred file'),
-                onError: (e) {
-                  log('ERROR: ${e}');
-
-                  return Text('${e}');
-                },
-                builder: () => _buildUploadingFilesSection(context, nasFileSyncState.state.transferringFileList),
-              ),
-            ),
-          ],
-        ),
-      ),
+      body: _createBody(),
       floatingActionButton: FloatingActionButton(
         onPressed: _uploadingFileButtonOnPressed,
         child: const Icon(Icons.send),
@@ -258,34 +130,154 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
     );
   }
 
-  Widget _buildUploadingFilesSection(BuildContext context, List<File> transferringFileList) {
-    return Column(
-      children: [
-        _createTransferingStatusBar(),
-        _showFilesToTransfer(context, transferringFileList),
-      ],
+  Widget _createBody() {
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: ListView(
+        padding: const EdgeInsets.all(0.0),
+        children: <Widget>[
+          _getForm(),
+          Divider(),
+          _createTransferingStatusBar(),
+          Divider(),
+          nasFileSyncState.whenRebuilderOr(
+            watch: () => nasFileSyncState.state.transferringFileList,
+            onIdle: () => Text('No transferred file'),
+            onError: (e) {
+              log('ERROR: ${e}');
+
+              return Text('${e}');
+            },
+            builder: () => _showFilesToTransfer(context, nasFileSyncState.state.transferringFileList),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _getForm() {
+    return Form(
+      key: _formKey,
+      autovalidateMode: AutovalidateMode.always,
+      onWillPop: () {
+        return Future(() => true);
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  key: Key('__LocalFolderField'),
+                  // initialValue: '', nesmi byt nastaven kdyz se pouzije controller
+                  style: Theme.of(context).textTheme.headline5,
+                  decoration: InputDecoration(
+                    hintText: 'Enter local folder',
+                  ),
+                  validator: (val) => val.trim().isEmpty ? 'Cannot be empty' : null,
+                  controller: _localFolderPathTextFieldController,
+                  // onSaved: (value) => _localFolder = value,
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (!kIsWeb) {
+                    _selectFolder();
+                  } else {
+                    ErrorHandler.showErrorDialog(
+                        context, NASFileException('Opening a folder is not allowed on the Web!'));
+                  }
+                },
+                child: Text('Pick local folder'),
+              ),
+            ],
+          ),
+          createDropDownButtonExtLoaded(),
+          createInputDateBar(),
+          createRadiobuttonFileTypeList(),
+          Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (nasFileSyncState.state.uploading) {
+                      return;
+                    }
+                    final form = _formKey.currentState;
+                    if (form.validate()) {
+                      form.save();
+
+                      _showingFiles = true;
+
+                      await nasFileSyncState.setState(
+                        (s) async {
+                          if (nasFileSyncState.state.allTransferringFilesCount == 0) {
+                            // try {
+                            await s.getFilesForSynchronization(_localFolderPathTextFieldController.value.text,
+                                _joinedSambaFolder, _fileTypeForSync, _selectedDateFrom, _selectedDateTo);
+                          }
+
+                          s.showFirstFiles();
+                          // } catch (e) {
+                          //   //TODO neobjevi se okno s chybou, zustava data loader
+                          //   Navigator.of(context).pop(); //dismiss data loader
+                          //   ErrorHandler.showErrorDialog(context, e);
+                          // }
+                        },
+                        onError: (context, error) => ErrorHandler.showErrorDialog(context, error, true),
+                      );
+                    }
+                  },
+                  child: Text('Show files'),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (nasFileSyncState.state.uploading) {
+                      return;
+                    }
+
+                    await nasFileSyncState.setState(
+                      (s) async {
+                        _showingFiles = false;
+                        s.clearFileList();
+                      },
+                      onError: (context, error) => ErrorHandler.showErrorDialog(context, error, true),
+                    );
+                  },
+                  child: Text('Clear files'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
   Widget _createTransferingStatusBar() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Transferred / All - '),
-            nasFileSyncState.whenRebuilderOr(
-              watch: () => nasFileSyncState.state.transferredFilesCount,
-              builder: () => Text('${nasFileSyncState.state.transferredFilesCount}'),
-            ),
-            Text('/'),
-            Text('${nasFileSyncState.state.allTransferringFilesCount}'),
-          ],
-        ),
-        _uploadingFileStatusBar(),
-      ],
+    return nasFileSyncState.whenRebuilderOr(
+      watch: () => nasFileSyncState.state.transferredFilesCount,
+      builder: () => Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Transferred / All - '),
+              Text('${nasFileSyncState.state.transferredFilesCount}'),
+              Text('/'),
+              Text('${nasFileSyncState.state.allTransferringFilesCount}'),
+            ],
+          ),
+          _uploadingFileStatusBar(),
+        ],
+      ),
     );
   }
 
@@ -344,16 +336,17 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   }
 
   Widget _showImagesToTransfer(BuildContext context, List<File> transferringFileList) {
-    return Expanded(
-      child: GridView.count(
-        primary: false,
-        padding: const EdgeInsets.all(4),
-        crossAxisSpacing: 4,
-        mainAxisSpacing: 4,
-        crossAxisCount: 4,
-        shrinkWrap: true,
-        children: transferringFileList.map((imgFile) => _createThumbnail(context, imgFile)).toList(),
-      ),
+    // return Expanded(
+    //   child: GridView.count(
+    return GridView.count(
+      primary: false,
+      padding: const EdgeInsets.all(4),
+      crossAxisSpacing: 4,
+      mainAxisSpacing: 4,
+      crossAxisCount: 4,
+      shrinkWrap: true,
+      children: transferringFileList.map((imgFile) => _createThumbnail(context, imgFile)).toList(),
+      // ),
     );
   }
 
@@ -405,6 +398,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
             height: 50.0,
             child: RadioListTile<FileTypeForSync>(
               title: const Text('Images'),
+              dense: true,
               value: FileTypeForSync.image,
               groupValue: _fileTypeForSync,
               onChanged: (FileTypeForSync value) {
@@ -420,6 +414,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
             height: 50.0,
             child: RadioListTile<FileTypeForSync>(
               title: const Text('Videos'),
+              dense: true,
               value: FileTypeForSync.video,
               groupValue: _fileTypeForSync,
               onChanged: (FileTypeForSync value) {
@@ -435,6 +430,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
             height: 50.0,
             child: RadioListTile<FileTypeForSync>(
               title: const Text('Docs'),
+              dense: true,
               value: FileTypeForSync.doc,
               groupValue: _fileTypeForSync,
               onChanged: (FileTypeForSync value) {
@@ -482,7 +478,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
       if (!_showingFiles && nasFileSyncState.state.allTransferringFilesCount == 0) {
         try {
           await nasFileSyncState.state.getFilesForSynchronization(_localFolderPathTextFieldController.value.text,
-              _nasFolder, _fileTypeForSync, _selectedDateFrom, _selectedDateTo);
+              _joinedSambaFolder, _fileTypeForSync, _selectedDateFrom, _selectedDateTo);
         } catch (e) {
           nasFileSyncState.state.uploading = false;
           //TODO neobjevi se okno s chybou, zustava data loader
@@ -504,7 +500,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
             // nasFileSyncState.state.showNextFiles(nasFileSyncState.state.allTransferringFilesCount);
 
             try {
-              return s.syncFolderWithNAS(s.filesForUploading, _nasFolder, _fileTypeForSync);
+              return s.syncFolderWithNAS(s.filesForUploading, _joinedSambaFolder, _fileTypeForSync);
             } catch (e) {
               nasFileSyncState.state.uploading = false;
               //TODO neobjevi se okno s chybou, zustava data loader
@@ -551,5 +547,60 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
         ),
       ],
     );
+  }
+
+  Widget createDropDownButtonExtLoaded() {
+    return FutureBuilder(
+      future: _listSambaFolders(),
+      builder: (context, AsyncSnapshot<List<String>> snapshot) {
+        var comboItems = <DropdownMenuItem<String>>[];
+        if (snapshot.hasData) {
+          comboItems = snapshot.data.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList();
+        } else if (snapshot.hasError) {
+          ErrorHandler.showErrorDialog(context, snapshot.error);
+        } else {
+          return CommonDataLoadingIndicator();
+        }
+        return DropdownButtonFormField<String>(
+          key: Key('__NASFolderField'),
+          value: _nasFolder,
+          icon: const Icon(Icons.arrow_downward),
+          iconSize: 24,
+          elevation: 16,
+          isExpanded: true,
+          disabledHint: Text('Not supported on Web'),
+          autofocus: false,
+          hint: Text('Click for a folder list'),
+          style: Theme.of(context).textTheme.headline5,
+          decoration: InputDecoration(
+            contentPadding: const EdgeInsets.all(0.0),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.deepPurple),
+            ),
+          ),
+          onChanged: (String newValue) {
+            setState(() {
+              _nasFolder = newValue;
+            });
+          },
+          items: comboItems,
+          validator: (val) => val.trim().isEmpty ? 'Cannot be empty' : null,
+          onSaved: (value) => _nasFolder = value,
+        );
+      },
+    );
+  }
+
+  Future<List<String>> _listSambaFolders() async {
+    if (kIsWeb) {
+      throw NASFileException('Not implemented on Web'); //not implemented on Web
+    }
+
+    return await nasFileSyncState.state.listSambaFolders(_BASE_SAMBA_FOLDER);
   }
 }

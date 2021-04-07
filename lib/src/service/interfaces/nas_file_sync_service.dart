@@ -11,5 +11,7 @@ abstract class NASFileSyncService {
   Stream<UploadFileStatus> sendFiles(
       List<File> transferringFileList, String nasFolderPath, FileTypeForSync fileTypeForSync);
 
-  void cancelRequest() {}
+  void cancelRequest();
+
+  Future<List<String>> listSambaFolders(String baseFolder);
 }

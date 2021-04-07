@@ -35,6 +35,8 @@ class NASFileSyncState {
 
   int transferredFilesCount = 0;
 
+  List<String> _sambaFolderList;
+
   List<File> get filesForUploading => List.of(_allTransferringFileList);
 
   Stream<UploadFileStatus> syncFolderWithNAS(
@@ -203,5 +205,9 @@ class NASFileSyncState {
     final fileListLength = allTransferringFilesCount;
     final endIndex = filesCount <= fileListLength ? filesCount : fileListLength;
     transferringFileList = _allTransferringFileList.sublist(0, endIndex);
+  }
+
+  Future<List<String>> listSambaFolders(String baseFolder) async {
+    return _sambaFolderList ??= await _remoteFileTransferService.listSambaFolders(baseFolder);
   }
 }

@@ -131,4 +131,9 @@ class HTTPNASFileSyncService implements NASFileSyncService {
   void cancelRequest() {
     // TODO: implement cancelRequest
   }
+
+  @override
+  Future<List<String>> listSambaFolders(String baseFolder) {
+    throw UnimplementedError();
+  }
 }
