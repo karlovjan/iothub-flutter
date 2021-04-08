@@ -92,7 +92,8 @@ class NASFileSyncState {
 
     _log.i('Load files for synchronization');
 
-    clearFileList();
+    clearFiles();
+
     // throw NASFileException("message test");
     final allTargetFolderFiles = await _remoteFileTransferService.retrieveDirectoryItems(
         nasFolderPath, dateFrom.secondsSinceEpoch, _dateToMidnight(dateTo).secondsSinceEpoch, fileTypeForSync);
@@ -167,7 +168,13 @@ class NASFileSyncState {
     return dateTo;
   }
 
-  void clearFileList() {
+  void clearShowingFiles() {
+    _log.i('clear shownig files');
+    transferringFileList.clear();
+    transferringFileList = List.empty(growable: true);
+  }
+
+  void clearFiles() {
     _log.i('clear files');
     _allTransferringFileList.clear();
     transferringFileList.clear();

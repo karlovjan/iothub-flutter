@@ -49,7 +49,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   var _selectedDateTo = DateTime.now(); //date up to now including time
 
   // Here we use a StatefulWidget to hold local fields _nasFolder and _localFolder
-  String _nasFolder;
+  String _nasFolder = '';
 
   // String _localFolder;
 
@@ -66,7 +66,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   void dispose() {
     _localFolderPathTextFieldController.dispose();
     _clearCachedFiles();
-    nasFileSyncState.state.clearFileList();
+    nasFileSyncState.state.clearFiles();
     super.dispose();
   }
 
@@ -244,7 +244,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                     await nasFileSyncState.setState(
                       (s) async {
                         _showingFiles = false;
-                        s.clearFileList();
+                        s.clearShowingFiles();
                       },
                       onError: (context, error) => ErrorHandler.showErrorDialog(context, error, true),
                     );
@@ -562,9 +562,11 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
             );
           }).toList();
         } else if (snapshot.hasError) {
-          ErrorHandler.showErrorDialog(context, snapshot.error);
+          // ErrorHandler.showErrorDialog(context, snapshot.error);
+          return Text('${snapshot.error}');
         } else {
-          return CommonDataLoadingIndicator();
+          return Text('Loading server folders ...');
+          // return CommonDataLoadingIndicator();
         }
         return DropdownButtonFormField<String>(
           key: Key('__NASFolderField'),
@@ -589,7 +591,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
             });
           },
           items: comboItems,
-          validator: (val) => val.trim().isEmpty ? 'Cannot be empty' : null,
+          validator: (val) => val.trim().isEmpty ? 'Cannot be empty' : '',
           onSaved: (value) => _nasFolder = value,
         );
       },
