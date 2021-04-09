@@ -11,7 +11,6 @@ import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
 import 'package:iothub/src/service/nas_file_sync_state.dart';
 import 'package:iothub/src/ui/exceptions/error_handler.dart';
-import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
 import 'package:path/path.dart' as p;
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -49,7 +48,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   var _selectedDateTo = DateTime.now(); //date up to now including time
 
   // Here we use a StatefulWidget to hold local fields _nasFolder and _localFolder
-  String _nasFolder = '';
+  String _nasFolder;
 
   // String _localFolder;
 
@@ -261,7 +260,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
 
   Widget _createTransferingStatusBar() {
     return nasFileSyncState.whenRebuilderOr(
-      watch: () => nasFileSyncState.state.transferredFilesCount,
+      watch: () => nasFileSyncState.state.allTransferringFilesCount,
       builder: () => Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -475,15 +474,15 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
     if (form.validate()) {
       form.save();
 
-      if (!_showingFiles && nasFileSyncState.state.allTransferringFilesCount == 0) {
+      if (nasFileSyncState.state.allTransferringFilesCount == 0) {
         try {
           await nasFileSyncState.state.getFilesForSynchronization(_localFolderPathTextFieldController.value.text,
               _joinedSambaFolder, _fileTypeForSync, _selectedDateFrom, _selectedDateTo);
         } catch (e) {
           nasFileSyncState.state.uploading = false;
           //TODO neobjevi se okno s chybou, zustava data loader
-          Navigator.of(context).pop(); //dismiss data loader
-          ErrorHandler.showErrorDialog(context, e);
+          // Navigator.of(context).pop(); //dismiss data loader
+          ErrorHandler.showErrorSnackBar(context, e);
         }
       }
 
@@ -493,32 +492,31 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
         nasFileSyncState.state.uploading = false;
         return;
       }
+      // try {
+      await nasFileSyncState.setState(
+        (s) {
+          // nasFileSyncState.state.showNextFiles(nasFileSyncState.state.allTransferringFilesCount);
 
-      try {
-        await nasFileSyncState.setState(
-          (s) {
-            // nasFileSyncState.state.showNextFiles(nasFileSyncState.state.allTransferringFilesCount);
-
-            try {
-              return s.syncFolderWithNAS(s.filesForUploading, _joinedSambaFolder, _fileTypeForSync);
-            } catch (e) {
-              nasFileSyncState.state.uploading = false;
-              //TODO neobjevi se okno s chybou, zustava data loader
-              Navigator.of(context).pop(); //dismiss data loader
-              ErrorHandler.showErrorDialog(context, e);
-            }
-          },
-          onError: (context, error) {
+          try {
+            return s.syncFolderWithNAS(s.filesForUploading, _joinedSambaFolder, _fileTypeForSync);
+          } catch (e) {
             nasFileSyncState.state.uploading = false;
-            ErrorHandler.showErrorDialog(context, error, true);
-          },
-        );
-      } catch (e) {
-        nasFileSyncState.state.uploading = false;
-        //TODO neobjevi se okno s chybou, zustava data loader
-        Navigator.of(context).pop(); //dismiss data loader
-        ErrorHandler.showErrorDialog(context, e);
-      }
+            //TODO neobjevi se okno s chybou, zustava data loader
+            // Navigator.of(context).pop(); //dismiss data loader
+            ErrorHandler.showErrorSnackBar(context, e);
+          }
+        },
+        onError: (context, error) {
+          nasFileSyncState.state.uploading = false;
+          ErrorHandler.showErrorSnackBar(context, error);
+        },
+      );
+      // } catch (e) {
+      //   nasFileSyncState.state.uploading = false;
+      //   //TODO neobjevi se okno s chybou, zustava data loader
+      //   // Navigator.of(context).pop(); //dismiss data loader
+      //   ErrorHandler.showErrorSnackBar(context, e);
+      // }
     }
   }
 
@@ -591,8 +589,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
             });
           },
           items: comboItems,
-          validator: (val) => val.trim().isEmpty ? 'Cannot be empty' : '',
-          onSaved: (value) => _nasFolder = value,
+          validator: (val) => (val == null || val.trim().isEmpty) ? 'Cannot be empty' : null,
         );
       },
     );

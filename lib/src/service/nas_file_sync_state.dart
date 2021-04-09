@@ -20,8 +20,7 @@ class NASFileSyncState {
   bool uploading = false;
 
   // Stream<UploadFileStatus> uploadedFileStream;
-  UploadFileStatus uploadedFileStatus =
-      UploadFileStatus(uploadingFilePath: '', timestamp: DateTime.now(), uploaded: false);
+  UploadFileStatus uploadedFileStatus = UploadFileStatus.empty();
 
   //TODO make const constructor
   NASFileSyncState(this._remoteFileTransferService);

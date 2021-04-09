@@ -14,4 +14,8 @@ class UploadFileStatus {
         timestamp: newStatus?.timestamp,
         uploaded: newStatus?.uploaded);
   }
+
+  factory UploadFileStatus.empty() {
+    return UploadFileStatus(uploadingFilePath: '', timestamp: DateTime.now(), uploaded: false);
+  }
 }
