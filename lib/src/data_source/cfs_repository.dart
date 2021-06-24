@@ -62,7 +62,7 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
     }
   }
 
-  List<Measurement> _createMeasurementList(QuerySnapshot snapshot) {
+  List<Measurement> _createMeasurementList(QuerySnapshot<Map<String, dynamic>> snapshot) {
     final measurementList = <Measurement>[];
 
     if (snapshot.docs.isEmpty) {

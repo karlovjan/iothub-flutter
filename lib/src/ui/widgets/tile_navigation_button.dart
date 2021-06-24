@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 class TileNavigationButton extends StatelessWidget {
   final String routeName;
@@ -14,7 +15,7 @@ class TileNavigationButton extends StatelessWidget {
       child: Card(
         child: InkWell(
           onTap: () {
-            Navigator.pushNamed(context, routeName);
+            RM.navigate.toNamed(routeName);
           },
           child: Center(
             child: Text(title),

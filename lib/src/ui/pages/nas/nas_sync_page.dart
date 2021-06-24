@@ -139,6 +139,9 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
           Divider(),
           _createTransferingStatusBar(),
           Divider(),
+          On.all(
+              onIdle: () => Text('No transferred file'),
+              onWaiting: onWaiting, onError: onError, onData: onData)
           nasFileSyncState.whenRebuilderOr(
             watch: () => nasFileSyncState.state.transferringFileList,
             onIdle: () => Text('No transferred file'),
@@ -225,7 +228,6 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                           //   ErrorHandler.showErrorDialog(context, e);
                           // }
                         },
-                        onError: (context, error) => ErrorHandler.showErrorDialog(context, error, true),
                       );
                     }
                   },
@@ -245,7 +247,6 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                         _showingFiles = false;
                         s.clearShowingFiles();
                       },
-                      onError: (context, error) => ErrorHandler.showErrorDialog(context, error, true),
                     );
                   },
                   child: Text('Clear files'),

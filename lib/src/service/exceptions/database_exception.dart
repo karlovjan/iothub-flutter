@@ -5,6 +5,6 @@ class DatabaseException extends Error {
 
   @override
   String toString() {
-    return message.toString();
+    return message;
   }
 }

@@ -49,7 +49,7 @@ Future<SecurityContext> get get_security_Context async {
 }
 
 class DIOHTTPNASFileSyncService implements NASFileSyncService {
-  DIOHTTPNASFileSyncService(String serverName) : _serverName = serverName;
+  DIOHTTPNASFileSyncService(this._serverName);
 
   final String _serverName;
   final _cancelRequestToken = CancelToken();

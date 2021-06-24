@@ -35,3 +35,21 @@ class User {
   }
 
 }
+
+@immutable
+class LoggedOutUser extends User {}
+
+class UserParam {
+  final String email;
+  final String password;
+  final SignIn signIn;
+  UserParam({
+    this.email,
+    this.password,
+    this.signIn,
+  });
+}
+
+enum SignIn {
+  withEmailAndPassword
+}

@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:iothub/src/domain/entities/device.dart';
+import 'package:iothub/src/domain/entities/iothub.dart';
 import 'package:iothub/src/domain/entities/measurement.dart';
-import 'package:iothub/src/service/iothub_service.dart';
 import 'package:iothub/src/ui/exceptions/error_handler.dart';
+import 'package:iothub/src/ui/pages/iothub/iothub_main.dart';
 import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 class DashboardDeviceCard extends StatelessWidget {
-  final List<Device> devices;
-  final ReactiveModel<IOTHubService> iotHubService;
+  final List<Device> _devices;
+  final IOTHub _selectedIOTHub;
 
-  DashboardDeviceCard({@required this.devices, this.iotHubService});
+  const DashboardDeviceCard(this._selectedIOTHub, this._devices);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: ListView(
         padding: const EdgeInsets.only(top: 10.0),
-        children: devices.map((device) => _buildCard(context, device)).toList(),
+        children: _devices.map((device) => _buildCard(context, device)).toList(),
       ),
     );
   }
@@ -37,60 +38,21 @@ class DashboardDeviceCard extends StatelessWidget {
     );
   }
 
-  /*
   Widget _deviceGaugeChart(BuildContext context, Device device) {
-    return WhenRebuilderOr<List<Measurement>>(
-      //Create a new ReactiveModel with the stream method.
-
-      observe: () => RM.stream(
-        iotHubService.state.deviceAllMeasurementStream(
-            iotHubService.state.selectedIOTHub.id, device),
-      ),
+    return On.future<List<Measurement>>(
       onWaiting: () => CommonDataLoadingIndicator(),
-      onSetState: (context, modelRM) {
-        if (modelRM.hasError) {
-          ErrorHandler.showErrorSnackBar(context, modelRM.error);
-        }
-      },
-      onError: (error) {
-        return Center(child: Text(error.toString()));
-      },
-      builder: (context, modelRM) {
-        return Container(
-          padding: EdgeInsets.all(10),
-          child: Column(
-            children: _listMeasurementWidgets(modelRM.snapshot.data),
-          ),
-        );
-      },
-    );
+      onError: (error, refresher) => Text(ErrorHandler.getErrorMessage(error)),
+      //Future can be reinvoked
+      onData: (data, refresh) => _measurmentWidget(data),
+    ).future(() => IOTHubsMainPage.iotHubService.state.loadLastMeasurement(_selectedIOTHub.id, device));
   }
-*/
 
-  Widget _deviceGaugeChart(BuildContext context, Device device) {
-    return WhenRebuilderOr<List<Measurement>>(
-      //Create a new ReactiveModel with the stream method.
-
-      observe: () => RM.future(
-        iotHubService.state.loadLastMeasurement(iotHubService.state.selectedIOTHub.id, device),
+  Widget _measurmentWidget(List<Measurement<dynamic>> measurements) {
+    return Container(
+      padding: EdgeInsets.all(10),
+      child: Column(
+        children: _listMeasurementWidgets(measurements),
       ),
-      onWaiting: () => CommonDataLoadingIndicator(),
-      onSetState: (context, modelRM) {
-        if (modelRM.hasError) {
-          ErrorHandler.showErrorSnackBar(context, modelRM.error);
-        }
-      },
-      onError: (error) {
-        return Center(child: Text(error.toString()));
-      },
-      builder: (context, modelRM) {
-        return Container(
-          padding: EdgeInsets.all(10),
-          child: Column(
-            children: _listMeasurementWidgets(modelRM.snapshot.data),
-          ),
-        );
-      },
     );
   }
 
