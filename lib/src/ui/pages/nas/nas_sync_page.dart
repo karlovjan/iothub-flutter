@@ -139,18 +139,12 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
           Divider(),
           _createTransferingStatusBar(),
           Divider(),
-          On.all(
-              onIdle: () => Text('No transferred file'),
-              onWaiting: onWaiting, onError: onError, onData: onData)
-          nasFileSyncState.whenRebuilderOr(
+          On.or(
+            onError: (err, refresh) => Text(ErrorHandler.getErrorMessage(err)),
+              or: () => _showFilesToTransfer(context, nasFileSyncState.state.transferringFileList),
+          ).listenTo(
+              nasFileSyncState,
             watch: () => nasFileSyncState.state.transferringFileList,
-            onIdle: () => Text('No transferred file'),
-            onError: (e) {
-              log('ERROR: ${e}');
-
-              return Text('${e}');
-            },
-            builder: () => _showFilesToTransfer(context, nasFileSyncState.state.transferringFileList),
           ),
         ],
       ),
@@ -187,8 +181,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                   if (!kIsWeb) {
                     _selectFolder();
                   } else {
-                    ErrorHandler.showErrorDialog(
-                        context, NASFileException('Opening a folder is not allowed on the Web!'));
+                    throw NASFileException('Opening a folder is not allowed on the Web!');
                   }
                 },
                 child: Text('Pick local folder'),
@@ -216,17 +209,18 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                       await nasFileSyncState.setState(
                         (s) async {
                           if (nasFileSyncState.state.allTransferringFilesCount == 0) {
-                            // try {
+                            try {
                             await s.getFilesForSynchronization(_localFolderPathTextFieldController.value.text,
                                 _joinedSambaFolder, _fileTypeForSync, _selectedDateFrom, _selectedDateTo);
+                            } catch (e) {
+                              //TODO neobjevi se okno s chybou, zustava data loader
+                              Navigator.of(context).pop(); //dismiss data loader
+                              ErrorHandler.showSnackBar(e);
+                            }
                           }
 
                           s.showFirstFiles();
-                          // } catch (e) {
-                          //   //TODO neobjevi se okno s chybou, zustava data loader
-                          //   Navigator.of(context).pop(); //dismiss data loader
-                          //   ErrorHandler.showErrorDialog(context, e);
-                          // }
+
                         },
                       );
                     }
@@ -260,9 +254,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   }
 
   Widget _createTransferingStatusBar() {
-    return nasFileSyncState.whenRebuilderOr(
-      watch: () => nasFileSyncState.state.allTransferringFilesCount,
-      builder: () => Column(
+    return On.data(
+      () => nasFileSyncState.state.uploading && nasFileSyncState.state.transferredFilesCount > 0 ? Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Row(
@@ -277,14 +270,15 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
           ),
           _uploadingFileStatusBar(),
         ],
-      ),
-    );
+      ) : SizedBox.shrink(),
+    ).listenTo(
+        nasFileSyncState,
+        watch: () => nasFileSyncState.state.transferredFilesCount);
   }
 
   Widget _uploadingFileStatusBar() {
-    return nasFileSyncState.whenRebuilderOr(
-        watch: () => nasFileSyncState.state.uploadedFileStatus,
-        builder: () {
+    return On.data(
+        () {
           if (nasFileSyncState.state.uploading &&
               nasFileSyncState.state.uploadedFileStatus != null &&
               !nasFileSyncState.state.uploadedFileStatus.uploaded) {
@@ -315,8 +309,11 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
               ],
             );
           }
-          return Text('');
-        });
+          return SizedBox.shrink();
+        }).listenTo(
+          nasFileSyncState,
+          watch: () => nasFileSyncState.state.uploadedFileStatus,
+    );
   }
 
   Widget _showFilesToTransfer(BuildContext context, List<File> transferringFileList) {
@@ -483,7 +480,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
           nasFileSyncState.state.uploading = false;
           //TODO neobjevi se okno s chybou, zustava data loader
           // Navigator.of(context).pop(); //dismiss data loader
-          ErrorHandler.showErrorSnackBar(context, e);
+          ErrorHandler.showSnackBar(e);
         }
       }
 
@@ -498,18 +495,14 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
         (s) {
           // nasFileSyncState.state.showNextFiles(nasFileSyncState.state.allTransferringFilesCount);
 
-          try {
             return s.syncFolderWithNAS(s.filesForUploading, _joinedSambaFolder, _fileTypeForSync);
-          } catch (e) {
-            nasFileSyncState.state.uploading = false;
-            //TODO neobjevi se okno s chybou, zustava data loader
-            // Navigator.of(context).pop(); //dismiss data loader
-            ErrorHandler.showErrorSnackBar(context, e);
-          }
+
         },
-        onError: (context, error) {
+        onError: (error) {
           nasFileSyncState.state.uploading = false;
-          ErrorHandler.showErrorSnackBar(context, error);
+          //TODO neobjevi se okno s chybou, zustava data loader
+          // Navigator.of(context).pop(); //dismiss data loader
+          ErrorHandler.showSnackBar(error);
         },
       );
       // } catch (e) {

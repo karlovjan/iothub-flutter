@@ -22,7 +22,6 @@ class NASFileSyncState {
   // Stream<UploadFileStatus> uploadedFileStream;
   UploadFileStatus uploadedFileStatus = UploadFileStatus.empty();
 
-  //TODO make const constructor
   NASFileSyncState(this._remoteFileTransferService);
 
   // bool _synchronizing = false;
@@ -71,6 +70,9 @@ class NASFileSyncState {
         //   throw NASFileException('Synchronization was aborted!');
         // }
       }
+    } catch (err) {
+      _log.e('Caught error:', err);
+      throw NASFileException('Error: ${err}');
     } finally {
       _log.i('uploading finished');
       uploading = false;
@@ -101,10 +103,10 @@ class NASFileSyncState {
 
     final entityList = localDir.list(recursive: true, followLinks: false);
 
-    final streamWithoutErrors = entityList.handleError(_onListingFileError);
+    // final streamWithoutErrors = entityList.handleError(_onListingFileError);
 
-    // try {
-    await for (FileSystemEntity entity in streamWithoutErrors) {
+    try {
+    await for (FileSystemEntity entity in entityList) {
       final fileType = await FileSystemEntity.type(entity.path);
       if (!recursive && fileType == FileSystemEntityType.file && filterFileByType(entity, fileTypeForSync)) {
         final dateInRange = await isDateInRange(entity, dateFrom, dateTo);
@@ -117,9 +119,10 @@ class NASFileSyncState {
 
       //TODO implemnts recurcive and file updated
     }
-    // } catch (err) {
-    //   throw NASFileException('Error: ${err}');
-    // }
+    } catch (err) {
+      _log.e('Caught error:', err);
+      throw NASFileException('Error: ${err}');
+    }
   }
 
   void _onListingFileError(Object error, StackTrace stackTrace) {
