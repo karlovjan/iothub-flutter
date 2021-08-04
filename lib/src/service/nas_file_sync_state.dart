@@ -33,15 +33,12 @@ class NASFileSyncState {
 
   int transferredFilesCount = 0;
 
-  List<String> _sambaFolderList;
+  List<String>? _sambaFolderList;
 
   List<File> get filesForUploading => List.of(_allTransferringFileList);
 
   Stream<UploadFileStatus> syncFolderWithNAS(
       List<File> uploadingFiles, String nasFolderPath, FileTypeForSync fileType) async* {
-    assert(uploadingFiles != null);
-    assert(nasFolderPath != null);
-    assert(fileType != null);
 
     if (uploading) {
       _log.i('Synchronization is already running!');
@@ -85,11 +82,6 @@ class NASFileSyncState {
   Future<void> getFilesForSynchronization(
       String localFolderPath, String nasFolderPath, FileTypeForSync fileTypeForSync, DateTime dateFrom, DateTime dateTo,
       {bool includeUpdatedFiles = false, bool recursive = false}) async {
-    assert(nasFolderPath != null);
-    assert(localFolderPath != null);
-    assert(dateFrom != null);
-    assert(dateTo != null);
-    assert(fileTypeForSync != null);
 
     _log.i('Load files for synchronization');
 
@@ -131,13 +123,13 @@ class NASFileSyncState {
 
   bool _isFileInNasList(String filePath, List<NASFileItem> nasFiles) {
     return nasFiles
-        .firstWhere((nasFile) => filePath.endsWith(nasFile.fileName), orElse: () => NASFileItem('', null))
-        .fileName
+        .firstWhere((nasFile) => filePath.endsWith(nasFile.fileName!), orElse: () => NASFileItem('', null))
+        .fileName!
         .isNotEmpty;
   }
 
   bool filterFileByType(FileSystemEntity entity, FileTypeForSync type) {
-    final ext = path.extension(entity.path)?.toLowerCase();
+    final ext = path.extension(entity.path).toLowerCase();
     switch (type) {
       case FileTypeForSync.image:
         return ['.jpg', '.jpeg', '.gif', '.png', '.dng'].contains(ext);
@@ -153,18 +145,15 @@ class NASFileSyncState {
   Future<bool> isDateInRange(FileSystemEntity entity, DateTime dateFrom, DateTime dateTo) async {
     final fileStat = await entity.stat();
 
-    dateFrom ??= DateTime.now().dateNow();
     dateTo = _dateToMidnight(dateTo); //aby datum byl az do konce aktualniho dne, exclude date to
 
     var modified = fileStat.modified;
-    modified ??= fileStat.changed;
 
     // final result = modified.isAtSameMomentAs(dateFrom) || (modified.isAfter(dateFrom) && modified.isBefore(dateTo));
     return modified.isBetween(dateFrom, dateTo);
   }
 
   DateTime _dateToMidnight(DateTime dateTo) {
-    dateTo ??= DateTime.now().dateNow();
 
     dateTo.add(Duration(days: 1)).dateNow(); //aby datum byl az do konce aktualniho dne, exclude date to
     return dateTo;
@@ -195,7 +184,7 @@ class NASFileSyncState {
     ++transferredFilesCount;
   }
 
-  void removeFile(String filePath) {
+  void removeFile(String? filePath) {
     // var newList = List<File>.of(transferringFileList);
     // newList.removeWhere((e) => e.path == filePath);
     final removingFile = _allTransferringFileList.firstWhere(

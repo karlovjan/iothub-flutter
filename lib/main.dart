@@ -34,8 +34,8 @@ class IOTHubApp extends StatelessWidget {
           StaticPages.hubs.routeName: (_) => RouteWidget(
             builder: (_) => const IOTHubsMainPage(),
             routes: {
-              IOTHUBStaticPages.devices.routeName: (data) => IOTHubDeviceListPage(data.arguments as IOTHub),
-              IOTHUBStaticPages.dashboard.routeName: (data) => IOTHubDashboardPage(data.arguments as IOTHub),
+              IOTHUBStaticPages.devices.routeName: (data) => IOTHubDeviceListPage(data.arguments as IOTHub?),
+              IOTHUBStaticPages.dashboard.routeName: (data) => IOTHubDashboardPage(data.arguments as IOTHub?),
             },
           ),
           StaticPages.nasSync.routeName: (context) => const NASSyncMainPage(),

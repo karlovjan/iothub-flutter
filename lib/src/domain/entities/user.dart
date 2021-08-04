@@ -7,15 +7,15 @@ class User {
   final String displayName;
 
   User({
-    this.uid,
-    this.email,
-    this.displayName
+    required this.uid,
+    required this.email,
+    required this.displayName
   });
 
   User copyWith({
-    String uid,
-    String email,
-    String displayName
+    String? uid,
+    String? email,
+    String? displayName
   }) {
     return User(
       uid: uid ?? this.uid,
@@ -25,8 +25,6 @@ class User {
   }
 
   factory User.fromMap(Map<String, dynamic> map) {
-    if (map == null) return null;
-
     return User(
       uid: map['uid'] as String,
       email: map['email'] as String,
@@ -37,16 +35,18 @@ class User {
 }
 
 @immutable
-class LoggedOutUser extends User {}
+class LoggedOutUser extends User {
+  LoggedOutUser() : super(email: '', displayName: '', uid:  '');
+}
 
 class UserParam {
-  final String email;
-  final String password;
+  final String? email;
+  final String? password;
   final SignIn signIn;
   UserParam({
     this.email,
     this.password,
-    this.signIn,
+    required this.signIn,
   });
 }
 

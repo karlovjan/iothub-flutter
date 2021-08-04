@@ -15,7 +15,7 @@ class DashboardManagerPage extends StatelessWidget {
 
   Widget _buildBody(BuildContext context) {
     //TODO
-    return RaisedButton(
+    return ElevatedButton(
       onPressed: () => Navigator.pop(context),
       child: Text('Close'),
     );

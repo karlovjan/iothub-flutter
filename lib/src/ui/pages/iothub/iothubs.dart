@@ -8,7 +8,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 class IOTHubList extends StatelessWidget {
   const IOTHubList({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -25,7 +25,7 @@ class IOTHubList extends StatelessWidget {
   Widget _buildBody(BuildContext context) {
     return On.future<List<IOTHub>>(
       onWaiting: () => CommonDataLoadingIndicator(),
-      onError: (error, refresher) => Text(ErrorHandler.getErrorMessage(error)), //Future can be reinvoked
+      onError: (error, refresher) => Text(ErrorHandler.getErrorMessage(error)!), //Future can be reinvoked
       onData: (data, refresh) => _buildList(context, data),
     ).future(() => IOTHubsMainPage.iotHubService.state.loadAllIOTHubs());
   }
@@ -48,7 +48,7 @@ class IOTHubList extends StatelessWidget {
         ),
         child: ListTile(
           title: Text(iotHub.name),
-          subtitle: Text(iotHub.gps.latitude.toString() + ';' + iotHub.gps.longitude.toString()),
+          subtitle: Text(iotHub.gps!.latitude.toString() + ';' + iotHub.gps!.longitude.toString()),
           trailing: Text(iotHub.createdAt.toString()),
           onTap: () {
             RM.navigate.toNamed(IOTHUBStaticPages.dashboard.routeName, arguments: iotHub);

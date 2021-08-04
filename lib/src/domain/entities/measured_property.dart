@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart';
 class MeasuredProperty {
   final String name;
   final String unit;
-  final String description;
-  final DateTime createdAt;
+  final String? description;
+  final DateTime? createdAt;
 
   MeasuredProperty(this.name, this.unit, {this.description, this.createdAt});
 
@@ -13,8 +13,8 @@ class MeasuredProperty {
     return MeasuredProperty(
       measuredProperty.name,
       measuredProperty.unit,
-      description: measuredProperty?.description,
-      createdAt: measuredProperty?.createdAt,
+      description: measuredProperty.description,
+      createdAt: measuredProperty.createdAt,
     );
   }
 }

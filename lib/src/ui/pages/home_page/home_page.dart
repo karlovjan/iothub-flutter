@@ -4,7 +4,7 @@ import 'package:iothub/src/ui/widgets/tile_navigation_button.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override

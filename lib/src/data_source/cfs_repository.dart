@@ -21,7 +21,6 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
 
   @override
   Future<List<Device>> loadAllDevices(String iotHubId) async {
-    assert(iotHubId != null);
 
     try {
       final snapshot = await _dbClient.collection('$_IOTHUB_ROOT_COLLECTION_PATH/$iotHubId/devices').get();
@@ -41,11 +40,9 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
   }
 
   @override
-  Future<List<Measurement>> loadLastMeasurement(String iotHubId, Device device) async {
-    assert(device != null);
+  Future<List<Measurement>> loadLastMeasurement(String? iotHubId, Device device) async {
     assert(iotHubId != null);
     assert(device.id != null);
-    assert(device.properties != null);
 
     try {
       final snapshot = await _dbClient
@@ -102,10 +99,7 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
 
   @override
   Stream<List<Measurement>> deviceAllMeasurementStream(String iotHubId, Device device) async* {
-    assert(device != null);
-    assert(iotHubId != null);
     assert(device.id != null);
-    assert(device.properties != null);
 
     try {
       final snapshot = await _dbClient

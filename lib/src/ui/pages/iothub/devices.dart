@@ -8,7 +8,7 @@ import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 class IOTHubDeviceListPage extends StatelessWidget {
-  final IOTHub _selectedIOTHub;
+  final IOTHub? _selectedIOTHub;
 
   const IOTHubDeviceListPage(this._selectedIOTHub);
 
@@ -16,14 +16,14 @@ class IOTHubDeviceListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_selectedIOTHub.name),
+        title: Text(_selectedIOTHub!.name),
       ),
       // body is the majority of the screen.
       body: On.future<List<Device>>(
         onWaiting: () => CommonDataLoadingIndicator(),
-        onError: (error, refresher) => Text(ErrorHandler.getErrorMessage(error)), //Future can be reinvoked
+        onError: (error, refresher) => Text(ErrorHandler.getErrorMessage(error)!), //Future can be reinvoked
         onData: (data, refresh) => _buildList(context, data),
-      ).future(() => IOTHubsMainPage.iotHubService.state.loadAllDevices(_selectedIOTHub.id)),
+      ).future(() => IOTHubsMainPage.iotHubService.state.loadAllDevices(_selectedIOTHub!.id)),
     );
   }
 
@@ -45,7 +45,7 @@ class IOTHubDeviceListPage extends StatelessWidget {
         ),
         child: ListTile(
           title: Text(device.name),
-          subtitle: Text(device.description + ' - ' + device.vendor),
+          subtitle: Text(device.description! + ' - ' + device.vendor!),
           trailing: Text(device.created.toString()),
           onTap: () {
             RM.navigate.toNamed(IOTHUBStaticPages.devices.routeName);

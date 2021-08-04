@@ -9,7 +9,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 class DashboardDeviceCard extends StatelessWidget {
   final List<Device> _devices;
-  final IOTHub _selectedIOTHub;
+  final IOTHub? _selectedIOTHub;
 
   const DashboardDeviceCard(this._selectedIOTHub, this._devices);
 
@@ -31,7 +31,7 @@ class DashboardDeviceCard extends StatelessWidget {
           leading: Icon(Icons.attach_file),
           trailing: Icon(Icons.addchart),
           title: Text(device.name),
-          subtitle: Text(device.description + ' - ' + device.vendor),
+          subtitle: Text(device.description! + ' - ' + device.vendor!),
         ),
         _deviceGaugeChart(context, device),
       ]),
@@ -41,10 +41,10 @@ class DashboardDeviceCard extends StatelessWidget {
   Widget _deviceGaugeChart(BuildContext context, Device device) {
     return On.future<List<Measurement>>(
       onWaiting: () => CommonDataLoadingIndicator(),
-      onError: (error, refresher) => Text(ErrorHandler.getErrorMessage(error)),
+      onError: (error, refresher) => Text(ErrorHandler.getErrorMessage(error)!),
       //Future can be reinvoked
       onData: (data, refresh) => _measurmentWidget(data),
-    ).future(() => IOTHubsMainPage.iotHubService.state.loadLastMeasurement(_selectedIOTHub.id, device));
+    ).future(() => IOTHubsMainPage.iotHubService.state.loadLastMeasurement(_selectedIOTHub!.id, device));
   }
 
   Widget _measurmentWidget(List<Measurement<dynamic>> measurements) {
@@ -105,12 +105,11 @@ class DashboardDeviceCard extends StatelessWidget {
   }
 
   List<Widget> _temperatureSensorDashboardWidget(final List<Measurement<dynamic>> measurements) {
-    assert(measurements != null);
     assert(measurements.isNotEmpty);
 
-    Measurement<dynamic> temperature;
-    Measurement<dynamic> humidity;
-    Measurement<dynamic> pressure;
+    late Measurement<dynamic> temperature;
+    Measurement<dynamic>? humidity;
+    Measurement<dynamic>? pressure;
 
     var otherMeasurements = <Measurement<dynamic>>[];
 
@@ -133,8 +132,8 @@ class DashboardDeviceCard extends StatelessWidget {
         verticalDirection: VerticalDirection.down,
         children: [
           _termometerMeasurementWidget(temperature, Colors.deepOrange),
-          if (humidity != null) _termometerMeasurementWidget(humidity, Colors.green),
-          if (pressure != null) _termometerMeasurementWidget(pressure, Colors.blue),
+          if (humidity != null) _termometerMeasurementWidget(humidity!, Colors.green),
+          if (pressure != null) _termometerMeasurementWidget(pressure!, Colors.blue),
         ],
       ),
     );

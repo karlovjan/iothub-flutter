@@ -15,17 +15,17 @@ class FirebaseAuthRepository implements IAuth<iothub_user.User, iothub_user.User
   }
 
   @override
-  Future<iothub_user.User> signUp(iothub_user.UserParam param) {
+  Future<iothub_user.User> signUp(iothub_user.UserParam? param) {
     throw UnimplementedError();
   }
 
   @override
-  Future<iothub_user.User> signIn(iothub_user.UserParam param) {
-    switch (param.signIn) {
+  Future<iothub_user.User> signIn(iothub_user.UserParam? param) {
+    switch (param!.signIn) {
       case iothub_user.SignIn.withEmailAndPassword:
         return _signInWithEmailAndPassword(
-          param.email,
-          param.password,
+          param.email!,
+          param.password!,
         );
 
       default:
@@ -34,7 +34,7 @@ class FirebaseAuthRepository implements IAuth<iothub_user.User, iothub_user.User
   }
 
   @override
-  Future<void> signOut(iothub_user.UserParam param) {
+  Future<void> signOut(iothub_user.UserParam? param) {
     return _firebaseAuth.signOut();
   }
 
@@ -59,17 +59,17 @@ class FirebaseAuthRepository implements IAuth<iothub_user.User, iothub_user.User
     }
   }
 
-  iothub_user.User _fromFireBaseUserToUser(User user) {
+  iothub_user.User _fromFireBaseUserToUser(User? user) {
     if (user == null) {
-      return iothub_user.User();
+      return iothub_user.LoggedOutUser();
     }
     return iothub_user.User(
-        uid: user.uid, email: user.email, displayName: user.displayName);
+        uid: user.uid, email: user.email ?? '', displayName: user.displayName ?? '');
   }
 
   @override
   void dispose() {
-    signOut(iothub_user.UserParam());
+    signOut(iothub_user.UserParam(signIn: iothub_user.SignIn.withEmailAndPassword));
   }
 
 }

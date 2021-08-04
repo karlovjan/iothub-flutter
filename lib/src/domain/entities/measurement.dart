@@ -11,13 +11,13 @@ class Measurement<T> {
 
   final DateTime createdAt;
 
-  Measurement(this.property, this.value, {DateTime newCreatedAt})
+  Measurement(this.property, this.value, {DateTime? newCreatedAt})
       : createdAt = newCreatedAt ?? DateTime.now();
 
   static Measurement fromJson(
       Map<String, dynamic> data, MeasuredProperty deviceMeasuredProperty) {
     final value = '${data[deviceMeasuredProperty.name]}';
-    DateTime createdAt;
+    DateTime? createdAt;
     try {
       if (data['createdAt'] is Timestamp) {
         createdAt = (data['createdAt'] as Timestamp).toDate();

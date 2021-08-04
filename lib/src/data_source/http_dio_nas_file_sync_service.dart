@@ -12,7 +12,7 @@ import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
 import 'package:iothub/src/service/nas_file_sync_state.dart';
 
-SecurityContext httpSecurityContext;
+SecurityContext? httpSecurityContext;
 
 Future<ByteData> loadCACert() async {
 //public certificate of CA
@@ -60,7 +60,7 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
   @override
   Future<List<NASFileItem>> retrieveDirectoryItems(
       String folderPath, double dateFromSeconds, double dateToSeconds, FileTypeForSync fileTypeForSync) async {
-    if (folderPath == null) {
+    if (folderPath.trim().isEmpty) {
       print('folder is not set');
       throw NASFileException('Empty folder path');
     }
@@ -125,8 +125,6 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
   @override
   Stream<UploadFileStatus> sendFiles(
       List<File> transferringFileList, String nasFolderPath, FileTypeForSync fileType) async* {
-    assert(transferringFileList != null);
-    assert(nasFolderPath != null);
 
     //https://github.com/dart-lang/http/blob/master/test/multipart_test.dart
 
@@ -210,7 +208,7 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
 
   @override
   Future<List<String>> listSambaFolders(String baseFolder) async {
-    if (baseFolder == null) {
+    if (baseFolder.trim().isEmpty) {
       print('base folder is not set');
       throw NASFileException('List samba folder error - base folder is not set');
     }

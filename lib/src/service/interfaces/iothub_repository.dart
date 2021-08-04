@@ -7,7 +7,7 @@ abstract class IOTHubRepository {
 
   Future<List<Device>> loadAllDevices(String iotHubId);
 
-  Future<List<Measurement>> loadLastMeasurement(String iotHubId, Device device);
+  Future<List<Measurement>> loadLastMeasurement(String? iotHubId, Device device);
 
   Stream<List<Measurement>> deviceAllMeasurementStream(String iothubDocumentId, Device device);
 

@@ -9,7 +9,7 @@ import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 class IOTHubDashboardPage extends StatelessWidget {
-  final IOTHub _selectedIOTHub;
+  final IOTHub? _selectedIOTHub;
 
   const IOTHubDashboardPage(this._selectedIOTHub);
 
@@ -17,7 +17,7 @@ class IOTHubDashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Dashboard - ' + _selectedIOTHub.name),
+        title: Text('Dashboard - ' + _selectedIOTHub!.name),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.build),
@@ -36,8 +36,8 @@ class IOTHubDashboardPage extends StatelessWidget {
   Widget _buildDashboardBody(BuildContext context) {
     return On.future<List<Device>>(
       onWaiting: () => CommonDataLoadingIndicator(),
-      onError: (error, refresher) => Text(ErrorHandler.getErrorMessage(error)), //Future can be reinvoked
+      onError: (error, refresher) => Text(ErrorHandler.getErrorMessage(error)!), //Future can be reinvoked
       onData: (data, refresh) => DashboardDeviceCard(_selectedIOTHub, data),
-    ).future(() => IOTHubsMainPage.iotHubService.state.loadAllDevices(_selectedIOTHub.id));
+    ).future(() => IOTHubsMainPage.iotHubService.state.loadAllDevices(_selectedIOTHub!.id));
   }
 }

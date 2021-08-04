@@ -6,7 +6,7 @@ import '../../service/exceptions/auth_exception.dart';
 import '../../service/exceptions/database_exception.dart';
 
 class ErrorHandler {
-  static String getErrorMessage(dynamic error) {
+  static String? getErrorMessage(dynamic error) {
     if (error == null) {
       return '';
     }
@@ -50,7 +50,7 @@ class ErrorHandler {
               Icons.error_outline,
               color: Colors.yellow,
             ),
-            Text(ErrorHandler.getErrorMessage(error)),
+            Text(ErrorHandler.getErrorMessage(error)!),
           ],
         ),
       ),
@@ -67,7 +67,7 @@ class ErrorHandler {
       SnackBar(
         content: Row(
           children: <Widget>[
-            Text(ErrorHandler.getErrorMessage(error)),
+            Text(ErrorHandler.getErrorMessage(error)!),
             Spacer(),
             Icon(Icons.error_outline, color: Colors.yellow)
           ],

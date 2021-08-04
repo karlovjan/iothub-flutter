@@ -21,7 +21,7 @@ class IOTHubsMainPage extends StatelessWidget {
       (err, refresh) => RM.navigate.to(
         AlertDialog(
           title: Text('APP ERROR'),
-          content: Text(ErrorHandler.getErrorMessage(err)),
+          content: Text(ErrorHandler.getErrorMessage(err)!),
         ),
       ),
     ),
@@ -32,7 +32,7 @@ class IOTHubsMainPage extends StatelessWidget {
   );
 
   const IOTHubsMainPage({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override

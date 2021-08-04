@@ -6,13 +6,13 @@ class UploadFileStatus {
   final DateTime timestamp;
   final bool uploaded;
 
-  UploadFileStatus({this.uploadingFilePath, this.timestamp, this.uploaded = false});
+  UploadFileStatus({required this.uploadingFilePath, required this.timestamp, this.uploaded = false});
 
   static UploadFileStatus copyOf(UploadFileStatus newStatus) {
     return UploadFileStatus(
-        uploadingFilePath: newStatus?.uploadingFilePath,
-        timestamp: newStatus?.timestamp,
-        uploaded: newStatus?.uploaded);
+        uploadingFilePath: newStatus.uploadingFilePath,
+        timestamp: newStatus.timestamp,
+        uploaded: newStatus.uploaded);
   }
 
   factory UploadFileStatus.empty() {

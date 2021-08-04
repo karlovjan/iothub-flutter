@@ -5,16 +5,16 @@ import 'measured_property.dart';
 
 @immutable
 class Device {
-  final String id;
+  final String? id;
   final String name;
-  final String description;
-  final String model;
-  final String vendor;
+  final String? description;
+  final String? model;
+  final String? vendor;
   final DateTime created;
 
   final List<MeasuredProperty> _properties;
 
-  final String typeRef;
+  final String? typeRef;
 
   Device(this.name,
       {this.id,
@@ -22,20 +22,19 @@ class Device {
       this.model,
       this.vendor,
       this.typeRef,
-      List<MeasuredProperty> properties,
-      DateTime newCreatedAt})
-      : assert(name != null),
-        created = newCreatedAt ?? DateTime.now(),
+      List<MeasuredProperty>? properties,
+      DateTime? newCreatedAt})
+      : created = newCreatedAt ?? DateTime.now(),
         _properties = properties ?? [];
 
   factory Device.fromJson(Map<String, dynamic> map, String documentID) {
     return Device(
       map['name'] as String,
       id: documentID,
-      description: map['description'] as String,
-      model: map['model'] as String,
-      vendor: map['vendor'] as String,
-      typeRef: map['typeRef'] as String,
+      description: map['description'] as String?,
+      model: map['model'] as String?,
+      vendor: map['vendor'] as String?,
+      typeRef: map['typeRef'] as String?,
       newCreatedAt: (map['created'] as Timestamp).toDate(),
     );
   }
