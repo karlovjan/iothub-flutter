@@ -1,7 +1,7 @@
 import 'package:iothub/src/domain/entities/device.dart';
 import 'package:iothub/src/domain/entities/measured_property.dart';
 
-class TestingDevideFactory {
+class TestingDeviceFactory {
   static Device getAqaraTemperatureSensor() {
     final teplotaProperty = MeasuredProperty('teplota', 'C',
         description: 'teplota', createdAt: DateTime.now());
@@ -23,6 +23,6 @@ class TestingDevideFactory {
   }
 
   static List<Device> getListOfAqaraTempSensors(int count){
-    return List.generate(count, (i) => TestingDevideFactory.getAqaraTemperatureSensorWithId('$i'));
+    return List.generate(count, (i) => TestingDeviceFactory.getAqaraTemperatureSensorWithId('$i'));
   }
 }

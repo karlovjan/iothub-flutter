@@ -12,7 +12,7 @@ void main() {
 
 //      final teplomer = TestingDevideFactory.getAqaraTemperatureSensor();
 
-      final devices = TestingDevideFactory.getListOfAqaraTempSensors(2);
+      final devices = TestingDeviceFactory.getListOfAqaraTempSensors(2);
 
       final teplomer1 = {'name': 'aqara_teplomer_1', 'type': '/deviceTypes/sensor'};
 

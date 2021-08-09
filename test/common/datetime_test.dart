@@ -2,8 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 
-//class MockitoCFSClient extends Mock implements Firestore {}
-
 void main() {
   group('from cloude firestore string date time', () {
     test('from string date time of field', () {
