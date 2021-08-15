@@ -23,9 +23,6 @@ class IOTHubApp extends StatelessWidget {
     // RM.debugPrintActiveRM = true;
 
     return TopAppWidget(
-      onWaiting: () => MaterialApp(
-        home: const SplashScreen(),
-      ),
       builder: (_) => MaterialApp(
         title: 'IOT hub',
         theme: ThemeData.dark(),
