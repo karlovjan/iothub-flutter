@@ -48,7 +48,7 @@ class IOTHubList extends StatelessWidget {
         ),
         child: ListTile(
           title: Text(iotHub.name),
-          subtitle: Text(iotHub.gps!.latitude.toString() + ';' + iotHub.gps!.longitude.toString()),
+          subtitle: iotHub.gps != null ? Text(iotHub.gps!.latitude.toString() + ';' + iotHub.gps!.longitude.toString()) : Text(''),
           trailing: Text(iotHub.createdAt.toString()),
           onTap: () {
             RM.navigate.toNamed(IOTHUBStaticPages.dashboard.routeName, arguments: iotHub);

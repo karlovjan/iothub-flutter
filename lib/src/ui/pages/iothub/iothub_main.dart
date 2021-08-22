@@ -56,7 +56,6 @@ class IOTHubsMainPage extends StatelessWidget {
       ).listenTo(
         user,
         useRouteNavigation: true,
-        dispose: () => user.auth.signOut(),
       ),
     );
   }

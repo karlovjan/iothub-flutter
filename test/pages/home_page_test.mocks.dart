@@ -2,16 +2,15 @@
 // in iothub/test/pages/home_page_test.dart.
 // Do not manually edit this file.
 
-import 'dart:async' as _i5;
+import 'dart:async' as _i4;
 
-import 'package:iothub/src/data_source/auth_repository.dart' as _i9;
-import 'package:iothub/src/domain/entities/device.dart' as _i7;
-import 'package:iothub/src/domain/entities/iothub.dart' as _i6;
-import 'package:iothub/src/domain/entities/measurement.dart' as _i8;
-import 'package:iothub/src/domain/entities/user.dart' as _i3;
-import 'package:iothub/src/service/iothub_service.dart' as _i4;
+import 'package:iothub/src/data_source/auth_repository.dart' as _i8;
+import 'package:iothub/src/domain/entities/device.dart' as _i6;
+import 'package:iothub/src/domain/entities/iothub.dart' as _i5;
+import 'package:iothub/src/domain/entities/measurement.dart' as _i7;
+import 'package:iothub/src/domain/entities/user.dart' as _i2;
+import 'package:iothub/src/service/iothub_service.dart' as _i3;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:states_rebuilder/states_rebuilder.dart' as _i2;
 
 // ignore_for_file: avoid_redundant_argument_values
 // ignore_for_file: avoid_setters_without_getters
@@ -21,45 +20,43 @@ import 'package:states_rebuilder/states_rebuilder.dart' as _i2;
 // ignore_for_file: prefer_const_constructors
 // ignore_for_file: unnecessary_parenthesis
 
-class _FakeIAuth_0<T, P> extends _i1.Fake implements _i2.IAuth<T, P> {}
-
-class _FakeUser_1 extends _i1.Fake implements _i3.User {}
+class _FakeUser_0 extends _i1.Fake implements _i2.User {}
 
 /// A class which mocks [IOTHubService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockIOTHubService extends _i1.Mock implements _i4.IOTHubService {
+class MockIOTHubService extends _i1.Mock implements _i3.IOTHubService {
   MockIOTHubService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i5.Future<List<_i6.IOTHub>> loadAllIOTHubs() =>
+  _i4.Future<List<_i5.IOTHub>> loadAllIOTHubs() =>
       (super.noSuchMethod(Invocation.method(#loadAllIOTHubs, []),
-              returnValue: Future<List<_i6.IOTHub>>.value(<_i6.IOTHub>[]))
-          as _i5.Future<List<_i6.IOTHub>>);
+              returnValue: Future<List<_i5.IOTHub>>.value(<_i5.IOTHub>[]))
+          as _i4.Future<List<_i5.IOTHub>>);
   @override
-  _i5.Future<List<_i7.Device>> loadAllDevices(String? selectedIOTHubID) =>
+  _i4.Future<List<_i6.Device>> loadAllDevices(String? selectedIOTHubID) =>
       (super.noSuchMethod(
               Invocation.method(#loadAllDevices, [selectedIOTHubID]),
-              returnValue: Future<List<_i7.Device>>.value(<_i7.Device>[]))
-          as _i5.Future<List<_i7.Device>>);
+              returnValue: Future<List<_i6.Device>>.value(<_i6.Device>[]))
+          as _i4.Future<List<_i6.Device>>);
   @override
-  _i5.Future<List<_i8.Measurement<dynamic>>> loadLastMeasurement(
-          String? iothubId, _i7.Device? device) =>
+  _i4.Future<List<_i7.Measurement<dynamic>>> loadLastMeasurement(
+          String? iothubId, _i6.Device? device) =>
       (super.noSuchMethod(
               Invocation.method(#loadLastMeasurement, [iothubId, device]),
-              returnValue: Future<List<_i8.Measurement<dynamic>>>.value(
-                  <_i8.Measurement<dynamic>>[]))
-          as _i5.Future<List<_i8.Measurement<dynamic>>>);
+              returnValue: Future<List<_i7.Measurement<dynamic>>>.value(
+                  <_i7.Measurement<dynamic>>[]))
+          as _i4.Future<List<_i7.Measurement<dynamic>>>);
   @override
-  _i5.Stream<List<_i8.Measurement<dynamic>>> deviceAllMeasurementStream(
-          String? iothubDocumentId, _i7.Device? device) =>
+  _i4.Stream<List<_i7.Measurement<dynamic>>> deviceAllMeasurementStream(
+          String? iothubDocumentId, _i6.Device? device) =>
       (super.noSuchMethod(
               Invocation.method(
                   #deviceAllMeasurementStream, [iothubDocumentId, device]),
-              returnValue: Stream<List<_i8.Measurement<dynamic>>>.empty())
-          as _i5.Stream<List<_i8.Measurement<dynamic>>>);
+              returnValue: Stream<List<_i7.Measurement<dynamic>>>.empty())
+          as _i4.Stream<List<_i7.Measurement<dynamic>>>);
   @override
   String toString() => super.toString();
 }
@@ -68,37 +65,35 @@ class MockIOTHubService extends _i1.Mock implements _i4.IOTHubService {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockFirebaseAuthRepository extends _i1.Mock
-    implements _i9.FirebaseAuthRepository {
+    implements _i8.FirebaseAuthRepository {
   MockFirebaseAuthRepository() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i5.Future<_i2.IAuth<_i3.User, _i3.UserParam>> init() =>
-      (super.noSuchMethod(Invocation.method(#init, []),
-              returnValue: Future<_i2.IAuth<_i3.User, _i3.UserParam>>.value(
-                  _FakeIAuth_0<_i3.User, _i3.UserParam>()))
-          as _i5.Future<_i2.IAuth<_i3.User, _i3.UserParam>>);
+  _i4.Future<void> init() => (super.noSuchMethod(Invocation.method(#init, []),
+      returnValue: Future<void>.value(),
+      returnValueForMissingStub: Future<void>.value()) as _i4.Future<void>);
   @override
-  _i5.Future<_i3.User> signUp(_i3.UserParam? param) =>
+  _i4.Future<_i2.User> signUp(_i2.UserParam? param) =>
       (super.noSuchMethod(Invocation.method(#signUp, [param]),
-              returnValue: Future<_i3.User>.value(_FakeUser_1()))
-          as _i5.Future<_i3.User>);
+              returnValue: Future<_i2.User>.value(_FakeUser_0()))
+          as _i4.Future<_i2.User>);
   @override
-  _i5.Future<_i3.User> signIn(_i3.UserParam? param) =>
+  _i4.Future<_i2.User> signIn(_i2.UserParam? param) =>
       (super.noSuchMethod(Invocation.method(#signIn, [param]),
-              returnValue: Future<_i3.User>.value(_FakeUser_1()))
-          as _i5.Future<_i3.User>);
+              returnValue: Future<_i2.User>.value(_FakeUser_0()))
+          as _i4.Future<_i2.User>);
   @override
-  _i5.Future<void> signOut(_i3.UserParam? param) =>
+  _i4.Future<void> signOut(_i2.UserParam? param) =>
       (super.noSuchMethod(Invocation.method(#signOut, [param]),
           returnValue: Future<void>.value(),
-          returnValueForMissingStub: Future<void>.value()) as _i5.Future<void>);
+          returnValueForMissingStub: Future<void>.value()) as _i4.Future<void>);
   @override
-  _i5.Future<_i3.User> currentUser() =>
+  _i4.Future<_i2.User> currentUser() =>
       (super.noSuchMethod(Invocation.method(#currentUser, []),
-              returnValue: Future<_i3.User>.value(_FakeUser_1()))
-          as _i5.Future<_i3.User>);
+              returnValue: Future<_i2.User>.value(_FakeUser_0()))
+          as _i4.Future<_i2.User>);
   @override
   void dispose() => super.noSuchMethod(Invocation.method(#dispose, []),
       returnValueForMissingStub: null);

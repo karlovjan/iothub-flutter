@@ -10,9 +10,7 @@ class FirebaseAuthRepository implements IAuth<iothub_user.User, iothub_user.User
 
 
   @override
-  Future<IAuth<iothub_user.User, iothub_user.UserParam>> init() async {
-    return this;
-  }
+  Future<void> init() async {}
 
   @override
   Future<iothub_user.User> signUp(iothub_user.UserParam? param) {

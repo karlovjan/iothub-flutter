@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:iothub/src/domain/entities/iothub.dart';
 import 'package:iothub/src/ui/pages/home_page/home_page.dart';
 import 'package:iothub/src/ui/pages/iothub/iothub_main.dart';
-import 'package:iothub/src/ui/widgets/splash_screen.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'src/ui/pages/iothub/dashboard.dart';
@@ -26,18 +25,18 @@ class IOTHubApp extends StatelessWidget {
       builder: (_) => MaterialApp(
         title: 'IOT hub',
         theme: ThemeData.dark(),
+        navigatorKey: RM.navigate.navigatorKey,
         onGenerateRoute: RM.navigate.onGenerateRoute({
           StaticPages.home.routeName: (_) => const HomePage(),
           StaticPages.hubs.routeName: (_) => RouteWidget(
-            builder: (_) => const IOTHubsMainPage(),
-            routes: {
-              IOTHUBStaticPages.devices.routeName: (data) => IOTHubDeviceListPage(data.arguments as IOTHub?),
-              IOTHUBStaticPages.dashboard.routeName: (data) => IOTHubDashboardPage(data.arguments as IOTHub?),
-            },
-          ),
+                routes: {
+                  StaticPages.home.routeName: (data) => const IOTHubsMainPage(),
+                  IOTHUBStaticPages.devices.routeName: (data) => IOTHubDeviceListPage(data.arguments as IOTHub?),
+                  IOTHUBStaticPages.dashboard.routeName: (data) => IOTHubDashboardPage(data.arguments as IOTHub?),
+                },
+              ),
           StaticPages.nasSync.routeName: (context) => const NASSyncMainPage(),
         }),
-        navigatorKey: RM.navigate.navigatorKey,
       ),
     );
 
