@@ -50,7 +50,7 @@ class FirebaseAuthRepository implements IAuth<iothub_user.User, iothub_user.User
       return _fromFireBaseUserToUser(authResult.user);
     } catch (e) {
       if (e is PlatformException) {
-        throw AuthorizationException(e.message);
+        throw AuthorizationException(e.message ?? 'Error without message');
       } else {
         rethrow;
       }
@@ -67,7 +67,7 @@ class FirebaseAuthRepository implements IAuth<iothub_user.User, iothub_user.User
 
   @override
   void dispose() {
-    signOut(iothub_user.UserParam(signIn: iothub_user.SignIn.withEmailAndPassword));
+    // signOut(iothub_user.UserParam(signIn: iothub_user.SignIn.withEmailAndPassword));
   }
 
 }

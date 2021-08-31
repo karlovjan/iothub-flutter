@@ -139,7 +139,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
           _createTransferingStatusBar(),
           Divider(),
           On.or(
-            onError: (err, refresh) => Text(ErrorHandler.getErrorMessage(err)!),
+            onError: (err, refresh) => Text(ErrorHandler.getErrorMessage(err)),
             or: () => _showFilesToTransfer(context, nasFileSyncState.state.transferringFileList),
           ).listenTo(
             nasFileSyncState,

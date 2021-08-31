@@ -18,11 +18,8 @@ class IOTHubsMainPage extends StatelessWidget {
     unsignedUser: LoggedOutUser(),
     onAuthStream: (repo) => (repo as FirebaseAuthRepository).currentUser().asStream(),
     onSetState: On.error(
-      (err, refresh) => RM.navigate.to(
-        AlertDialog(
-          title: Text('APP ERROR'),
-          content: Text(ErrorHandler.getErrorMessage(err)!),
-        ),
+      (err, refresh) => RM.navigate.toDialog(
+        ErrorHandler.getErrorDialogWithBackButton(err),
       ),
     ),
   );
@@ -46,10 +43,23 @@ class IOTHubsMainPage extends StatelessWidget {
       // body is the majority of the screen.
       body: On.auth(
         onInitialWaiting: () {
-          user.auth.signIn((param) =>
-              UserParam(email: 'karlovjan@gmail.com', password: 'Flutter753123', signIn: SignIn.withEmailAndPassword));
+          /*
+          return FutureBuilder<User>(
+            future: user.auth.signIn((param) => UserParam(
+                email: 'karlovjan@gmail.com', password: 'Flutter753123', signIn: SignIn.withEmailAndPassword)),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return ErrorHandler.getErrorDialogWithBackButton(snapshot.error);
+              }
 
-          return const SplashScreen();
+              return SplashScreen();
+            },
+          );*/
+
+          user.auth.signIn((param) => UserParam(
+              email: 'karlovjan@gmail.com', password: 'Flutter753123', signIn: SignIn.withEmailAndPassword));
+
+          return SplashScreen();
         },
         onUnsigned: () => const HomePage(),
         onSigned: () => const IOTHubList(),

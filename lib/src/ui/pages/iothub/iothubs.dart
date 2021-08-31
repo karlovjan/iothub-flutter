@@ -25,7 +25,7 @@ class IOTHubList extends StatelessWidget {
   Widget _buildBody(BuildContext context) {
     return On.future<List<IOTHub>>(
       onWaiting: () => CommonDataLoadingIndicator(),
-      onError: (error, refresher) => Text(ErrorHandler.getErrorMessage(error)!), //Future can be reinvoked
+      onError: (error, refresher) => Text(ErrorHandler.getErrorMessage(error)), //Future can be reinvoked
       onData: (data, refresh) => _buildList(context, data),
     ).future(() => IOTHubsMainPage.iotHubService.state.loadAllIOTHubs());
   }

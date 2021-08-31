@@ -36,7 +36,7 @@ class IOTHubDashboardPage extends StatelessWidget {
   Widget _buildDashboardBody(BuildContext context) {
     return On.future<List<Device>>(
       onWaiting: () => CommonDataLoadingIndicator(),
-      onError: (error, refresher) => Text(ErrorHandler.getErrorMessage(error)!), //Future can be reinvoked
+      onError: (error, refresher) => Text(ErrorHandler.getErrorMessage(error)), //Future can be reinvoked
       onData: (data, refresh) => DashboardDeviceCard(_selectedIOTHub, data),
     ).future(() => IOTHubsMainPage.iotHubService.state.loadAllDevices(_selectedIOTHub!.id));
   }

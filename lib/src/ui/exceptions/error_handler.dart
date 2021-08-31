@@ -6,7 +6,7 @@ import '../../service/exceptions/auth_exception.dart';
 import '../../service/exceptions/database_exception.dart';
 
 class ErrorHandler {
-  static String? getErrorMessage(dynamic error) {
+  static String getErrorMessage(dynamic error) {
     if (error == null) {
       return '';
     }
@@ -27,10 +27,42 @@ class ErrorHandler {
     return Error.safeToString(error);
   }
 
+  static Widget getErrorDialog(dynamic error){
+    return AlertDialog(
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(
+            Icons.error_outline,
+            color: Colors.yellow,
+          ),
+          Text(ErrorHandler.getErrorMessage(error)),
+        ],
+      ),
+    );
+  }
+
+  static Widget getErrorDialogWithBackButton(dynamic error){
+    return AlertDialog(
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(
+            Icons.error_outline,
+            color: Colors.yellow,
+          ),
+          Text(ErrorHandler.getErrorMessage(error)),
+          ElevatedButton(
+            onPressed: () => RM.navigate.back(),
+            child: Text('Back to home'),
+          ),
+        ],
+      ),
+    );
+  }
+
   static void showErrorDialog(dynamic error) {
-    if (error == null) {
-      return;
-    }
+
     //Flutter Way
     // showDialog(
     //   context: context,
@@ -41,20 +73,7 @@ class ErrorHandler {
     //   },
     // );
 
-    RM.navigate.toDialog(
-      AlertDialog(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(
-              Icons.error_outline,
-              color: Colors.yellow,
-            ),
-            Text(ErrorHandler.getErrorMessage(error)!),
-          ],
-        ),
-      ),
-    );
+    RM.navigate.toDialog(getErrorDialog(error));
   }
 
   //Display an snackBar with the error message
@@ -67,7 +86,7 @@ class ErrorHandler {
       SnackBar(
         content: Row(
           children: <Widget>[
-            Text(ErrorHandler.getErrorMessage(error)!),
+            Text(ErrorHandler.getErrorMessage(error)),
             Spacer(),
             Icon(Icons.error_outline, color: Colors.yellow)
           ],
