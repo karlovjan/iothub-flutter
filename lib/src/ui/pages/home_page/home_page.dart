@@ -20,7 +20,7 @@ class HomePage extends StatelessWidget {
         mainAxisSpacing: 4.0,
         padding: const EdgeInsets.all(4.0),
         children: [
-          TileNavigationButton(routeName: StaticPages.hubs.routeName, title: 'IOT Hub'),
+          TileNavigationButton(routeName: StaticPages.iotHUBApp.routeName, title: 'IOT Hub'),
           TileNavigationButton(routeName: StaticPages.nasSync.routeName, title: 'NAS Sync'),
         ],
       ),

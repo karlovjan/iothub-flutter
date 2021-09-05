@@ -17,4 +17,17 @@ class MeasuredProperty {
       createdAt: measuredProperty.createdAt,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MeasuredProperty && runtimeType == other.runtimeType && name == other.name && unit == other.unit;
+
+  @override
+  int get hashCode => name.hashCode ^ unit.hashCode;
+
+  @override
+  String toString() {
+    return 'MeasuredProperty{name: $name, unit: $unit, description: $description, createdAt: $createdAt}';
+  }
 }

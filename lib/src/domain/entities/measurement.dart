@@ -47,4 +47,17 @@ class Measurement<T> {
         MeasuredProperty.copyOf(deviceMeasuredProperty), value,
         newCreatedAt: createdAt);
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Measurement && runtimeType == other.runtimeType && property == other.property && value == other.value;
+
+  @override
+  int get hashCode => property.hashCode ^ value.hashCode;
+
+  @override
+  String toString() {
+    return 'Measurement{property: $property, value: $value, createdAt: $createdAt}';
+  }
 }

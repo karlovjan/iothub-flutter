@@ -6,6 +6,7 @@ import 'package:iothub/src/domain/entities/user.dart';
 import 'package:iothub/src/service/iothub_service.dart';
 import 'package:iothub/src/ui/exceptions/error_handler.dart';
 import 'package:iothub/src/ui/pages/iothub/iothubs.dart';
+import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
 import 'package:iothub/src/ui/widgets/splash_screen.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -37,11 +38,17 @@ class IOTHubsMainPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('IOT Hub main page'),
-        leading:
-            IconButton(icon: Icon(Icons.arrow_back), tooltip: 'Close IOT HUb', onPressed: () => user.auth.signOut()),
+        leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            tooltip: 'Close IOT HUb',
+            onPressed: () async {
+              await user.auth.signOut();
+              // await RM.navigate.backAndToNamed(StaticPages.home.routeName);
+            }),
       ),
       // body is the majority of the screen.
       body: On.auth(
+        onWaiting: () => CommonDataLoadingIndicator(),
         onInitialWaiting: () {
           /*
           return FutureBuilder<User>(
@@ -56,8 +63,8 @@ class IOTHubsMainPage extends StatelessWidget {
             },
           );*/
 
-          user.auth.signIn((param) => UserParam(
-              email: 'karlovjan@gmail.com', password: 'Flutter753123', signIn: SignIn.withEmailAndPassword));
+          user.auth.signIn((param) =>
+              UserParam(email: 'karlovjan@gmail.com', password: 'Flutter753123', signIn: SignIn.withEmailAndPassword));
 
           return SplashScreen();
         },

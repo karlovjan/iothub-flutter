@@ -1,23 +1,20 @@
 import 'package:iothub/src/ui/routes/main_routes.dart';
 
-enum IOTHUBStaticPages{
-  devices, dashboard
-}
+enum IOTHUBStaticPages { hubs, devices, dashboard }
 
 extension IOTHUBStaticPageRoute on IOTHUBStaticPages {
   String get routeName {
-    var route = StaticPages.hubs.routeName;
-
-    switch(this){
+    switch (this) {
+      case IOTHUBStaticPages.hubs:
+        return '/hubs';
       case IOTHUBStaticPages.dashboard:
-        route += '/dashboard';
-        break;
+        return '/dashboard';
       case IOTHUBStaticPages.devices:
-        route += '/devices';
-        break;
+        return '/devices';
     }
-
-    return route;
   }
 
+  String get fullPath {
+    return StaticPages.iotHUBApp.routeName + routeName;
+  }
 }

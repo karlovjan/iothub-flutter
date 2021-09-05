@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart';
+import 'package:equatable/equatable.dart';
 
 @immutable
-class User {
+class User extends Equatable {
   final String uid;
   final String email;
   final String displayName;
@@ -32,6 +33,11 @@ class User {
     );
   }
 
+  @override
+  List<Object> get props => [uid, email, displayName];
+
+  @override
+  bool get stringify => true;
 }
 
 @immutable

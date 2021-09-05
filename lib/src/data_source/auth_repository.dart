@@ -1,10 +1,22 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
+import 'package:logger/logger.dart';
 import '../domain/entities/user.dart' as iothub_user;
 import 'package:states_rebuilder/states_rebuilder.dart';
 import '../service/exceptions/auth_exception.dart';
 
 class FirebaseAuthRepository implements IAuth<iothub_user.User, iothub_user.UserParam> {
+
+  var log = Logger(
+    printer: PrettyPrinter(
+        methodCount: 2, // number of method calls to be displayed
+        errorMethodCount: 8, // number of method calls if stacktrace is provided
+        lineLength: 120, // width of the output
+        colors: true, // Colorful log messages
+        printEmojis: true, // Print an emoji for each log message
+        printTime: false // Should each log print contain a timestamp
+    ),
+  );
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
@@ -66,8 +78,8 @@ class FirebaseAuthRepository implements IAuth<iothub_user.User, iothub_user.User
   }
 
   @override
-  void dispose() {
-    // signOut(iothub_user.UserParam(signIn: iothub_user.SignIn.withEmailAndPassword));
+  void dispose() async {
+    log.w('dispose firebase object');
   }
 
 }

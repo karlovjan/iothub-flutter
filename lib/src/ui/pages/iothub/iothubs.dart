@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:iothub/src/domain/entities/iothub.dart';
+import 'package:iothub/src/domain/entities/user.dart';
 import 'package:iothub/src/ui/exceptions/error_handler.dart';
 import 'package:iothub/src/ui/pages/iothub/iothub_main.dart';
 import 'package:iothub/src/ui/routes/iothub_routes.dart';
+import 'package:iothub/src/ui/routes/main_routes.dart';
 import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -16,6 +18,14 @@ class IOTHubList extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('IOT Hubs'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          tooltip: 'Close IOT HUb',
+          onPressed: () async {
+           // await RM.navigate.toNamed(StaticPages.iotHUBApp.routeName);
+            await IOTHubsMainPage.user.auth.signOut(param: null);
+          },
+        ),
       ),
       // body is the majority of the screen.
       body: _buildBody(context),
@@ -48,10 +58,12 @@ class IOTHubList extends StatelessWidget {
         ),
         child: ListTile(
           title: Text(iotHub.name),
-          subtitle: iotHub.gps != null ? Text(iotHub.gps!.latitude.toString() + ';' + iotHub.gps!.longitude.toString()) : Text(''),
+          subtitle: iotHub.gps != null
+              ? Text(iotHub.gps!.latitude.toString() + ';' + iotHub.gps!.longitude.toString())
+              : Text(''),
           trailing: Text(iotHub.createdAt.toString()),
           onTap: () {
-            RM.navigate.toNamed(IOTHUBStaticPages.dashboard.routeName, arguments: iotHub);
+            RM.navigate.toNamed(IOTHUBStaticPages.dashboard.fullPath, arguments: iotHub);
           },
         ),
       ),

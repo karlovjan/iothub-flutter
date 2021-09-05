@@ -14,9 +14,9 @@ void main() {
 
       final devices = TestingDeviceFactory.getListOfAqaraTempSensors(2);
 
-      final teplomer1 = {'name': 'aqara_teplomer_1', 'type': '/deviceTypes/sensor'};
+      final teplomer1 = {'id': '1', 'name': 'aqara_teplomer_1', 'type': '/deviceTypes/sensor'};
 
-      final teplomer2 = {'name': 'aqara_teplomer_2', 'type': '/deviceTypes/sensor'};
+      final teplomer2 = {'id': '2', 'name': 'aqara_teplomer_2', 'type': '/deviceTypes/sensor'};
 
       //result is List<Map<String, dynamic>>
 //      when(client.collection('iothubs/1/devices')).thenAnswer((_) => collRef);

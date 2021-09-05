@@ -5,7 +5,7 @@ import 'measured_property.dart';
 
 @immutable
 class Device {
-  final String? id;
+  final String id;
   final String name;
   final String? description;
   final String? model;
@@ -16,9 +16,8 @@ class Device {
 
   final String? typeRef;
 
-  Device(this.name,
-      {this.id,
-      this.description,
+  Device(this.id, this.name,
+      {this.description,
       this.model,
       this.vendor,
       this.typeRef,
@@ -29,8 +28,8 @@ class Device {
 
   factory Device.fromJson(Map<String, dynamic> map, String documentID) {
     return Device(
+      documentID,
       map['name'] as String,
-      id: documentID,
       description: map['description'] as String?,
       model: map['model'] as String?,
       vendor: map['vendor'] as String?,
@@ -40,4 +39,16 @@ class Device {
   }
 
   List<MeasuredProperty> get properties => List.unmodifiable(_properties);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || other is Device && runtimeType == other.runtimeType && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  String toString() {
+    return 'Device{id: $id, name: $name, description: $description, model: $model, vendor: $vendor, created: $created, _properties: $_properties, typeRef: $typeRef}';
+  }
 }

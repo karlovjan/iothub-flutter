@@ -1,4 +1,4 @@
-enum StaticPages { home, hubs, nasSync }
+enum StaticPages { home, iotHUBApp, nasSync }
 
 extension StaticPageRoute on StaticPages {
   String get routeName {
@@ -7,8 +7,8 @@ extension StaticPageRoute on StaticPages {
     switch (this) {
       case StaticPages.home:
         return defaultRoute;
-      case StaticPages.hubs:
-        return '/hubs';
+      case StaticPages.iotHUBApp:
+        return '/iotHUBApp';
       case StaticPages.nasSync:
         return '/nasSync';
       default:

@@ -9,7 +9,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 class DashboardDeviceCard extends StatelessWidget {
   final List<Device> _devices;
-  final IOTHub? _selectedIOTHub;
+  final IOTHub _selectedIOTHub;
 
   const DashboardDeviceCard(this._selectedIOTHub, this._devices);
 
@@ -31,7 +31,7 @@ class DashboardDeviceCard extends StatelessWidget {
           leading: Icon(Icons.attach_file),
           trailing: Icon(Icons.addchart),
           title: Text(device.name),
-          subtitle: Text(device.description! + ' - ' + device.vendor!),
+          subtitle: Text((device.description ?? '') + ' - ' + (device.vendor ?? '')),
         ),
         _deviceGaugeChart(context, device),
       ]),
@@ -44,7 +44,7 @@ class DashboardDeviceCard extends StatelessWidget {
       onError: (error, refresher) => Text(ErrorHandler.getErrorMessage(error)),
       //Future can be reinvoked
       onData: (data, refresh) => _measurmentWidget(data),
-    ).future(() => IOTHubsMainPage.iotHubService.state.loadLastMeasurement(_selectedIOTHub!.id, device));
+    ).future(() => IOTHubsMainPage.iotHubService.state.loadLastMeasurement(_selectedIOTHub.id, device));
   }
 
   Widget _measurmentWidget(List<Measurement<dynamic>> measurements) {
@@ -67,9 +67,9 @@ class DashboardDeviceCard extends StatelessWidget {
       style: TextStyle(fontWeight: FontWeight.bold),
     ));
 
-    final termometer = measurements.where((element) => element.property.name == 'temperature').take(1).isNotEmpty;
+    final isThermometer = measurements.where((element) => element.property.name == 'temperature').take(1).isNotEmpty;
 
-    if (termometer) {
+    if (isThermometer) {
       widgets.addAll(_temperatureSensorDashboardWidget(measurements));
     } else {
       measurements.forEach((measurement) {

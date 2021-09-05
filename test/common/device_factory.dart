@@ -9,7 +9,7 @@ class TestingDeviceFactory {
     final mproperties = <MeasuredProperty>[];
     mproperties.add(teplotaProperty);
 
-    return Device('aqara_teplomer', properties: mproperties);
+    return Device('1', 'aqara_teplomer', properties: mproperties);
   }
 
   static Device getAqaraTemperatureSensorWithId(String id) {
@@ -19,7 +19,7 @@ class TestingDeviceFactory {
     final mproperties = <MeasuredProperty>[];
     mproperties.add(teplotaProperty);
 
-    return Device('aqara_teplomer_$id', properties: mproperties, id: id);
+    return Device(id,'aqara_teplomer_$id', properties: mproperties);
   }
 
   static List<Device> getListOfAqaraTempSensors(int count){

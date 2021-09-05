@@ -14,6 +14,13 @@ class IOTHubDeviceListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if(_selectedIOTHub == null) {
+      return Scaffold(
+        appBar: AppBar(),
+        // body is the majority of the screen.
+        body: const Text('Iot hub was not selected'),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(_selectedIOTHub!.name),
@@ -48,7 +55,7 @@ class IOTHubDeviceListPage extends StatelessWidget {
           subtitle: Text(device.description! + ' - ' + device.vendor!),
           trailing: Text(device.created.toString()),
           onTap: () {
-            RM.navigate.toNamed(IOTHUBStaticPages.devices.routeName);
+            RM.navigate.toNamed(IOTHUBStaticPages.devices.fullPath);
           },
         ),
       ),

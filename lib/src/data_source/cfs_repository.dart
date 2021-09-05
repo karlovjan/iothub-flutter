@@ -40,9 +40,8 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
   }
 
   @override
-  Future<List<Measurement>> loadLastMeasurement(String? iotHubId, Device device) async {
+  Future<List<Measurement>> loadLastMeasurement(String iotHubId, Device device) async {
     assert(iotHubId != null);
-    assert(device.id != null);
 
     try {
       final snapshot = await _dbClient
