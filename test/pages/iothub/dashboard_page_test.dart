@@ -6,6 +6,7 @@ import 'package:iothub/src/domain/entities/iothub.dart';
 import 'package:iothub/src/domain/entities/measured_property.dart';
 import 'package:iothub/src/domain/entities/measurement.dart';
 import 'package:iothub/src/domain/entities/user.dart';
+import 'package:iothub/src/service/exceptions/database_exception.dart';
 import 'package:iothub/src/ui/pages/home_page/home_page.dart';
 import 'package:iothub/src/ui/pages/iothub/dashboard.dart';
 import 'package:iothub/src/ui/pages/iothub/iothub_main.dart';
@@ -97,6 +98,28 @@ void main() {
       verify(IOTHubsMainPage.iotHubService.state.loadAllDevices(iotHUBs[0].id)).called(1);
       verify(IOTHubsMainPage.iotHubService.state.loadLastMeasurement(iotHUBs[0].id, iotDevices[0])).called(1);
       verify(IOTHubsMainPage.iotHubService.state.loadLastMeasurement(iotHUBs[0].id, iotDevices[1])).called(1);
+    });
+
+    testWidgets('load all iothubs Firebase exception', (tester) async {
+      final errorMsg = 'Test exception message';
+
+      when(IOTHubsMainPage.iotHubService.state.loadAllIOTHubs())
+          .thenAnswer((_) async => Future.delayed(Duration(seconds: 1)).then((_) => throw DatabaseException(errorMsg)));
+
+      final Widget testWidget = MediaQuery(data: MediaQueryData(), child: MaterialApp(home: const IOTHubList()));
+
+      await tester.pumpWidget(testWidget);
+      expect(find.byType(IOTHubList), findsOneWidget);
+
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      expect(find.text(errorMsg), findsOneWidget);
+
+      verify(IOTHubsMainPage.iotHubService.state.loadAllIOTHubs()).called(1);
     });
   });
 }

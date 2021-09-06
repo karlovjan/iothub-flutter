@@ -1,4 +1,4 @@
-class NASFileException extends Error {
+class NASFileException implements Exception {
   final String message;
 
   NASFileException(this.message);
