@@ -32,26 +32,26 @@ void main() {
 
       final authRepo = IOTHubsMainPage.user.getRepoAs() as MockFirebaseAuthRepository;
       when(authRepo.init()).thenAnswer((_) async {});
-      when(authRepo.currentUser()).thenAnswer((_) async => Future.delayed(Duration(seconds: 1)).then((_) => testUser));
+      when(authRepo.currentUser()).thenAnswer((_) => Future.delayed(Duration(seconds: 1)).then((_) => testUser));
       // when(IOTHubsMainPage.user.auth.injected.onAuthStream).thenReturn((_) async => Future.delayed(Duration(seconds: 1)).then((_) => testUser).asStream());
       when(authRepo.signIn(argThat(isNotNull)))
-          .thenAnswer((_) async => Future.delayed(Duration(seconds: 1)).then((_) => testUser));
+          .thenAnswer((_) => Future.delayed(Duration(seconds: 1)).then((_) => testUser));
 
       when(authRepo.signOut(argThat(isNull)))
-          .thenAnswer((_) async => Future.delayed(Duration(seconds: 1)).then((_) {}));
+          .thenAnswer((_) => Future.delayed(Duration(seconds: 1)).then((_) {}));
 
       var iotHUBs = [IOTHub('1', 'Praha'), IOTHub('2', 'VK')];
       when(IOTHubsMainPage.iotHubService.state.loadAllIOTHubs()).thenAnswer((_) async => Future.value(iotHUBs));
       var iotDevices = [Device('1', 'Teplomer1'), Device('2', 'Teplomer2')];
       when(IOTHubsMainPage.iotHubService.state.loadAllDevices(iotHUBs[0].id))
-          .thenAnswer((_) async => Future.delayed(Duration(seconds: 1)).then((_) => iotDevices));
+          .thenAnswer((_) => Future.delayed(Duration(seconds: 1)).then((_) => iotDevices));
       var mProp = MeasuredProperty('temperature', 'C');
       var deviceLastMeasurement1 = [Measurement(mProp, 21.5)];
       var deviceLastMeasurement2 = [Measurement(mProp, 15.0)];
       when(IOTHubsMainPage.iotHubService.state.loadLastMeasurement(iotHUBs[0].id, iotDevices[0]))
-          .thenAnswer((_) async => Future.delayed(Duration(seconds: 1)).then((_) => deviceLastMeasurement1));
+          .thenAnswer((_) => Future.delayed(Duration(seconds: 1)).then((_) => deviceLastMeasurement1));
       when(IOTHubsMainPage.iotHubService.state.loadLastMeasurement(iotHUBs[0].id, iotDevices[1]))
-          .thenAnswer((_) async => Future.delayed(Duration(seconds: 1)).then((_) => deviceLastMeasurement2));
+          .thenAnswer((_) => Future.delayed(Duration(seconds: 1)).then((_) => deviceLastMeasurement2));
 
       await tester.pumpWidget(IOTHubApp());
       await tester.pumpAndSettle(const Duration(seconds: 1));
@@ -104,7 +104,7 @@ void main() {
       final errorMsg = 'Test exception message';
 
       when(IOTHubsMainPage.iotHubService.state.loadAllIOTHubs())
-          .thenAnswer((_) async => Future.delayed(Duration(seconds: 1)).then((_) => throw DatabaseException(errorMsg)));
+          .thenAnswer((_) => Future.delayed(Duration(seconds: 1)).then((_) => throw DatabaseException(errorMsg)));
 
       final Widget testWidget = MediaQuery(data: MediaQueryData(), child: MaterialApp(home: const IOTHubList()));
 

@@ -243,6 +243,10 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
         // return compute(_parseNASFileItems, response.data.toString());
         // return _parseNASFileItems(await response.transform(utf8.decoder).join());
         // return _parseNASFileItems(response.data.toString());
+        //if data is not List throw Exception
+        if(response.data is! List) {
+          throw NASFileException('Bad response data type');
+        }
         return (response.data as List).map<String>((item) => '${item}').toList();
       } else {
         print(response.data);

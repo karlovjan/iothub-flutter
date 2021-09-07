@@ -11,18 +11,22 @@ import 'package:path/path.dart' as path;
 enum FileTypeForSync { image, video, doc }
 
 class NASFileSyncState {
+  NASFileSyncState(this._remoteFileTransferService);
+
   final _log = Logger(
     printer: PrettyPrinter(),
   );
 
   final NASFileSyncService _remoteFileTransferService;
 
+  static const BASE_SAMBA_FOLDER = 'photos/miron';
+
   bool uploading = false;
 
   // Stream<UploadFileStatus> uploadedFileStream;
   UploadFileStatus uploadedFileStatus = UploadFileStatus.empty();
 
-  NASFileSyncState(this._remoteFileTransferService);
+
 
   // bool _synchronizing = false;
 
@@ -33,7 +37,7 @@ class NASFileSyncState {
 
   int transferredFilesCount = 0;
 
-  List<String>? _sambaFolderList;
+  List<String> _sambaFolderList = [];
 
   List<File> get filesForUploading => List.of(_allTransferringFileList);
 
@@ -206,6 +210,6 @@ class NASFileSyncState {
   }
 
   Future<List<String>> listSambaFolders(String baseFolder) async {
-    return _sambaFolderList ??= await _remoteFileTransferService.listSambaFolders(baseFolder);
+    return _sambaFolderList = await _remoteFileTransferService.listSambaFolders(baseFolder);
   }
 }
