@@ -1,23 +1,24 @@
 import 'dart:io';
 
-import 'package:iothub/src/domain/entities/nas_file_item.dart';
+import 'package:flutter/material.dart';
 import 'package:iothub/src/domain/value_objects/upload_file_status.dart';
 import 'package:iothub/src/service/common/datetime_ext.dart';
 import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
+import 'package:iothub/src/service/interfaces/local_file_system_service.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
 import 'package:logger/logger.dart';
-import 'package:path/path.dart' as path;
 
 enum FileTypeForSync { image, video, doc }
 
 class NASFileSyncState {
-  NASFileSyncState(this._remoteFileTransferService);
+  NASFileSyncState(this._remoteFileTransferService, this._localFileSystemService);
 
   final _log = Logger(
     printer: PrettyPrinter(),
   );
 
   final NASFileSyncService _remoteFileTransferService;
+  final LocalFileSystemService _localFileSystemService;
 
   static const BASE_SAMBA_FOLDER = 'photos/miron';
 
@@ -25,8 +26,6 @@ class NASFileSyncState {
 
   // Stream<UploadFileStatus> uploadedFileStream;
   UploadFileStatus uploadedFileStatus = UploadFileStatus.empty();
-
-
 
   // bool _synchronizing = false;
 
@@ -43,7 +42,6 @@ class NASFileSyncState {
 
   Stream<UploadFileStatus> syncFolderWithNAS(
       List<File> uploadingFiles, String nasFolderPath, FileTypeForSync fileType) async* {
-
     if (uploading) {
       _log.i('Synchronization is already running!');
       // throw NASFileException('Synchronization is already running!');
@@ -86,81 +84,22 @@ class NASFileSyncState {
   Future<void> getFilesForSynchronization(
       String localFolderPath, String nasFolderPath, FileTypeForSync fileTypeForSync, DateTime dateFrom, DateTime dateTo,
       {bool includeUpdatedFiles = false, bool recursive = false}) async {
-
     _log.i('Load files for synchronization');
 
     clearFiles();
 
     // throw NASFileException("message test");
     final allTargetFolderFiles = await _remoteFileTransferService.retrieveDirectoryItems(
-        nasFolderPath, dateFrom.secondsSinceEpoch, _dateToMidnight(dateTo).secondsSinceEpoch, fileTypeForSync);
+        nasFolderPath, dateFrom.secondsSinceEpoch, dateTo.secondsSinceEpoch, fileTypeForSync);
 
-    final localDir = Directory(localFolderPath);
+    final filesForSync = await _localFileSystemService.matchLocalFiles(
+        localFolderPath, recursive, fileTypeForSync, dateFrom, dateTo, allTargetFolderFiles);
 
-    final entityList = localDir.list(recursive: true, followLinks: false);
-
-    // final streamWithoutErrors = entityList.handleError(_onListingFileError);
-
-    try {
-    await for (FileSystemEntity entity in entityList) {
-      final fileType = await FileSystemEntity.type(entity.path);
-      if (!recursive && fileType == FileSystemEntityType.file && filterFileByType(entity, fileTypeForSync)) {
-        final dateInRange = await isDateInRange(entity, dateFrom, dateTo);
-        if (dateInRange) {
-          if (!_isFileInNasList(entity.path, allTargetFolderFiles)) {
-            _allTransferringFileList.add(File(entity.path));
-          }
-        }
-      }
-
-      //TODO implemnts recurcive and file updated
-    }
-    } catch (err) {
-      _log.e('Caught error:', err);
-      throw NASFileException('Error: ${err}');
-    }
-  }
-
-  void _onListingFileError(Object error, StackTrace stackTrace) {
-    _log.e('Caught error:', error, stackTrace);
-  }
-
-  bool _isFileInNasList(String filePath, List<NASFileItem> nasFiles) {
-    return nasFiles
-        .firstWhere((nasFile) => filePath.endsWith(nasFile.fileName!), orElse: () => NASFileItem('', null))
-        .fileName!
-        .isNotEmpty;
-  }
-
-  bool filterFileByType(FileSystemEntity entity, FileTypeForSync type) {
-    final ext = path.extension(entity.path).toLowerCase();
-    switch (type) {
-      case FileTypeForSync.image:
-        return ['.jpg', '.jpeg', '.gif', '.png', '.dng'].contains(ext);
-      case FileTypeForSync.video:
-        return ['.mp4', '.avi', '.mkv'].contains(ext);
-      case FileTypeForSync.doc:
-        return ['.txt', '.pdf', '.docx', '.odt', '.doc'].contains(ext);
-      default:
-        throw NASFileException('Unknown file type!');
-    }
-  }
-
-  Future<bool> isDateInRange(FileSystemEntity entity, DateTime dateFrom, DateTime dateTo) async {
-    final fileStat = await entity.stat();
-
-    dateTo = _dateToMidnight(dateTo); //aby datum byl az do konce aktualniho dne, exclude date to
-
-    var modified = fileStat.modified;
-
-    // final result = modified.isAtSameMomentAs(dateFrom) || (modified.isAfter(dateFrom) && modified.isBefore(dateTo));
-    return modified.isBetween(dateFrom, dateTo);
+    _allTransferringFileList.addAll(filesForSync);
   }
 
   DateTime _dateToMidnight(DateTime dateTo) {
-
-    dateTo.add(Duration(days: 1)).dateNow(); //aby datum byl az do konce aktualniho dne, exclude date to
-    return dateTo;
+    return DateUtils.dateOnly(dateTo);
   }
 
   void clearShowingFiles() {

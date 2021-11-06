@@ -7,8 +7,10 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:iothub/src/data_source/http_dio_nas_file_sync_service.dart';
 import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
+import 'package:iothub/src/service/local_file_system_util.dart';
 import 'package:iothub/src/service/nas_file_sync_state.dart';
 import 'package:iothub/src/ui/exceptions/error_handler.dart';
+import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
 import 'package:path/path.dart' as p;
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -27,7 +29,10 @@ class NASSyncMainPage extends StatefulWidget {
   //TODO prevest do konfigurace, staci jen staticke - a zavisle na prostredi - devel, test, produkce - nas.local:8443
   static late final nasFileSyncState =
 // RM.inject(() => NASFileSyncState(RM.inject<NASFileSyncService>(() => HTTPNASFileSyncService('smbrest.home')).state));
-      RM.inject(() => NASFileSyncState(DIOHTTPNASFileSyncService('smbrest.home')));
+      RM.inject(
+    () => NASFileSyncState(DIOHTTPNASFileSyncService('smbrest.home'), LocalFileSystemUtil()),
+    onError: (err, refresh) => Text(ErrorHandler.getErrorMessage(err)),
+  );
 
   @override
   _SyncPathEditFormState createState() => _SyncPathEditFormState();
@@ -36,8 +41,7 @@ class NASSyncMainPage extends StatefulWidget {
 class _SyncPathEditFormState extends State<NASSyncMainPage> {
   final _formKey = GlobalKey<FormState>();
   final _localFolderPathTextFieldController = TextEditingController();
-  FileTypeForSync? _fileTypeForSync = FileTypeForSync.image;
-  final nowDate = DateTime.now();
+  var _fileTypeForSync = FileTypeForSync.image;
 
   // var _selectedDateFrom = DateTime.now().dateNow(); //only date from midnight
   var _selectedDateFrom = DateTime.now(); //now -> date input field format datetime to only date
@@ -46,14 +50,12 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   // Here we use a StatefulWidget to hold local fields _nasFolder and _localFolder
   String? _nasFolder;
 
-  // String _localFolder;
-
   String? _extension;
-  final bool _multiPick = true;
-  final FileType _pickingType = FileType.any;
+  final _multiPick = true;
+  final _pickingType = FileType.any;
   List<PlatformFile>? _paths;
 
-  bool _showingFiles = false;
+  var _showingFiles = false;
 
   String get _joinedSambaFolder => p.join(NASFileSyncState.BASE_SAMBA_FOLDER, _nasFolder).toString();
 
@@ -135,9 +137,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
           Divider(),
           _createTransferingStatusBar(),
           Divider(),
-          On.or(
-            onError: (err, refresh) => Text(ErrorHandler.getErrorMessage(err)),
-            or: () => _showFilesToTransfer(context, NASSyncMainPage.nasFileSyncState.state.transferringFileList),
+          On.data(
+            () => _showFilesToTransfer(context, NASSyncMainPage.nasFileSyncState.state.transferringFileList),
           ).listenTo(
             NASSyncMainPage.nasFileSyncState,
             watch: () => NASSyncMainPage.nasFileSyncState.state.transferringFileList,
@@ -205,18 +206,16 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                       await NASSyncMainPage.nasFileSyncState.setState(
                         (s) async {
                           if (NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount == 0) {
-                            try {
-                              await s.getFilesForSynchronization(_localFolderPathTextFieldController.value.text,
-                                  _joinedSambaFolder, _fileTypeForSync!, _selectedDateFrom, _selectedDateTo);
-                            } catch (e) {
-                              //TODO neobjevi se okno s chybou, zustava data loader
-                              Navigator.of(context).pop(); //dismiss data loader
-                              ErrorHandler.showSnackBar(e);
-                            }
+                            await s.getFilesForSynchronization(_localFolderPathTextFieldController.value.text,
+                                _joinedSambaFolder, _fileTypeForSync, _selectedDateFrom, _selectedDateTo);
                           }
 
                           s.showFirstFiles();
                         },
+                        onError: (error) => ErrorHandler.showErrorDialog(error),
+                        onSetState: On.waiting(() {
+                          CommonDataLoadingIndicator();
+                        }),
                       );
                     }
                   },
@@ -349,7 +348,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
       fit: BoxFit.cover,
       width: 120.0,
       height: 120.0,
-      onImageError: (exception, stackTrace) => {},
+      onImageError: (exception, stackTrace) => Text(imgFile.path),
       child: InkWell(
         splashColor: Colors.blueGrey,
         onTap: () {
@@ -395,7 +394,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
               groupValue: _fileTypeForSync,
               onChanged: (FileTypeForSync? value) {
                 setState(() {
-                  _fileTypeForSync = value;
+                  _fileTypeForSync = value!;
                 });
               },
             ),
@@ -411,7 +410,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
               groupValue: _fileTypeForSync,
               onChanged: (FileTypeForSync? value) {
                 setState(() {
-                  _fileTypeForSync = value;
+                  _fileTypeForSync = value!;
                 });
               },
             ),
@@ -427,7 +426,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
               groupValue: _fileTypeForSync,
               onChanged: (FileTypeForSync? value) {
                 setState(() {
-                  _fileTypeForSync = value;
+                  _fileTypeForSync = value!;
                 });
               },
             ),
@@ -472,14 +471,13 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
           await NASSyncMainPage.nasFileSyncState.state.getFilesForSynchronization(
               _localFolderPathTextFieldController.value.text,
               _joinedSambaFolder,
-              _fileTypeForSync!,
+              _fileTypeForSync,
               _selectedDateFrom,
               _selectedDateTo);
         } catch (e) {
           NASSyncMainPage.nasFileSyncState.state.uploading = false;
-          //TODO neobjevi se okno s chybou, zustava data loader
           // Navigator.of(context).pop(); //dismiss data loader
-          ErrorHandler.showSnackBar(e);
+          ErrorHandler.showErrorDialog(e);
         }
       }
 
@@ -494,21 +492,14 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
         (s) {
           // NASSyncMainPage.nasFileSyncState.state.showNextFiles(NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount);
 
-          return s.syncFolderWithNAS(s.filesForUploading, _joinedSambaFolder, _fileTypeForSync!);
+          return s.syncFolderWithNAS(s.filesForUploading, _joinedSambaFolder, _fileTypeForSync);
         },
         onError: (error) {
           NASSyncMainPage.nasFileSyncState.state.uploading = false;
-          //TODO neobjevi se okno s chybou, zustava data loader
           // Navigator.of(context).pop(); //dismiss data loader
-          ErrorHandler.showSnackBar(error);
+          ErrorHandler.showErrorDialog(error);
         },
       );
-      // } catch (e) {
-      //   NASSyncMainPage.nasFileSyncState.state.uploading = false;
-      //   //TODO neobjevi se okno s chybou, zustava data loader
-      //   // Navigator.of(context).pop(); //dismiss data loader
-      //   ErrorHandler.showErrorSnackBar(context, e);
-      // }
     }
   }
 
@@ -556,7 +547,6 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
           // return Text('${snapshot.error}');
         } else {
           return Text('Loading server folders ...');
-          // return CommonDataLoadingIndicator();
         }
         return DropdownButtonFormField<String>(
           key: Key('__NASFolderField'),
@@ -567,7 +557,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
           isExpanded: true,
           disabledHint: Text('Not supported on Web'),
           autofocus: false,
-          hint: Text('Click for a folder list'),
+          hint: Text('Select NAS folder'),
           style: Theme.of(context).textTheme.headline5,
           decoration: InputDecoration(
             contentPadding: const EdgeInsets.all(0.0),

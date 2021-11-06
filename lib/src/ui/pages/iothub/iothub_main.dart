@@ -19,9 +19,7 @@ class IOTHubsMainPage extends StatelessWidget {
     unsignedUser: LoggedOutUser(),
     onAuthStream: (repo) => (repo as FirebaseAuthRepository).currentUser().asStream(),
     onSetState: On.error(
-      (err, refresh) => RM.navigate.toDialog(
-        ErrorHandler.getErrorDialogWithBackButton(err),
-      ),
+      (err, refresh) => ErrorHandler.showErrorDialog(err),
     ),
   );
 

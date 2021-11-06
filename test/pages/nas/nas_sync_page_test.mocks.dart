@@ -7,6 +7,8 @@ import 'dart:io' as _i7;
 
 import 'package:iothub/src/domain/entities/nas_file_item.dart' as _i4;
 import 'package:iothub/src/domain/value_objects/upload_file_status.dart' as _i6;
+import 'package:iothub/src/service/interfaces/local_file_system_service.dart'
+    as _i8;
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart'
     as _i2;
 import 'package:iothub/src/service/nas_file_sync_state.dart' as _i5;
@@ -64,6 +66,38 @@ class MockNASFileSyncService extends _i1.Mock
       (super.noSuchMethod(Invocation.method(#listSambaFolders, [baseFolder]),
               returnValue: Future<List<String>>.value(<String>[]))
           as _i3.Future<List<String>>);
+  @override
+  String toString() => super.toString();
+}
+
+/// A class which mocks [LocalFileSystemService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockLocalFileSystemService extends _i1.Mock
+    implements _i8.LocalFileSystemService {
+  MockLocalFileSystemService() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i3.Future<List<_i7.File>> matchLocalFiles(
+          String? localFolderPath,
+          bool? recursive,
+          _i5.FileTypeForSync? fileTypeForSync,
+          DateTime? dateFrom,
+          DateTime? dateTo,
+          List<_i4.NASFileItem>? remoteFiles) =>
+      (super.noSuchMethod(
+              Invocation.method(#matchLocalFiles, [
+                localFolderPath,
+                recursive,
+                fileTypeForSync,
+                dateFrom,
+                dateTo,
+                remoteFiles
+              ]),
+              returnValue: Future<List<_i7.File>>.value(<_i7.File>[]))
+          as _i3.Future<List<_i7.File>>);
   @override
   String toString() => super.toString();
 }

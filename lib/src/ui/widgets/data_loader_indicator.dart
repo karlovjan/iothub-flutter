@@ -10,7 +10,6 @@ abstract class DataLoadingIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-
       child: Column(
         children: [
           CircularProgressIndicator(),
@@ -36,6 +35,7 @@ class DataLoadingIndicatorTitle extends StatelessWidget {
 }
 
 class CommonDataLoadingIndicator extends DataLoadingIndicator {
-  CommonDataLoadingIndicator()
-      : super(DataLoadingIndicatorTitle('Data loading ...'));
+  static const LOADING_TEXT = 'Data loading ...';
+
+  CommonDataLoadingIndicator() : super(DataLoadingIndicatorTitle(LOADING_TEXT));
 }
