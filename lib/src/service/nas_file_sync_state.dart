@@ -11,7 +11,8 @@ import 'package:logger/logger.dart';
 enum FileTypeForSync { image, video, doc }
 
 class NASFileSyncState {
-  NASFileSyncState(this._remoteFileTransferService, this._localFileSystemService);
+  NASFileSyncState(
+      this._remoteFileTransferService, this._localFileSystemService);
 
   final _log = Logger(
     printer: PrettyPrinter(),
@@ -30,18 +31,17 @@ class NASFileSyncState {
   // bool _synchronizing = false;
 
   List<File> transferringFileList = <File>[]; //for view only
-  final List<File> _allTransferringFileList = <File>[]; // in memory the same all time
+  final List<File> _allTransferringFileList =
+      <File>[]; // in memory the same all time
 
   int get allTransferringFilesCount => _allTransferringFileList.length;
 
   int transferredFilesCount = 0;
 
-  List<String> _sambaFolderList = [];
-
   List<File> get filesForUploading => List.of(_allTransferringFileList);
 
-  Stream<UploadFileStatus> syncFolderWithNAS(
-      List<File> uploadingFiles, String nasFolderPath, FileTypeForSync fileType) async* {
+  Stream<UploadFileStatus> syncFolderWithNAS(List<File> uploadingFiles,
+      String nasFolderPath, FileTypeForSync fileType) async* {
     if (uploading) {
       _log.i('Synchronization is already running!');
       // throw NASFileException('Synchronization is already running!');
@@ -52,8 +52,8 @@ class NASFileSyncState {
     // transferredFilesCount = 0;
 
     try {
-      await for (UploadFileStatus sentFile
-          in _remoteFileTransferService.sendFiles(uploadingFiles, nasFolderPath, fileType)) {
+      await for (UploadFileStatus sentFile in _remoteFileTransferService
+          .sendFiles(uploadingFiles, nasFolderPath, fileType)) {
         // if (_synchronizing) {
 
         if (sentFile.uploaded) {
@@ -75,25 +75,40 @@ class NASFileSyncState {
     } finally {
       _log.i('uploading finished');
       uploading = false;
-      uploadedFileStatus = UploadFileStatus(uploadingFilePath: '', uploaded: false, timestamp: DateTime.now());
+      uploadedFileStatus = UploadFileStatus(
+          uploadingFilePath: '', uploaded: false, timestamp: DateTime.now());
       yield uploadedFileStatus;
     }
     // _synchronizing = false;
   }
 
   Future<void> getFilesForSynchronization(
-      String localFolderPath, String nasFolderPath, FileTypeForSync fileTypeForSync, DateTime dateFrom, DateTime dateTo,
-      {bool includeUpdatedFiles = false, bool recursive = false}) async {
+      String localFolderPath,
+      String nasFolderPath,
+      FileTypeForSync fileTypeForSync,
+      DateTime dateFrom,
+      DateTime dateTo,
+      {bool includeUpdatedFiles = false,
+      bool recursive = false}) async {
     _log.i('Load files for synchronization');
 
     clearFiles();
 
     // throw NASFileException("message test");
-    final allTargetFolderFiles = await _remoteFileTransferService.retrieveDirectoryItems(
-        nasFolderPath, dateFrom.secondsSinceEpoch, dateTo.secondsSinceEpoch, fileTypeForSync);
+    final allTargetFolderFiles =
+        await _remoteFileTransferService.retrieveDirectoryItems(
+            nasFolderPath,
+            dateFrom.secondsSinceEpoch,
+            dateTo.secondsSinceEpoch,
+            fileTypeForSync);
 
     final filesForSync = await _localFileSystemService.matchLocalFiles(
-        localFolderPath, recursive, fileTypeForSync, dateFrom, dateTo, allTargetFolderFiles);
+        localFolderPath,
+        recursive,
+        fileTypeForSync,
+        dateFrom,
+        dateTo,
+        allTargetFolderFiles);
 
     _allTransferringFileList.addAll(filesForSync);
   }
@@ -149,6 +164,6 @@ class NASFileSyncState {
   }
 
   Future<List<String>> listSambaFolders(String baseFolder) async {
-    return _sambaFolderList = await _remoteFileTransferService.listSambaFolders(baseFolder);
+    return await _remoteFileTransferService.listSambaFolders(baseFolder);
   }
 }

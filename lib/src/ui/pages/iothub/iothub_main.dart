@@ -14,10 +14,12 @@ import '../home_page/home_page.dart';
 
 /// Show a and manage IOT hubs
 class IOTHubsMainPage extends StatelessWidget {
-  static final InjectedAuth<User, UserParam> user = RM.injectAuth<User, UserParam>(
+  static final InjectedAuth<User, UserParam> user =
+      RM.injectAuth<User, UserParam>(
     () => FirebaseAuthRepository(),
     unsignedUser: LoggedOutUser(),
-    onAuthStream: (repo) => (repo as FirebaseAuthRepository).currentUser().asStream(),
+    onAuthStream: (repo) =>
+        (repo as FirebaseAuthRepository).currentUser().asStream(),
     onSetState: On.error(
       (err, refresh) => ErrorHandler.showErrorDialog(err),
     ),
@@ -48,21 +50,10 @@ class IOTHubsMainPage extends StatelessWidget {
       body: On.auth(
         onWaiting: () => CommonDataLoadingIndicator(),
         onInitialWaiting: () {
-          /*
-          return FutureBuilder<User>(
-            future: user.auth.signIn((param) => UserParam(
-                email: 'karlovjan@gmail.com', password: 'Flutter753123', signIn: SignIn.withEmailAndPassword)),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return ErrorHandler.getErrorDialogWithBackButton(snapshot.error);
-              }
-
-              return SplashScreen();
-            },
-          );*/
-
-          user.auth.signIn((param) =>
-              UserParam(email: 'karlovjan@gmail.com', password: 'Flutter753123', signIn: SignIn.withEmailAndPassword));
+          user.auth.signIn((param) => UserParam(
+              email: 'karlovjan@gmail.com',
+              password: 'Flutter753123',
+              signIn: SignIn.withEmailAndPassword));
 
           return SplashScreen();
         },

@@ -30,7 +30,8 @@ class NASSyncMainPage extends StatefulWidget {
   static late final nasFileSyncState =
 // RM.inject(() => NASFileSyncState(RM.inject<NASFileSyncService>(() => HTTPNASFileSyncService('smbrest.home')).state));
       RM.inject(
-    () => NASFileSyncState(DIOHTTPNASFileSyncService('smbrest.home'), LocalFileSystemUtil()),
+    () => NASFileSyncState(
+        DIOHTTPNASFileSyncService('smbrest.home'), LocalFileSystemUtil()),
     onError: (err, refresh) => Text(ErrorHandler.getErrorMessage(err)),
   );
 
@@ -44,7 +45,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   var _fileTypeForSync = FileTypeForSync.image;
 
   // var _selectedDateFrom = DateTime.now().dateNow(); //only date from midnight
-  var _selectedDateFrom = DateTime.now(); //now -> date input field format datetime to only date
+  var _selectedDateFrom =
+      DateTime.now(); //now -> date input field format datetime to only date
   var _selectedDateTo = DateTime.now(); //date up to now including time
 
   // Here we use a StatefulWidget to hold local fields _nasFolder and _localFolder
@@ -57,7 +59,10 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
 
   var _showingFiles = false;
 
-  String get _joinedSambaFolder => p.join(NASFileSyncState.BASE_SAMBA_FOLDER, _nasFolder).toString();
+  String get _joinedSambaFolder =>
+      p.join(NASFileSyncState.BASE_SAMBA_FOLDER, _nasFolder).toString();
+
+  late final Future<List<String>> _nasFoldersFuture = _listSambaFolders();
 
   @override
   void dispose() {
@@ -78,7 +83,9 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
       _paths = (await FilePicker.platform.pickFiles(
         type: _pickingType,
         allowMultiple: _multiPick,
-        allowedExtensions: (_extension?.isNotEmpty ?? false) ? _extension?.replaceAll(' ', '').split(',') : null,
+        allowedExtensions: (_extension?.isNotEmpty ?? false)
+            ? _extension?.replaceAll(' ', '').split(',')
+            : null,
       ))
           ?.files;
     } on PlatformException catch (e) {
@@ -89,7 +96,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
     if (!mounted) return;
     setState(() {
       // _loadingPath = false;
-      _localFolderPathTextFieldController.text = _paths != null ? _paths!.map((e) => e.name).toString() : '...';
+      _localFolderPathTextFieldController.text =
+          _paths != null ? _paths!.map((e) => e.name).toString() : '...';
     });
   }
 
@@ -138,10 +146,12 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
           _createTransferingStatusBar(),
           Divider(),
           On.data(
-            () => _showFilesToTransfer(context, NASSyncMainPage.nasFileSyncState.state.transferringFileList),
+            () => _showFilesToTransfer(context,
+                NASSyncMainPage.nasFileSyncState.state.transferringFileList),
           ).listenTo(
             NASSyncMainPage.nasFileSyncState,
-            watch: () => NASSyncMainPage.nasFileSyncState.state.transferringFileList,
+            watch: () =>
+                NASSyncMainPage.nasFileSyncState.state.transferringFileList,
           ),
         ],
       ),
@@ -168,7 +178,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                   decoration: InputDecoration(
                     hintText: 'Enter local folder',
                   ),
-                  validator: (val) => val!.trim().isEmpty ? 'Cannot be empty' : null,
+                  validator: (val) =>
+                      val!.trim().isEmpty ? 'Cannot be empty' : null,
                   controller: _localFolderPathTextFieldController,
                   // onSaved: (value) => _localFolder = value,
                 ),
@@ -178,7 +189,9 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                   if (!kIsWeb) {
                     _selectFolder();
                   } else {
-                    throw NASFileException('Opening a folder is not allowed on the Web!');
+                    //TODO remake on a new widget LocalFolderPathFromInput that solving if (!kIsWeb)
+                    throw NASFileException(
+                        'Opening a folder is not allowed on the Web!');
                   }
                 },
                 child: Text('Pick local folder'),
@@ -205,9 +218,15 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
 
                       await NASSyncMainPage.nasFileSyncState.setState(
                         (s) async {
-                          if (NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount == 0) {
-                            await s.getFilesForSynchronization(_localFolderPathTextFieldController.value.text,
-                                _joinedSambaFolder, _fileTypeForSync, _selectedDateFrom, _selectedDateTo);
+                          if (NASSyncMainPage.nasFileSyncState.state
+                                  .allTransferringFilesCount ==
+                              0) {
+                            await s.getFilesForSynchronization(
+                                _localFolderPathTextFieldController.value.text,
+                                _joinedSambaFolder,
+                                _fileTypeForSync,
+                                _selectedDateFrom,
+                                _selectedDateTo);
                           }
 
                           s.showFirstFiles();
@@ -223,7 +242,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+                padding: const EdgeInsets.symmetric(
+                    vertical: 16.0, horizontal: 16.0),
                 child: ElevatedButton(
                   onPressed: () async {
                     if (NASSyncMainPage.nasFileSyncState.state.uploading) {
@@ -259,9 +279,11 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text('Transferred / All - '),
-                    Text('${NASSyncMainPage.nasFileSyncState.state.transferredFilesCount}'),
+                    Text(
+                        '${NASSyncMainPage.nasFileSyncState.state.transferredFilesCount}'),
                     Text('/'),
-                    Text('${NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount}'),
+                    Text(
+                        '${NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount}'),
                   ],
                 ),
                 _uploadingFileStatusBar(),
@@ -269,7 +291,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
             )
           : SizedBox.shrink(),
     ).listenTo(NASSyncMainPage.nasFileSyncState,
-        watch: () => NASSyncMainPage.nasFileSyncState.state.transferredFilesCount);
+        watch: () =>
+            NASSyncMainPage.nasFileSyncState.state.transferredFilesCount);
   }
 
   Widget _uploadingFileStatusBar() {
@@ -310,7 +333,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
     );
   }
 
-  Widget _showFilesToTransfer(BuildContext context, List<File> transferringFileList) {
+  Widget _showFilesToTransfer(
+      BuildContext context, List<File> transferringFileList) {
     if (!_showingFiles) {
       return const Text('Uploading files is running in background.....');
     }
@@ -326,7 +350,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
     }
   }
 
-  Widget _showImagesToTransfer(BuildContext context, List<File> transferringFileList) {
+  Widget _showImagesToTransfer(
+      BuildContext context, List<File> transferringFileList) {
     // return Expanded(
     //   child: GridView.count(
     return GridView.count(
@@ -336,7 +361,9 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
       mainAxisSpacing: 4,
       crossAxisCount: 4,
       shrinkWrap: true,
-      children: transferringFileList.map((imgFile) => _createThumbnail(context, imgFile)).toList(),
+      children: transferringFileList
+          .map((imgFile) => _createThumbnail(context, imgFile))
+          .toList(),
       // ),
     );
   }
@@ -360,7 +387,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
               action: SnackBarAction(
                 label: 'Remove',
                 onPressed: () async {
-                  await NASSyncMainPage.nasFileSyncState.setState((s) => s.removeFile(imgFile.path));
+                  await NASSyncMainPage.nasFileSyncState
+                      .setState((s) => s.removeFile(imgFile.path));
                   ScaffoldMessenger.of(context).hideCurrentSnackBar();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -439,7 +467,9 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   Widget showFileAsText(BuildContext context, List<File> transferringFileList) {
     return ListView(
       padding: const EdgeInsets.only(top: 20.0),
-      children: transferringFileList.map((file) => _buildListFileTextItem(context, file)).toList(),
+      children: transferringFileList
+          .map((file) => _buildListFileTextItem(context, file))
+          .toList(),
     );
   }
 
@@ -466,14 +496,16 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
     if (form.validate()) {
       form.save();
 
-      if (NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount == 0) {
+      if (NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount ==
+          0) {
         try {
-          await NASSyncMainPage.nasFileSyncState.state.getFilesForSynchronization(
-              _localFolderPathTextFieldController.value.text,
-              _joinedSambaFolder,
-              _fileTypeForSync,
-              _selectedDateFrom,
-              _selectedDateTo);
+          await NASSyncMainPage.nasFileSyncState.state
+              .getFilesForSynchronization(
+                  _localFolderPathTextFieldController.value.text,
+                  _joinedSambaFolder,
+                  _fileTypeForSync,
+                  _selectedDateFrom,
+                  _selectedDateTo);
         } catch (e) {
           NASSyncMainPage.nasFileSyncState.state.uploading = false;
           // Navigator.of(context).pop(); //dismiss data loader
@@ -481,7 +513,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
         }
       }
 
-      if (NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount == 0) {
+      if (NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount ==
+          0) {
         //there is no files to upload
         print('there is no files to upload');
         NASSyncMainPage.nasFileSyncState.state.uploading = false;
@@ -492,7 +525,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
         (s) {
           // NASSyncMainPage.nasFileSyncState.state.showNextFiles(NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount);
 
-          return s.syncFolderWithNAS(s.filesForUploading, _joinedSambaFolder, _fileTypeForSync);
+          return s.syncFolderWithNAS(
+              s.filesForUploading, _joinedSambaFolder, _fileTypeForSync);
         },
         onError: (error) {
           NASSyncMainPage.nasFileSyncState.state.uploading = false;
@@ -531,12 +565,17 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   }
 
   Widget createDropDownButtonExtLoaded() {
+    //TODO remake on a new widget LocalFolderPathFromInput that solving if (!kIsWeb) and if is web return onlu textforminput
+    if (kIsWeb) {
+      throw NASFileException('Not implemented on Web'); //not implemented on Web
+    }
     return FutureBuilder(
-      future: _listSambaFolders(),
+      future: _nasFoldersFuture,
       builder: (context, AsyncSnapshot<List<String>> snapshot) {
         var comboItems = <DropdownMenuItem<String>>[];
         if (snapshot.hasData) {
-          comboItems = snapshot.data!.map<DropdownMenuItem<String>>((String value) {
+          comboItems =
+              snapshot.data!.map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
               value: value,
               child: Text(value),
@@ -571,17 +610,15 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
             });
           },
           items: comboItems,
-          validator: (val) => (val == null || val.trim().isEmpty) ? 'Cannot be empty' : null,
+          validator: (val) =>
+              (val == null || val.trim().isEmpty) ? 'Cannot be empty' : null,
         );
       },
     );
   }
 
   Future<List<String>> _listSambaFolders() async {
-    if (kIsWeb) {
-      throw NASFileException('Not implemented on Web'); //not implemented on Web
-    }
-
-    return await NASSyncMainPage.nasFileSyncState.state.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER);
+    return await NASSyncMainPage.nasFileSyncState.state
+        .listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER);
   }
 }

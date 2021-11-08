@@ -11,7 +11,6 @@ import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
 import 'package:iothub/src/service/nas_file_sync_state.dart';
 import 'package:iothub/src/ui/pages/home_page/home_page.dart';
 import 'package:iothub/src/ui/pages/nas/nas_sync_page.dart';
-import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
 import 'package:iothub/src/ui/widgets/tile_navigation_button.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -24,14 +23,16 @@ void main() {
   final _mockService = MockNASFileSyncService();
   final _mockLocalFileSystem = MockLocalFileSystemService();
   setUp(() {
-    NASSyncMainPage.nasFileSyncState.injectMock(() => NASFileSyncState(_mockService, _mockLocalFileSystem));
+    NASSyncMainPage.nasFileSyncState
+        .injectMock(() => NASFileSyncState(_mockService, _mockLocalFileSystem));
   });
 
   group('open nas sync page', () {
     testWidgets('first opened page', (tester) async {
       const nasFoldersRespData = ['path1', 'path2', 'path3'];
       when(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
-          .thenAnswer((_) => Future.delayed(Duration(seconds: 1)).then((_) => nasFoldersRespData));
+          .thenAnswer((_) => Future.delayed(Duration(seconds: 1))
+              .then((_) => nasFoldersRespData));
       // when(NASSyncMainPage.nasFileSyncState.state.clearFiles()).thenReturn(null);
 
       await tester.pumpWidget(IOTHubApp());
@@ -39,7 +40,8 @@ void main() {
 
       expect(find.byType(HomePage), findsOneWidget);
 
-      await tester.tap(find.byType(TileNavigationButton).at(1)); //to nas sync app
+      await tester
+          .tap(find.byType(TileNavigationButton).at(1)); //to nas sync app
 
       await tester.pump();
       await tester.pump();
@@ -57,7 +59,8 @@ void main() {
       // expect(find.byType(DropdownButtonFormField), findsOneWidget);
       // expect(find.byType(DropdownButton), findsOneWidget);
 
-      verify(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER)).called(1);
+      verify(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
+          .called(1);
     });
   });
 
@@ -73,7 +76,8 @@ void main() {
 
       expect(find.byType(HomePage), findsOneWidget);
 
-      await tester.tap(find.byType(TileNavigationButton).at(1)); //to nas sync app
+      await tester
+          .tap(find.byType(TileNavigationButton).at(1)); //to nas sync app
 
       await tester.pump();
       await tester.pump();
@@ -86,13 +90,16 @@ void main() {
 
       expect(find.text(errorMsg), findsOneWidget);
 
-      verify(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER)).called(1);
+      verify(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
+          .called(1);
     });
 
-    testWidgets('send files - not entered local path to synch dir', (tester) async {
+    testWidgets('send files - not entered local path to synch dir',
+        (tester) async {
       const nasFoldersRespData = ['path1', 'path2', 'path3'];
       when(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
-          .thenAnswer((_) => Future.delayed(Duration(seconds: 1)).then((_) => nasFoldersRespData));
+          .thenAnswer((_) => Future.delayed(Duration(seconds: 1))
+              .then((_) => nasFoldersRespData));
       // when(NASSyncMainPage.nasFileSyncState.state.clearFiles()).thenReturn(null);
 
       await tester.pumpWidget(IOTHubApp());
@@ -100,7 +107,8 @@ void main() {
 
       expect(find.byType(HomePage), findsOneWidget);
 
-      await tester.tap(find.byType(TileNavigationButton).at(1)); //to nas sync app
+      await tester
+          .tap(find.byType(TileNavigationButton).at(1)); //to nas sync app
 
       await tester.pump();
       await tester.pump();
@@ -116,7 +124,8 @@ void main() {
       expect(find.text('Cannot be empty'), findsNWidgets(2));
       expect(find.text('Transferred / All - '), findsNothing);
 
-      verify(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER)).called(1);
+      verify(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
+          .called(1);
     });
   });
 
@@ -124,13 +133,16 @@ void main() {
     testWidgets('default form values', (tester) async {
       const nasFoldersRespData = ['path1', 'path2', 'path3'];
       when(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
-          .thenAnswer((_) => Future.delayed(Duration(seconds: 1)).then((_) => nasFoldersRespData));
+          .thenAnswer((_) => Future.delayed(Duration(seconds: 1))
+              .then((_) => nasFoldersRespData));
 
       final localFolderPath = 'localPath';
       final nasFolderPath = nasFoldersRespData.elementAt(1);
-      final fullNasFolderPath = p.join(NASFileSyncState.BASE_SAMBA_FOLDER, nasFolderPath);
+      final fullNasFolderPath =
+          p.join(NASFileSyncState.BASE_SAMBA_FOLDER, nasFolderPath);
       final fileTypeForSync = FileTypeForSync.image;
-      final dateFrom = DateUtils.dateOnly(DateTime.now().subtract(const Duration(days: 5)));
+      final dateFrom =
+          DateUtils.dateOnly(DateTime.now().subtract(const Duration(days: 5)));
       final dateTo = DateUtils.dateOnly(DateTime.now());
       final dateFromSeconds = dateFrom.secondsSinceEpoch;
       final dateToSeconds = dateTo.secondsSinceEpoch;
@@ -146,19 +158,24 @@ void main() {
         NASFileItem(localFile3, dateFrom.add(const Duration(days: 2)))
       ];
 
-      when(_mockLocalFileSystem.matchLocalFiles(localFolderPath, false, fileTypeForSync, dateFrom, dateTo, targetFiles))
-          .thenAnswer((_) => Future.delayed(const Duration(seconds: 1)).then((_) => localFiles));
+      when(_mockLocalFileSystem.matchLocalFiles(localFolderPath, false,
+              fileTypeForSync, dateFrom, dateTo, targetFiles))
+          .thenAnswer((_) => Future.delayed(const Duration(seconds: 1))
+              .then((_) => localFiles));
       // when(_mockState.clearFiles()).thenReturn(null);
 
-      when(_mockService.retrieveDirectoryItems(fullNasFolderPath, dateFromSeconds, dateToSeconds, fileTypeForSync))
-          .thenAnswer((_) => Future.delayed(const Duration(seconds: 1)).then((_) => targetFiles));
+      when(_mockService.retrieveDirectoryItems(fullNasFolderPath,
+              dateFromSeconds, dateToSeconds, fileTypeForSync))
+          .thenAnswer((_) => Future.delayed(const Duration(seconds: 1))
+              .then((_) => targetFiles));
 
       await tester.pumpWidget(IOTHubApp());
       await tester.pumpAndSettle();
 
       expect(find.byType(HomePage), findsOneWidget);
 
-      await tester.tap(find.byType(TileNavigationButton).at(1)); //to nas sync app
+      await tester
+          .tap(find.byType(TileNavigationButton).at(1)); //to nas sync app
 
       await tester.pump();
       await tester.pump();
@@ -168,16 +185,28 @@ void main() {
 
       await tester.pumpAndSettle(const Duration(seconds: 1));
 
+      verify(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
+          .called(1);
 
-      expect(NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount, 0);
-      expect(NASSyncMainPage.nasFileSyncState.state.filesForUploading.length, 0);
-      expect(NASSyncMainPage.nasFileSyncState.state.transferringFileList.length, 0);
-      expect(NASSyncMainPage.nasFileSyncState.state.uploading, false);
+      expect(NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount,
+          equals(0));
+      expect(NASSyncMainPage.nasFileSyncState.state.filesForUploading.length,
+          equals(0));
+      expect(NASSyncMainPage.nasFileSyncState.state.transferringFileList.length,
+          equals(0));
+      expect(NASSyncMainPage.nasFileSyncState.state.uploading, isFalse);
 
       //enter local path
       await tester.enterText(find.byType(EditableText).first, localFolderPath);
-      final fromDateString = dateFrom.month.toString() + '/' + dateFrom.day.toString() + '/' + dateFrom.year.toString();
-      await tester.enterText(find.byType(InputDatePickerFormField).first, fromDateString);
+
+      //set date time from - end is now()
+      final fromDateString = dateFrom.month.toString() +
+          '/' +
+          dateFrom.day.toString() +
+          '/' +
+          dateFrom.year.toString();
+      await tester.enterText(
+          find.byType(InputDatePickerFormField).first, fromDateString);
       await tester.pumpAndSettle();
       expect(find.text(fromDateString), findsOneWidget);
 
@@ -196,7 +225,7 @@ void main() {
       // await tester.pump();
       // await tester.pump();
       //loading files to synchronization to show them on the screen
-      // expect(find.text(CommonDataLoadingIndicator.LOADING_TEXT), findsOneWidget);
+      //TODO loading se nezobrazuje expect(find.text(CommonDataLoadingIndicator.LOADING_TEXT), findsOneWidget);
 
       // await tester.pumpAndSettle(const Duration(seconds: 4));
       await tester.pumpAndSettle(const Duration(seconds: 1));
@@ -205,19 +234,25 @@ void main() {
 
       expect(find.text(nasFolderPath), findsOneWidget);
 
-      expect(NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount, 2);
-      expect(NASSyncMainPage.nasFileSyncState.state.filesForUploading.length, 2);
-      expect(NASSyncMainPage.nasFileSyncState.state.transferringFileList.length, 2);
-      expect(NASSyncMainPage.nasFileSyncState.state.uploading, false);
+      expect(NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount,
+          equals(2));
+      expect(NASSyncMainPage.nasFileSyncState.state.filesForUploading.length,
+          equals(2));
+      expect(NASSyncMainPage.nasFileSyncState.state.transferringFileList.length,
+          equals(2));
+      expect(NASSyncMainPage.nasFileSyncState.state.uploading, isFalse);
       expect(find.byKey(ValueKey(localFile1)), findsOneWidget);
       expect(find.byKey(ValueKey(localFile2)), findsOneWidget);
+      //it was matched only two local files to transfer to NAS the third one must not be seen.
       expect(find.byKey(ValueKey(localFile3)), findsNothing);
 
-      verify(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER)).called(2); //TODO Nevim proc se to vola dvakrat
-      // verify(_mockState.clearFiles()).called(1); //disposing state
-      verify(_mockService.retrieveDirectoryItems(fullNasFolderPath, dateFromSeconds, dateToSeconds, fileTypeForSync))
+      verifyNever(
+          _mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER));
+      verify(_mockService.retrieveDirectoryItems(fullNasFolderPath,
+              dateFromSeconds, dateToSeconds, fileTypeForSync))
           .called(1);
-      verify(_mockLocalFileSystem.matchLocalFiles(localFolderPath, false, fileTypeForSync, dateFrom, dateTo, targetFiles))
+      verify(_mockLocalFileSystem.matchLocalFiles(localFolderPath, false,
+              fileTypeForSync, dateFrom, dateTo, targetFiles))
           .called(1);
     });
   });
