@@ -31,7 +31,7 @@ class NASSyncMainPage extends StatefulWidget {
 // RM.inject(() => NASFileSyncState(RM.inject<NASFileSyncService>(() => HTTPNASFileSyncService('smbrest.home')).state));
       RM.inject(
     () => NASFileSyncState(
-        DIOHTTPNASFileSyncService('smbrest.home'), LocalFileSystemUtil()),
+        DIOHTTPNASFileSyncService('smbrest.home', 'assets/certs/ca.crt', 'assets/certs/smbresthomeclient.p12'), LocalFileSystemUtil()),
     onError: (err, refresh) => Text(ErrorHandler.getErrorMessage(err)),
   );
 
@@ -58,6 +58,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   List<PlatformFile>? _paths;
 
   var _showingFiles = false;
+  var _uploading = false;
 
   String get _joinedSambaFolder =>
       p.join(NASFileSyncState.BASE_SAMBA_FOLDER, _nasFolder).toString();
@@ -206,8 +207,9 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: ElevatedButton(
+                  child: Text('Show files'),
                   onPressed: () async {
-                    if (NASSyncMainPage.nasFileSyncState.state.uploading) {
+                    if (_uploading) {
                       return;
                     }
                     final form = _formKey.currentState!;
@@ -218,9 +220,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
 
                       await NASSyncMainPage.nasFileSyncState.setState(
                         (s) async {
-                          if (NASSyncMainPage.nasFileSyncState.state
-                                  .allTransferringFilesCount ==
-                              0) {
+                          if (s.allTransferringFilesCount == 0) {
                             await s.getFilesForSynchronization(
                                 _localFolderPathTextFieldController.value.text,
                                 _joinedSambaFolder,
@@ -238,7 +238,6 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                       );
                     }
                   },
-                  child: Text('Show files'),
                 ),
               ),
               Padding(
@@ -246,7 +245,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                     vertical: 16.0, horizontal: 16.0),
                 child: ElevatedButton(
                   onPressed: () async {
-                    if (NASSyncMainPage.nasFileSyncState.state.uploading) {
+                    if (_uploading) {
                       return;
                     }
 
@@ -269,7 +268,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
 
   Widget _createTransferingStatusBar() {
     return On.data(
-      () => NASSyncMainPage.nasFileSyncState.state.uploading &&
+      () => _uploading &&
               NASSyncMainPage.nasFileSyncState.state.transferredFilesCount > 0
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -297,14 +296,15 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
 
   Widget _uploadingFileStatusBar() {
     return On.data(() {
-      if (NASSyncMainPage.nasFileSyncState.state.uploading &&
-          !NASSyncMainPage.nasFileSyncState.state.uploadedFileStatus.uploaded) {
+      if (_uploading &&
+          !NASSyncMainPage
+              .nasFileSyncState.state.uploadingFileStatus.uploaded) {
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Expanded(
               child: Text(
-                'Uploading...  ${NASSyncMainPage.nasFileSyncState.state.uploadedFileStatus.uploadingFilePath}',
+                'Uploading...  ${NASSyncMainPage.nasFileSyncState.state.uploadingFileStatus.uploadingFilePath}',
               ),
             ),
             Expanded(
@@ -312,7 +312,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                 alignment: Alignment.centerRight,
                 child: ElevatedButton(
                   onPressed: () {
-                    if (NASSyncMainPage.nasFileSyncState.state.uploading) {
+                    if (_uploading) {
                       print('Cancel upload');
                       NASSyncMainPage.nasFileSyncState.state.cancelUploading();
                     } else {
@@ -329,7 +329,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
       return SizedBox.shrink();
     }).listenTo(
       NASSyncMainPage.nasFileSyncState,
-      watch: () => NASSyncMainPage.nasFileSyncState.state.uploadedFileStatus,
+      watch: () => NASSyncMainPage.nasFileSyncState.state.uploadingFileStatus,
     );
   }
 
@@ -487,7 +487,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   }
 
   Future<void> _uploadingFileButtonOnPressed() async {
-    if (NASSyncMainPage.nasFileSyncState.state.uploading) {
+    if (_uploading) {
       return null; //disable button
     }
     print('uploading starting');
@@ -495,6 +495,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
     final form = _formKey.currentState!;
     if (form.validate()) {
       form.save();
+
+      _uploading = true;
 
       if (NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount ==
           0) {
@@ -507,7 +509,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                   _selectedDateFrom,
                   _selectedDateTo);
         } catch (e) {
-          NASSyncMainPage.nasFileSyncState.state.uploading = false;
+          _uploading = false;
           // Navigator.of(context).pop(); //dismiss data loader
           ErrorHandler.showErrorDialog(e);
         }
@@ -517,19 +519,17 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
           0) {
         //there is no files to upload
         print('there is no files to upload');
-        NASSyncMainPage.nasFileSyncState.state.uploading = false;
+        _uploading = false;
         return;
       }
       // try {
       await NASSyncMainPage.nasFileSyncState.setState(
         (s) {
-          // NASSyncMainPage.nasFileSyncState.state.showNextFiles(NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount);
-
           return s.syncFolderWithNAS(
               s.filesForUploading, _joinedSambaFolder, _fileTypeForSync);
         },
         onError: (error) {
-          NASSyncMainPage.nasFileSyncState.state.uploading = false;
+          _uploading = false;
           // Navigator.of(context).pop(); //dismiss data loader
           ErrorHandler.showErrorDialog(error);
         },

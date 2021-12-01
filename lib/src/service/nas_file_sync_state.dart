@@ -23,12 +23,9 @@ class NASFileSyncState {
 
   static const BASE_SAMBA_FOLDER = 'photos/miron';
 
-  bool uploading = false;
+  UploadFileStatus _uploadingFileStatus = UploadFileStatus.empty();
 
-  // Stream<UploadFileStatus> uploadedFileStream;
-  UploadFileStatus uploadedFileStatus = UploadFileStatus.empty();
-
-  // bool _synchronizing = false;
+  UploadFileStatus get uploadingFileStatus => _uploadingFileStatus;
 
   List<File> transferringFileList = <File>[]; //for view only
   final List<File> _allTransferringFileList =
@@ -40,46 +37,28 @@ class NASFileSyncState {
 
   List<File> get filesForUploading => List.of(_allTransferringFileList);
 
-  Stream<UploadFileStatus> syncFolderWithNAS(List<File> uploadingFiles,
+  Stream<void> syncFolderWithNAS(List<File> uploadingFiles,
       String nasFolderPath, FileTypeForSync fileType) async* {
-    if (uploading) {
-      _log.i('Synchronization is already running!');
-      // throw NASFileException('Synchronization is already running!');
-      return;
-    }
-
-    uploading = true;
-    // transferredFilesCount = 0;
 
     try {
       await for (UploadFileStatus sentFile in _remoteFileTransferService
           .sendFiles(uploadingFiles, nasFolderPath, fileType)) {
-        // if (_synchronizing) {
-
         if (sentFile.uploaded) {
           _fileUploaded(sentFile);
         } else {
           //whatching only uploading file
-          uploadedFileStatus = sentFile;
-          yield sentFile;
+          _uploadingFileStatus = sentFile;
+          yield null;
         }
-
-        // } else {
-        //   _log.i('Synchronization was aborted');
-        //   throw NASFileException('Synchronization was aborted!');
-        // }
       }
     } catch (err) {
       _log.e('Caught error:', err);
       throw NASFileException('Error: ${err}');
     } finally {
       _log.i('uploading finished');
-      uploading = false;
-      uploadedFileStatus = UploadFileStatus(
-          uploadingFilePath: '', uploaded: false, timestamp: DateTime.now());
-      yield uploadedFileStatus;
+      _uploadingFileStatus = UploadFileStatus.empty();
+      yield null;
     }
-    // _synchronizing = false;
   }
 
   Future<void> getFilesForSynchronization(
@@ -133,8 +112,14 @@ class NASFileSyncState {
 
   void cancelUploading() {
     _log.i('cancel upload request');
-    uploading = false;
-    _remoteFileTransferService.cancelRequest();
+
+    try {
+      _remoteFileTransferService.cancelRequest();
+    } catch (err) {
+      _log.e('Canceling of uploading files failed:', err);
+    } finally {
+      _uploadingFileStatus = UploadFileStatus.empty();
+    }
   }
 
   void _fileUploaded(UploadFileStatus status) {
@@ -143,8 +128,6 @@ class NASFileSyncState {
   }
 
   void removeFile(String? filePath) {
-    // var newList = List<File>.of(transferringFileList);
-    // newList.removeWhere((e) => e.path == filePath);
     final removingFile = _allTransferringFileList.firstWhere(
       (element) => element.path == filePath,
       orElse: () => File(''),
