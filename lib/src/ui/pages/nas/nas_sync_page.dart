@@ -57,7 +57,6 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   final _pickingType = FileType.any;
   List<PlatformFile>? _paths;
 
-  var _showingFiles = false;
   var _uploading = false;
 
   String get _joinedSambaFolder =>
@@ -216,7 +215,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                     if (form.validate()) {
                       form.save();
 
-                      _showingFiles = true;
+
 
                       await NASSyncMainPage.nasFileSyncState.setState(
                         (s) async {
@@ -250,8 +249,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                     }
 
                     await NASSyncMainPage.nasFileSyncState.setState(
-                      (s) async {
-                        _showingFiles = false;
+                      (s) {
                         s.clearShowingFiles();
                       },
                     );
@@ -335,9 +333,6 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
 
   Widget _showFilesToTransfer(
       BuildContext context, List<File> transferringFileList) {
-    if (!_showingFiles) {
-      return const Text('Uploading files is running in background.....');
-    }
 
     switch (_fileTypeForSync) {
       case FileTypeForSync.image:

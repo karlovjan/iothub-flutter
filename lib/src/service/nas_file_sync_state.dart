@@ -97,16 +97,14 @@ class NASFileSyncState {
   }
 
   void clearShowingFiles() {
-    _log.i('clear shownig files');
-    transferringFileList.clear();
-    transferringFileList = List.empty(growable: true);
+    _log.i('clear showing files');
+    transferringFileList = <File>[];
   }
 
   void clearFiles() {
     _log.i('clear files');
     _allTransferringFileList.clear();
-    transferringFileList.clear();
-    transferringFileList = List.empty(growable: true);
+    transferringFileList = List.empty();
     transferredFilesCount = 0;
   }
 

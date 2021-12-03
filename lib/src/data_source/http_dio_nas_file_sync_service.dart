@@ -38,7 +38,7 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
   Future<ByteData> _loadFile(String path) async {
     //is  the resource requested from within flutter app
     if (path.startsWith('assets')) {
-      return await rootBundle.load('assets/certs/ca.crt');
+      return await rootBundle.load(path);
     }
     //for tests or for certificates out of flutter app
     final bytes = await File(path).readAsBytes(); // Uint8List

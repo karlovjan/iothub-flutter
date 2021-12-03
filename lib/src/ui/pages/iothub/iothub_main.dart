@@ -55,7 +55,7 @@ class IOTHubsMainPage extends StatelessWidget {
               password: 'Flutter753123',
               signIn: SignIn.withEmailAndPassword));
 
-          return SplashScreen();
+          return const SplashScreen();
         },
         onUnsigned: () => const HomePage(),
         onSigned: () => const IOTHubList(),
