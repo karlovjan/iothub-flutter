@@ -11,7 +11,7 @@ import 'src/ui/pages/nas/nas_sync_page.dart';
 import 'src/ui/routes/iothub_routes.dart';
 import 'src/ui/routes/main_routes.dart';
 
-void main() async {
+void main() {
   RM.navigate.transitionsBuilder = RM.transitions.leftToRight();
   runApp(IOTHubApp());
 }

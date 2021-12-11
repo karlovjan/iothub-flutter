@@ -14,14 +14,14 @@ class HomePage extends StatelessWidget {
         title: Text('Home page'),
       ),
       // body is the majority of the screen.
-      body: GridView.extent(
-        maxCrossAxisExtent: 120.0,
-        crossAxisSpacing: 4.0,
-        mainAxisSpacing: 4.0,
-        padding: const EdgeInsets.all(4.0),
+      body: GridView.count(
+        crossAxisCount: 3,
+        padding: const EdgeInsets.all(4),
         children: [
-          TileNavigationButton(routeName: StaticPages.iotHUBApp.routeName, title: 'IOT Hub'),
-          TileNavigationButton(routeName: StaticPages.nasSync.routeName, title: 'NAS Sync'),
+          TileNavigationButton(
+              routeName: StaticPages.iotHUBApp.routeName, title: 'IOT Hub'),
+          TileNavigationButton(
+              routeName: StaticPages.nasSync.routeName, title: 'NAS Sync'),
         ],
       ),
     );

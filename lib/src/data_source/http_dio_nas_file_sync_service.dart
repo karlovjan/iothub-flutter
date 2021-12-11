@@ -11,6 +11,7 @@ import 'package:iothub/src/service/common/datetime_ext.dart';
 import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
 import 'package:iothub/src/service/nas_file_sync_state.dart';
+import 'package:logger/logger.dart';
 
 class DIOHTTPNASFileSyncService implements NASFileSyncService {
   DIOHTTPNASFileSyncService(
@@ -20,6 +21,22 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
   final String _caCertPath;
   final String _pkcs12Path;
   final _cancelRequestToken = CancelToken();
+
+  final _log = Logger(
+    printer: PrettyPrinter(
+        methodCount: 2,
+        // number of method calls to be displayed
+        errorMethodCount: 8,
+        // number of method calls if stacktrace is provided
+        lineLength: 120,
+        // width of the output
+        colors: true,
+        // Colorful log messages
+        printEmojis: true,
+        // Print an emoji for each log message
+        printTime: false // Should each log print contain a timestamp
+        ),
+  );
 
   //https://en.wikipedia.org/wiki/Cross-site_request_forgery
   //https://dev.to/matheusguimaraes/fast-way-to-enable-cors-in-flask-servers-42p0
@@ -56,13 +73,22 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
   }
 
   Future<SecurityContext> _createSecurityContext() async {
-// final sc = SecurityContext(withTrustedRoots: true);
+    _log.d('create security context...');
+
     final sc = SecurityContext.defaultContext;
 
     try {
       final cacertBytes = await _loadCACert();
-      sc.setTrustedCertificatesBytes(cacertBytes.buffer.asUint8List());
-
+      try {
+        sc.setTrustedCertificatesBytes(cacertBytes.buffer.asUint8List());
+      } on TlsException catch (e) {
+        //
+        if (e.osError!.message.contains('CERT_ALREADY_IN_HASH_TABLE')) {
+          _log.i('trusted CA already set...');
+        } else {
+          rethrow;
+        }
+      }
       final p12 = await _loadPKCS12();
       sc.usePrivateKeyBytes(p12.buffer.asUint8List());
       sc.useCertificateChainBytes(p12.buffer.asUint8List());
@@ -80,6 +106,7 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
       double dateFromSeconds,
       double dateToSeconds,
       FileTypeForSync fileTypeForSync) async {
+    _log.d('retrieve directory ${folderPath} ${fileTypeForSync}');
     if (folderPath.trim().isEmpty) {
       print('folder is not set');
       throw NASFileException('Empty folder path');
@@ -144,6 +171,7 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
       String nasFolderPath, FileTypeForSync fileType) async* {
     //https://github.com/dart-lang/http/blob/master/test/multipart_test.dart
 
+    _log.d('send files');
     if (transferringFileList.isEmpty) {
       print('there is no transferring files');
       //vraci  Stream . empty(), listener of the stream get only onDone event
@@ -238,6 +266,7 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
 
   @override
   Future<List<String>> listSambaFolders(String baseFolder) async {
+    _log.d('list folders');
     if (baseFolder.trim().isEmpty) {
       print('base folder is not set');
       throw NASFileException(

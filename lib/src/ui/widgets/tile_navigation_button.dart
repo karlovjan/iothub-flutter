@@ -10,16 +10,13 @@ class TileNavigationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 100.0,
-      child: Card(
-        child: InkWell(
-          onTap: () {
-            RM.navigate.toNamed(routeName);
-          },
-          child: Center(
-            child: Text(title),
-          ),
+    return Card(
+      child: InkWell(
+        onTap: () {
+          RM.navigate.toNamed(routeName);
+        },
+        child: Center(
+          child: Text(title),
         ),
       ),
     );

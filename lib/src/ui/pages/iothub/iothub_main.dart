@@ -7,7 +7,6 @@ import 'package:iothub/src/service/iothub_service.dart';
 import 'package:iothub/src/ui/exceptions/error_handler.dart';
 import 'package:iothub/src/ui/pages/iothub/iothubs.dart';
 import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
-import 'package:iothub/src/ui/widgets/splash_screen.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../home_page/home_page.dart';
@@ -47,22 +46,26 @@ class IOTHubsMainPage extends StatelessWidget {
             }),
       ),
       // body is the majority of the screen.
-      body: On.auth(
-        onWaiting: () => CommonDataLoadingIndicator(),
-        onInitialWaiting: () {
-          user.auth.signIn((param) => UserParam(
-              email: 'karlovjan@gmail.com',
-              password: 'Flutter753123',
-              signIn: SignIn.withEmailAndPassword));
+      body: getAuthWidget(),
+    );
+  }
 
-          return const SplashScreen();
-        },
-        onUnsigned: () => const HomePage(),
-        onSigned: () => const IOTHubList(),
-      ).listenTo(
-        user,
-        useRouteNavigation: true,
-      ),
+  Widget getAuthWidget() {
+    return On.auth(
+      onInitialWaiting: () {
+        user.auth.signIn((param) => UserParam(
+            email: 'karlovjan@gmail.com',
+            password: 'Flutter753123',
+            signIn: SignIn.withEmailAndPassword));
+
+        return CommonDataLoadingIndicator();
+      },
+      onWaiting: () => CommonDataLoadingIndicator(),
+      onUnsigned: () => const HomePage(),
+      onSigned: () => const IOTHubList(),
+    ).listenTo(
+      user,
+      useRouteNavigation: true,
     );
   }
 }
