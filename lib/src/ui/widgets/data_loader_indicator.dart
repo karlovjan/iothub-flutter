@@ -39,3 +39,9 @@ class CommonDataLoadingIndicator extends DataLoadingIndicator {
 
   CommonDataLoadingIndicator() : super(DataLoadingIndicatorTitle(LOADING_TEXT));
 }
+
+class LoggingIndicator extends DataLoadingIndicator {
+  static const LOGGING_TEXT = 'Logging ...';
+
+  LoggingIndicator() : super(DataLoadingIndicatorTitle(LOGGING_TEXT));
+}

@@ -39,12 +39,13 @@ class DashboardDeviceCard extends StatelessWidget {
   }
 
   Widget _deviceGaugeChart(BuildContext context, Device device) {
-    return On.future<List<Measurement>>(
+    return OnFutureBuilder<List<Measurement>>(
+      future: () => IOTHubsMainPage.iotHubService.state.loadLastMeasurement(_selectedIOTHub.id, device),
       onWaiting: () => CommonDataLoadingIndicator(),
       onError: (error, refresher) => Text(ErrorHandler.getErrorMessage(error)),
       //Future can be reinvoked
       onData: (data, refresh) => _measurmentWidget(data),
-    ).future(() => IOTHubsMainPage.iotHubService.state.loadLastMeasurement(_selectedIOTHub.id, device));
+    );
   }
 
   Widget _measurmentWidget(List<Measurement<dynamic>> measurements) {

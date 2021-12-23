@@ -95,6 +95,12 @@ class FirebaseAuthRepository
 
   @override
   void dispose() async {
-    _log.w('dispose firebase object');
+    _log.d('dispose firebase object');
+  }
+
+  @override
+  Future<iothub_user.User>? refreshToken(iothub_user.User currentUser) {
+    _log.d('refresh token logic');
+    throw UnimplementedError();
   }
 }

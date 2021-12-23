@@ -37,11 +37,12 @@ class IOTHubDashboardPage extends StatelessWidget {
     if(_selectedIOTHub == null) {
       return Text('No IotHub selected!');
     }
-    return On.future<List<Device>>(
+    return OnFutureBuilder<List<Device>>(
+      future: () => IOTHubsMainPage.iotHubService.state.loadAllDevices(_selectedIOTHub!.id),
       onWaiting: () => CommonDataLoadingIndicator(),
       onError: (error, refresher) => Text(ErrorHandler.getErrorMessage(error)), //Future can be reinvoked
       onData: (data, refresh) => DashboardDeviceCard(_selectedIOTHub!, data),
-    ).future(() => IOTHubsMainPage.iotHubService.state.loadAllDevices(_selectedIOTHub!.id));
+    );
 
   }
 }

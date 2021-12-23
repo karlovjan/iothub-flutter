@@ -29,7 +29,7 @@ class NASFileSyncState {
 
   List<File> transferringFileList = <File>[]; //for view only
   final List<File> _allTransferringFileList =
-      <File>[]; // in memory the same all time
+      <File>[]; //in memory the same all time
 
   int get allTransferringFilesCount => _allTransferringFileList.length;
 
@@ -39,6 +39,13 @@ class NASFileSyncState {
 
   Stream<void> syncFolderWithNAS(List<File> uploadingFiles,
       String nasFolderPath, FileTypeForSync fileType) async* {
+
+    _log.d('Start uploading files...');
+    if(uploadingFiles.isEmpty){
+      _log.i('uploading finished');
+      _uploadingFileStatus = UploadFileStatus.empty();
+      yield null;
+    }
 
     try {
       await for (UploadFileStatus sentFile in _remoteFileTransferService
@@ -89,6 +96,8 @@ class NASFileSyncState {
         dateTo,
         allTargetFolderFiles);
 
+    _log.d('files for uploading is ${filesForSync.length}');
+
     _allTransferringFileList.addAll(filesForSync);
   }
 
@@ -125,7 +134,8 @@ class NASFileSyncState {
     ++transferredFilesCount;
   }
 
-  void removeFile(String? filePath) {
+  void removeFile(String filePath) {
+    _log.d('remove file ${filePath}');
     final removingFile = _allTransferringFileList.firstWhere(
       (element) => element.path == filePath,
       orElse: () => File(''),
@@ -139,6 +149,7 @@ class NASFileSyncState {
   }
 
   void showFirstFiles([int filesCount = 20]) {
+    _log.d('show first ${filesCount} files...');
     final fileListLength = allTransferringFilesCount;
     final endIndex = filesCount <= fileListLength ? filesCount : fileListLength;
     transferringFileList = _allTransferringFileList.sublist(0, endIndex);

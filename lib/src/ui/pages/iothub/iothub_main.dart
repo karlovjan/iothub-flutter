@@ -19,7 +19,7 @@ class IOTHubsMainPage extends StatelessWidget {
     unsignedUser: LoggedOutUser(),
     onAuthStream: (repo) =>
         (repo as FirebaseAuthRepository).currentUser().asStream(),
-    onSetState: On.error(
+    sideEffects: SideEffects.onError(
       (err, refresh) => ErrorHandler.showErrorDialog(err),
     ),
   );
@@ -51,20 +51,19 @@ class IOTHubsMainPage extends StatelessWidget {
   }
 
   Widget getAuthWidget() {
-    return On.auth(
+    return OnAuthBuilder(
+      listenTo: user,
       onInitialWaiting: () {
         user.auth.signIn((param) => UserParam(
             email: 'karlovjan@gmail.com',
             password: 'Flutter753123',
             signIn: SignIn.withEmailAndPassword));
 
-        return CommonDataLoadingIndicator();
+        return LoggingIndicator();
       },
-      onWaiting: () => CommonDataLoadingIndicator(),
+      onWaiting: () => LoggingIndicator(),
       onUnsigned: () => const HomePage(),
       onSigned: () => const IOTHubList(),
-    ).listenTo(
-      user,
       useRouteNavigation: true,
     );
   }

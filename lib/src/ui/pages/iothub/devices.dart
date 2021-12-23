@@ -14,7 +14,7 @@ class IOTHubDeviceListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if(_selectedIOTHub == null) {
+    if (_selectedIOTHub == null) {
       return Scaffold(
         appBar: AppBar(),
         // body is the majority of the screen.
@@ -26,18 +26,22 @@ class IOTHubDeviceListPage extends StatelessWidget {
         title: Text(_selectedIOTHub!.name),
       ),
       // body is the majority of the screen.
-      body: On.future<List<Device>>(
+      body: OnFutureBuilder<List<Device>>(
+        future: () => IOTHubsMainPage.iotHubService.state
+            .loadAllDevices(_selectedIOTHub!.id),
         onWaiting: () => CommonDataLoadingIndicator(),
-        onError: (error, refresher) => Text(ErrorHandler.getErrorMessage(error)), //Future can be reinvoked
+        onError: (error, refresher) =>
+            Text(ErrorHandler.getErrorMessage(error)), //Future can be reinvoked
         onData: (data, refresh) => _buildList(context, data),
-      ).future(() => IOTHubsMainPage.iotHubService.state.loadAllDevices(_selectedIOTHub!.id)),
+      ),
     );
   }
 
   Widget _buildList(BuildContext context, List<Device> devices) {
     return ListView(
       padding: const EdgeInsets.only(top: 20.0),
-      children: devices.map((device) => _buildListItem(context, device)).toList(),
+      children:
+          devices.map((device) => _buildListItem(context, device)).toList(),
     );
   }
 

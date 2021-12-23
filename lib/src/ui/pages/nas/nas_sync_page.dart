@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:iothub/src/data_source/http_dio_nas_file_sync_service.dart';
 import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
@@ -18,21 +17,18 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 //https://flutter.dev/docs/cookbook/forms
 //https://github.com/miguelpruivo/flutter_file_picker/blob/master/example/lib/src/file_picker_demo.dart
 
-//Although foo is global, the state is not.
-//The state is automatically cleaned when no longer used.
-//The state is easily mocked and tested
-
 ///Class showing a page for setting a NAS folder
 class NASSyncMainPage extends StatefulWidget {
   const NASSyncMainPage({Key? key}) : super(key: key);
 
   //TODO prevest do konfigurace, staci jen staticke - a zavisle na prostredi - devel, test, produkce - nas.local:8443
-  static late final nasFileSyncState =
-// RM.inject(() => NASFileSyncState(RM.inject<NASFileSyncService>(() => HTTPNASFileSyncService('smbrest.home')).state));
-      RM.inject(
+  static late final nasFileSyncState = RM.inject<NASFileSyncState>(
     () => NASFileSyncState(
-        DIOHTTPNASFileSyncService('smbrest.home', 'assets/certs/ca.crt', 'assets/certs/smbresthomeclient.p12'), LocalFileSystemUtil()),
-    onError: (err, refresh) => Text(ErrorHandler.getErrorMessage(err)),
+        DIOHTTPNASFileSyncService('smbrest.home', 'assets/certs/ca.crt',
+            'assets/certs/smbresthomeclient.p12'),
+        LocalFileSystemUtil()),
+    sideEffects: SideEffects.onError(
+        (err, refresh) => ErrorHandler.showErrorDialog(err)),
   );
 
   @override
@@ -128,7 +124,9 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
       ),
       body: _createBody(),
       floatingActionButton: FloatingActionButton(
-        onPressed: _uploadingFileButtonOnPressed,
+        onPressed: () async {
+          await _uploadingFileButtonOnPressed();
+        },
         child: const Icon(Icons.send),
         backgroundColor: Colors.green,
       ),
@@ -145,13 +143,16 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
           Divider(),
           _createTransferingStatusBar(),
           Divider(),
-          On.data(
-            () => _showFilesToTransfer(context,
-                NASSyncMainPage.nasFileSyncState.state.transferringFileList),
-          ).listenTo(
-            NASSyncMainPage.nasFileSyncState,
+          OnBuilder<NASFileSyncState>.orElse(
+            listenTo: NASSyncMainPage.nasFileSyncState,
             watch: () =>
                 NASSyncMainPage.nasFileSyncState.state.transferringFileList,
+            orElse: (data) =>
+                _showFilesToTransfer(context, data.transferringFileList),
+            onWaiting: () => CommonDataLoadingIndicator(),
+            onIdle: () => Center(
+              child: Text('Waiting for files to synchronize...'),
+            ),
           ),
         ],
       ),
@@ -207,7 +208,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: ElevatedButton(
                   child: Text('Show files'),
-                  onPressed: () async {
+                  onPressed: () {
                     if (_uploading) {
                       return;
                     }
@@ -215,25 +216,28 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                     if (form.validate()) {
                       form.save();
 
-
-
-                      await NASSyncMainPage.nasFileSyncState.setState(
-                        (s) async {
-                          if (s.allTransferringFilesCount == 0) {
-                            await s.getFilesForSynchronization(
-                                _localFolderPathTextFieldController.value.text,
-                                _joinedSambaFolder,
-                                _fileTypeForSync,
-                                _selectedDateFrom,
-                                _selectedDateTo);
-                          }
-
-                          s.showFirstFiles();
-                        },
-                        onError: (error) => ErrorHandler.showErrorDialog(error),
-                        onSetState: On.waiting(() {
-                          CommonDataLoadingIndicator();
-                        }),
+                      if (NASSyncMainPage.nasFileSyncState.state
+                              .allTransferringFilesCount !=
+                          0) {
+                        return;
+                      }
+                      NASSyncMainPage.nasFileSyncState.setState(
+                        (s) => s.getFilesForSynchronization(
+                            _localFolderPathTextFieldController.value.text,
+                            _joinedSambaFolder,
+                            _fileTypeForSync,
+                            _selectedDateFrom,
+                            _selectedDateTo),
+                        sideEffects: SideEffects.onOrElse(
+                          onWaiting: () => print('Waiting'),
+                          orElse: (data) => data.showFirstFiles(),
+                        ),
+                        shouldOverrideDefaultSideEffects: (snap) =>
+                            snap.isWaiting,
+                        debounceDelay: 1000,
+                        throttleDelay: 2000,
+                        skipWaiting: false,
+                        shouldAwait: true,
                       );
                     }
                   },
@@ -243,15 +247,13 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                 padding: const EdgeInsets.symmetric(
                     vertical: 16.0, horizontal: 16.0),
                 child: ElevatedButton(
-                  onPressed: () async {
+                  onPressed: () {
                     if (_uploading) {
                       return;
                     }
 
-                    await NASSyncMainPage.nasFileSyncState.setState(
-                      (s) {
-                        s.clearShowingFiles();
-                      },
+                    NASSyncMainPage.nasFileSyncState.setState(
+                      (s) => s.clearShowingFiles(),
                     );
                   },
                   child: Text('Clear files'),
@@ -265,9 +267,10 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   }
 
   Widget _createTransferingStatusBar() {
-    return On.data(
-      () => _uploading &&
-              NASSyncMainPage.nasFileSyncState.state.transferredFilesCount > 0
+    return OnBuilder<NASFileSyncState>.data(
+      listenTo: NASSyncMainPage.nasFileSyncState,
+      watch: () => NASSyncMainPage.nasFileSyncState.state.transferredFilesCount,
+      builder: (data) => _uploading && data.transferredFilesCount > 0
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -276,64 +279,58 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text('Transferred / All - '),
-                    Text(
-                        '${NASSyncMainPage.nasFileSyncState.state.transferredFilesCount}'),
+                    Text('${data.transferredFilesCount}'),
                     Text('/'),
-                    Text(
-                        '${NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount}'),
+                    Text('${data.allTransferringFilesCount}'),
                   ],
                 ),
                 _uploadingFileStatusBar(),
               ],
             )
           : SizedBox.shrink(),
-    ).listenTo(NASSyncMainPage.nasFileSyncState,
-        watch: () =>
-            NASSyncMainPage.nasFileSyncState.state.transferredFilesCount);
+    );
   }
 
   Widget _uploadingFileStatusBar() {
-    return On.data(() {
-      if (_uploading &&
-          !NASSyncMainPage
-              .nasFileSyncState.state.uploadingFileStatus.uploaded) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Text(
-                'Uploading...  ${NASSyncMainPage.nasFileSyncState.state.uploadingFileStatus.uploadingFilePath}',
-              ),
-            ),
-            Expanded(
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_uploading) {
-                      print('Cancel upload');
-                      NASSyncMainPage.nasFileSyncState.state.cancelUploading();
-                    } else {
-                      print('No file is uploading! Canceling is dismissed');
-                    }
-                  },
-                  child: const Text('Cancel'),
+    return OnBuilder<NASFileSyncState>.data(
+      listenTo: NASSyncMainPage.nasFileSyncState,
+      watch: () => NASSyncMainPage.nasFileSyncState.state.uploadingFileStatus,
+      builder: (data) {
+        if (_uploading && !data.uploadingFileStatus.uploaded) {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  'Uploading...  ${data.uploadingFileStatus.uploadingFilePath}',
                 ),
               ),
-            ),
-          ],
-        );
-      }
-      return SizedBox.shrink();
-    }).listenTo(
-      NASSyncMainPage.nasFileSyncState,
-      watch: () => NASSyncMainPage.nasFileSyncState.state.uploadingFileStatus,
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (_uploading) {
+                        print('Cancel upload');
+                        data.cancelUploading();
+                      } else {
+                        print('No file is uploading! Canceling is dismissed');
+                      }
+                    },
+                    child: const Text('Cancel'),
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+        return SizedBox.shrink();
+      },
     );
   }
 
   Widget _showFilesToTransfer(
       BuildContext context, List<File> transferringFileList) {
-
     switch (_fileTypeForSync) {
       case FileTypeForSync.image:
         return _showImagesToTransfer(context, transferringFileList);
@@ -381,15 +378,18 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
               padding: EdgeInsets.only(left: 10, right: 10),
               action: SnackBarAction(
                 label: 'Remove',
-                onPressed: () async {
-                  await NASSyncMainPage.nasFileSyncState
-                      .setState((s) => s.removeFile(imgFile.path));
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      backgroundColor: Theme.of(context).backgroundColor,
-                      content: const Text('File removed'),
-                    ),
+                onPressed: () {
+                  NASSyncMainPage.nasFileSyncState.setState(
+                    (s) => s.removeFile(imgFile.path),
+                    sideEffects: SideEffects.onData((data) {
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: Theme.of(context).backgroundColor,
+                          content: const Text('File removed'),
+                        ),
+                      );
+                    }),
                   );
                 },
               ),
@@ -493,41 +493,27 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
 
       _uploading = true;
 
-      if (NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount ==
-          0) {
-        try {
-          await NASSyncMainPage.nasFileSyncState.state
-              .getFilesForSynchronization(
-                  _localFolderPathTextFieldController.value.text,
-                  _joinedSambaFolder,
-                  _fileTypeForSync,
-                  _selectedDateFrom,
-                  _selectedDateTo);
-        } catch (e) {
-          _uploading = false;
-          // Navigator.of(context).pop(); //dismiss data loader
-          ErrorHandler.showErrorDialog(e);
-        }
-      }
-
-      if (NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount ==
-          0) {
-        //there is no files to upload
-        print('there is no files to upload');
-        _uploading = false;
-        return;
-      }
       // try {
       await NASSyncMainPage.nasFileSyncState.setState(
-        (s) {
+        (s) async {
+          if (s.allTransferringFilesCount == 0) {
+            await s.getFilesForSynchronization(
+                _localFolderPathTextFieldController.value.text,
+                _joinedSambaFolder,
+                _fileTypeForSync,
+                _selectedDateFrom,
+                _selectedDateTo);
+          }
+
           return s.syncFolderWithNAS(
               s.filesForUploading, _joinedSambaFolder, _fileTypeForSync);
         },
-        onError: (error) {
+        sideEffects: SideEffects.onError((err, refresh) {
+          print('Error syncFolderWithNAS in uploading');
           _uploading = false;
-          // Navigator.of(context).pop(); //dismiss data loader
-          ErrorHandler.showErrorDialog(error);
-        },
+          ErrorHandler.showErrorDialog(err);
+        }),
+        shouldOverrideDefaultSideEffects: (snap) => true,
       );
     }
   }
@@ -578,7 +564,6 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
           }).toList();
         } else if (snapshot.hasError) {
           return ErrorHandler.getErrorDialog(snapshot.error);
-          // return Text('${snapshot.error}');
         } else {
           return Text('Loading server folders ...');
         }

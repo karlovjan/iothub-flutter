@@ -59,7 +59,7 @@ void main() {
       await tester.pump();
 
       expect(find.byType(IOTHubsMainPage), findsOneWidget);
-      expect(find.byType(CommonDataLoadingIndicator), findsOneWidget);
+      expect(find.byType(LoggingIndicator), findsOneWidget);
 
       var count = await tester.pumpAndSettle();
       // await tester.pumpAndSettle(const Duration(seconds: 1));

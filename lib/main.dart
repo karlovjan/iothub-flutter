@@ -16,55 +16,34 @@ void main() {
   runApp(IOTHubApp());
 }
 
-class IOTHubApp extends StatelessWidget {
+class IOTHubApp extends TopStatelessWidget {
   @override
   Widget build(BuildContext context) {
     //uncomment this line to consol log and see the notification timeline
     // RM.debugPrintActiveRM = true;
 
-    return TopAppWidget(
-      builder: (_) => MaterialApp(
-        title: 'IOT hub',
-        theme: ThemeData.dark(),
-        navigatorKey: RM.navigate.navigatorKey,
-        onGenerateRoute: RM.navigate.onGenerateRoute(
-          {
-            StaticPages.home.routeName: (_) => const HomePage(),
-            StaticPages.iotHUBApp.routeName: (_) => RouteWidget(
-                  routes: {
-                    StaticPages.home.routeName: (data) => const IOTHubsMainPage(),
-                    IOTHUBStaticPages.hubs.routeName: (data) => const IOTHubList(),
-                    IOTHUBStaticPages.devices.routeName: (data) => IOTHubDeviceListPage(data.arguments as IOTHub?),
-                    IOTHUBStaticPages.dashboard.routeName: (data) => IOTHubDashboardPage(data.arguments as IOTHub?),
-                  },
-                ),
-            StaticPages.nasSync.routeName: (context) => const NASSyncMainPage(),
-          },
-          unknownRoute: (routeName) => Text('404 - Unknown route $routeName'),
-        ),
-      ),
-    );
-
-    /*
     return MaterialApp(
       title: 'IOT hub',
       theme: ThemeData.dark(),
-      // To navigate and show snackBars without the BuildContext, we define
-      // the navigator key
       navigatorKey: RM.navigate.navigatorKey,
-      initialRoute: StaticPages.home.routeName,
-      routes: {
-        StaticPages.home.routeName: (context) => const HomePage(),
-        StaticPages.hubs.routeName: (context) => IOTHubsMainPage(),
-        StaticPages.nasSync.routeName: (context) => const NASSyncMainPage(),
-        IOTHUBStaticPages.devices.routeName: (context) => IOTHubDeviceListPage(),
-        IOTHUBStaticPages.dashboard.routeName: (context) => IOTHubDashboardPage(),
-      },
-//      home: HomeWidget(),
-//      home: IOTHubDashboard('Praha dashboard', 'Moje grafy'),
-//      home: GaugeChart.withSampleData(),
+      onGenerateRoute: RM.navigate.onGenerateRoute(
+        {
+          StaticPages.home.routeName: (_) => const HomePage(),
+          StaticPages.iotHUBApp.routeName: (_) => RouteWidget(
+                routes: {
+                  StaticPages.home.routeName: (data) => const IOTHubsMainPage(),
+                  IOTHUBStaticPages.hubs.routeName: (data) =>
+                      const IOTHubList(),
+                  IOTHUBStaticPages.devices.routeName: (data) =>
+                      IOTHubDeviceListPage(data.arguments as IOTHub?),
+                  IOTHUBStaticPages.dashboard.routeName: (data) =>
+                      IOTHubDashboardPage(data.arguments as IOTHub?),
+                },
+              ),
+          StaticPages.nasSync.routeName: (context) => const NASSyncMainPage(),
+        },
+        unknownRoute: (routeName) => Text('404 - Unknown route $routeName'),
+      ),
     );
-
-     */
   }
 }

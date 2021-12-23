@@ -107,10 +107,10 @@ Future<void> main() async {
     }
   }
 
-  for (var i = 0; i < 10; i++) {
+  for (var i = 0; i < 1; i++) {
     // await uploadFilesTest();
     // await retrieveDirectoryItemsTest();
-    await listNasFoldersRequestTest();
+    // await listNasFoldersRequestTest();
     // await listNasFoldersDioRequestTest(); //nefunguje asi kvuli certifikatum
     // await googleRequestTest();
     print('$i. request');
