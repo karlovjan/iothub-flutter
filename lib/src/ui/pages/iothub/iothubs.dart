@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:iothub/src/domain/entities/iothub.dart';
-import 'package:iothub/src/domain/entities/user.dart';
 import 'package:iothub/src/ui/exceptions/error_handler.dart';
 import 'package:iothub/src/ui/pages/iothub/iothub_main.dart';
 import 'package:iothub/src/ui/routes/iothub_routes.dart';
-import 'package:iothub/src/ui/routes/main_routes.dart';
 import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -17,13 +15,13 @@ class IOTHubList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('IOT Hubs'),
+        title: const Text('IOT Hubs'),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           tooltip: 'Close IOT HUb',
           onPressed: () async {
            // await RM.navigate.toNamed(StaticPages.iotHUBApp.routeName);
-            await IOTHubsMainPage.user.auth.signOut(param: null);
+            await IOTHubsMainPage.user.auth.signOut();
           },
         ),
       ),
@@ -35,7 +33,7 @@ class IOTHubList extends StatelessWidget {
   Widget _buildBody(BuildContext context) {
     return OnFutureBuilder<List<IOTHub>>(
       future: () => IOTHubsMainPage.iotHubService.state.loadAllIOTHubs(),
-      onWaiting: () => CommonDataLoadingIndicator(),
+      onWaiting: () => const CommonDataLoadingIndicator(),
       onError: (error, refresher) => Text(ErrorHandler.getErrorMessage(error)), //Future can be reinvoked
       onData: (data, refresh) => _buildList(context, data),);
   }
@@ -60,7 +58,7 @@ class IOTHubList extends StatelessWidget {
           title: Text(iotHub.name),
           subtitle: iotHub.gps != null
               ? Text(iotHub.gps!.latitude.toString() + ';' + iotHub.gps!.longitude.toString())
-              : Text(''),
+              : const Text(''),
           trailing: Text(iotHub.createdAt.toString()),
           onTap: () {
             RM.navigate.toNamed(IOTHUBStaticPages.dashboard.fullPath, arguments: iotHub);

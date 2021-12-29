@@ -7,7 +7,7 @@ class User extends Equatable {
   final String email;
   final String displayName;
 
-  User({
+  const User({
     required this.uid,
     required this.email,
     required this.displayName
@@ -42,7 +42,7 @@ class User extends Equatable {
 
 @immutable
 class LoggedOutUser extends User {
-  LoggedOutUser() : super(email: '', displayName: '', uid:  '');
+  const LoggedOutUser() : super(email: '', displayName: '', uid:  '');
 }
 
 class UserParam {

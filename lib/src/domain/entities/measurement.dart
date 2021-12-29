@@ -26,7 +26,9 @@ class Measurement<T> {
         createdAt = DateFormat('EEE MMM d yyyy HH:mm:ss').parse(sDateTime);
       }
     } catch (e){
-      print(e);
+      if (kDebugMode) {
+        print(e);
+      }
     }
 
     final intValue = int.tryParse(value);

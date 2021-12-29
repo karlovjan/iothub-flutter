@@ -1,4 +1,3 @@
-import 'package:iothub/src/service/exceptions/database_exception.dart';
 
 import '../domain/entities/device.dart';
 import '../domain/entities/iothub.dart';

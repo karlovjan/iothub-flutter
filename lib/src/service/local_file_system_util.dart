@@ -18,6 +18,7 @@ class LocalFileSystemUtil implements LocalFileSystemService {
     printer: PrettyPrinter(),
   );
 
+  @override
   Future<List<File>> matchLocalFiles(String localFolderPath, bool recursive, FileTypeForSync fileTypeForSync,
       DateTime dateFrom, DateTime dateTo, List<NASFileItem> allTargetFolderFiles) async {
     final fileList = <File>[];
@@ -44,7 +45,7 @@ class LocalFileSystemUtil implements LocalFileSystemService {
       }
     } catch (err) {
       _log.e('Caught error:', err);
-      throw NASFileException('Error: ${err}');
+      throw NASFileException('Error: $err');
     }
 
     return fileList;

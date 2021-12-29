@@ -11,7 +11,7 @@ class DashboardDeviceCard extends StatelessWidget {
   final List<Device> _devices;
   final IOTHub _selectedIOTHub;
 
-  const DashboardDeviceCard(this._selectedIOTHub, this._devices);
+  const DashboardDeviceCard(this._selectedIOTHub, this._devices, {Key? key,}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +28,8 @@ class DashboardDeviceCard extends StatelessWidget {
       key: ValueKey(device.name),
       child: Column(children: [
         ListTile(
-          leading: Icon(Icons.attach_file),
-          trailing: Icon(Icons.addchart),
+          leading: const Icon(Icons.attach_file),
+          trailing: const Icon(Icons.addchart),
           title: Text(device.name),
           subtitle: Text((device.description ?? '') + ' - ' + (device.vendor ?? '')),
         ),
@@ -41,7 +41,7 @@ class DashboardDeviceCard extends StatelessWidget {
   Widget _deviceGaugeChart(BuildContext context, Device device) {
     return OnFutureBuilder<List<Measurement>>(
       future: () => IOTHubsMainPage.iotHubService.state.loadLastMeasurement(_selectedIOTHub.id, device),
-      onWaiting: () => CommonDataLoadingIndicator(),
+      onWaiting: () => const CommonDataLoadingIndicator(),
       onError: (error, refresher) => Text(ErrorHandler.getErrorMessage(error)),
       //Future can be reinvoked
       onData: (data, refresh) => _measurmentWidget(data),
@@ -50,7 +50,7 @@ class DashboardDeviceCard extends StatelessWidget {
 
   Widget _measurmentWidget(List<Measurement<dynamic>> measurements) {
     return Container(
-      padding: EdgeInsets.all(10),
+      padding: const EdgeInsets.all(10),
       child: Column(
         children: _listMeasurementWidgets(measurements),
       ),
@@ -59,13 +59,13 @@ class DashboardDeviceCard extends StatelessWidget {
 
   List<Widget> _listMeasurementWidgets(List<Measurement<dynamic>> measurements) {
     if (measurements.isEmpty) {
-      return [Text('No Device data... ')];
+      return [const Text('No Device data... ')];
     }
 
     final widgets = <Widget>[];
     widgets.add(Text(
       '${measurements[0].createdAt}',
-      style: TextStyle(fontWeight: FontWeight.bold),
+      style: const TextStyle(fontWeight: FontWeight.bold),
     ));
 
     final isThermometer = measurements.where((element) => element.property.name == 'temperature').take(1).isNotEmpty;
@@ -73,9 +73,9 @@ class DashboardDeviceCard extends StatelessWidget {
     if (isThermometer) {
       widgets.addAll(_temperatureSensorDashboardWidget(measurements));
     } else {
-      measurements.forEach((measurement) {
+      for (var measurement in measurements) {
         widgets.add(_commonSensorDashboardWidget(measurement));
-      });
+      }
     }
 
     // widgets.add(Flexible(
@@ -98,7 +98,7 @@ class DashboardDeviceCard extends StatelessWidget {
         children: <TextSpan>[
           TextSpan(
             text: '${measurement.value}',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -114,7 +114,7 @@ class DashboardDeviceCard extends StatelessWidget {
 
     var otherMeasurements = <Measurement<dynamic>>[];
 
-    measurements.forEach((measurement) {
+    for (var measurement in measurements) {
       if (measurement.property.name == 'temperature') {
         temperature = measurement;
       } else if (measurement.property.name == 'humidity') {
@@ -124,7 +124,7 @@ class DashboardDeviceCard extends StatelessWidget {
       } else {
         otherMeasurements.add(measurement);
       }
-    });
+    }
 
     final widgets = <Widget>[];
     widgets.add(
@@ -133,15 +133,15 @@ class DashboardDeviceCard extends StatelessWidget {
         verticalDirection: VerticalDirection.down,
         children: [
           _termometerMeasurementWidget(temperature, Colors.deepOrange),
-          if (humidity != null) _termometerMeasurementWidget(humidity!, Colors.green),
-          if (pressure != null) _termometerMeasurementWidget(pressure!, Colors.blue),
+          if (humidity != null) _termometerMeasurementWidget(humidity, Colors.green),
+          if (pressure != null) _termometerMeasurementWidget(pressure, Colors.blue),
         ],
       ),
     );
 
-    otherMeasurements.forEach((measurement) {
+    for (var measurement in otherMeasurements) {
       widgets.add(_commonSensorDashboardWidget(measurement));
-    });
+    }
 
     return widgets;
   }
@@ -150,7 +150,7 @@ class DashboardDeviceCard extends StatelessWidget {
     return Text.rich(
       TextSpan(
         text: '${measurement.property.name}\n',
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 14,
         ),
         children: <TextSpan>[

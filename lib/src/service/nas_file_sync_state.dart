@@ -60,7 +60,7 @@ class NASFileSyncState {
       }
     } catch (err) {
       _log.e('Caught error:', err);
-      throw NASFileException('Error: ${err}');
+      throw NASFileException('Error: $err');
     } finally {
       _log.i('uploading finished');
       _uploadingFileStatus = UploadFileStatus.empty();
@@ -135,7 +135,7 @@ class NASFileSyncState {
   }
 
   void removeFile(String filePath) {
-    _log.d('remove file ${filePath}');
+    _log.d('remove file $filePath');
     final removingFile = _allTransferringFileList.firstWhere(
       (element) => element.path == filePath,
       orElse: () => File(''),
@@ -149,7 +149,7 @@ class NASFileSyncState {
   }
 
   void showFirstFiles([int filesCount = 20]) {
-    _log.d('show first ${filesCount} files...');
+    _log.d('show first $filesCount files...');
     final fileListLength = allTransferringFilesCount;
     final endIndex = filesCount <= fileListLength ? filesCount : fileListLength;
     transferringFileList = _allTransferringFileList.sublist(0, endIndex);

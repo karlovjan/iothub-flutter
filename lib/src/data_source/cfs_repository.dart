@@ -27,11 +27,9 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
 
       var deviceList = <Device>[];
 
-      snapshot.docs.forEach(
-        (item) {
+      for (var item in snapshot.docs) {
           deviceList.add(Device.fromJson(item.data(), item.id));
-        },
-      );
+        }
 
       return deviceList;
     } catch (e) {
@@ -41,7 +39,6 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
 
   @override
   Future<List<Measurement>> loadLastMeasurement(String iotHubId, Device device) async {
-    assert(iotHubId != null);
 
     try {
       final snapshot = await _dbClient
@@ -84,11 +81,9 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
 
       final snapshot = await _dbClient.collection(_IOTHUB_ROOT_COLLECTION_PATH).get();
 
-      snapshot.docs.forEach(
-        (item) {
+      for (var item in snapshot.docs) {
           iothubList.add(IOTHub.fromJson(item.data(), item.id));
-        },
-      );
+        }
 
       return iothubList;
     } catch (e) {
@@ -98,10 +93,9 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
 
   @override
   Stream<List<Measurement>> deviceAllMeasurementStream(String iotHubId, Device device) async* {
-    assert(device.id != null);
 
     try {
-      final snapshot = await _dbClient
+      final snapshot = _dbClient
           .collection('$_IOTHUB_ROOT_COLLECTION_PATH/$iotHubId/devices/${device.id}/data')
           .orderBy('createdAt', descending: true)
           .snapshots();
@@ -119,14 +113,14 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
   }
 
   List<MeasuredProperty> allDeviceMeasuredPropertyList() {
-    final mp1 = MeasuredProperty('temperature', 'C');
-    final mp2 = MeasuredProperty('humidity', 'X');
-    final mp3 = MeasuredProperty('pressure', 'Pa');
-    final mp4 = MeasuredProperty('battery', '%');
-    final mp5 = MeasuredProperty('linkquality', '%');
-    final mp6 = MeasuredProperty('contact', 'Boolean');
-    final mp7 = MeasuredProperty('occupancy', 'Boolean');
-    final mp8 = MeasuredProperty('leak', 'Boolean');
+    const mp1 = MeasuredProperty('temperature', 'C');
+    const mp2 = MeasuredProperty('humidity', 'X');
+    const mp3 = MeasuredProperty('pressure', 'Pa');
+    const mp4 = MeasuredProperty('battery', '%');
+    const mp5 = MeasuredProperty('linkquality', '%');
+    const mp6 = MeasuredProperty('contact', 'Boolean');
+    const mp7 = MeasuredProperty('occupancy', 'Boolean');
+    const mp8 = MeasuredProperty('leak', 'Boolean');
 
     return [mp1, mp2, mp3, mp4, mp5, mp6, mp7, mp8];
   }

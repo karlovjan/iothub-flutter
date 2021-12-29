@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 class DashboardManagerPage extends StatelessWidget {
+  const DashboardManagerPage({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Dashboard manager'),
+        title: const Text('Dashboard manager'),
       ),
       // body is the majority of the screen.
       body: _buildBody(context),
@@ -17,7 +19,7 @@ class DashboardManagerPage extends StatelessWidget {
     //TODO
     return ElevatedButton(
       onPressed: () => Navigator.pop(context),
-      child: Text('Close'),
+      child: const Text('Close'),
     );
   }
 

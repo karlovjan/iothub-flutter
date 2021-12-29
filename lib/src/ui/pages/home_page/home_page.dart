@@ -11,7 +11,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home page'),
+        title: const Text('Home page'),
       ),
       // body is the majority of the screen.
       body: GridView.count(

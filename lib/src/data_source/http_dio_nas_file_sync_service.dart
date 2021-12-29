@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -12,6 +11,7 @@ import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
 import 'package:iothub/src/service/interfaces/nas_file_sync_service.dart';
 import 'package:iothub/src/service/nas_file_sync_state.dart';
 import 'package:logger/logger.dart';
+
 
 class DIOHTTPNASFileSyncService implements NASFileSyncService {
   DIOHTTPNASFileSyncService(
@@ -42,12 +42,12 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
   //https://dev.to/matheusguimaraes/fast-way-to-enable-cors-in-flask-servers-42p0
 
   late final _baseOptions = BaseOptions(
-    baseUrl: 'https://${_serverName}',
+    baseUrl: 'http://$_serverName',
     responseType: ResponseType.json,
     contentType: Headers.formUrlEncodedContentType,
-    connectTimeout: 5000,
-    receiveTimeout: 5000,
-    sendTimeout: 5000,
+    connectTimeout: 60000,
+    receiveTimeout: 60000,
+    sendTimeout: 60000,
   );
 
   late final _httpSecurityContext = _createSecurityContext();
@@ -93,8 +93,8 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
       sc.usePrivateKeyBytes(p12.buffer.asUint8List());
       sc.useCertificateChainBytes(p12.buffer.asUint8List());
     } catch (err) {
-      print('Caught error: $err');
-      throw NASFileException('load certificates error: ${err}');
+      _log.e('Caught error:', err);
+      throw NASFileException('load certificates error: $err');
     }
 
     return sc;
@@ -106,20 +106,20 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
       double dateFromSeconds,
       double dateToSeconds,
       FileTypeForSync fileTypeForSync) async {
-    _log.d('retrieve directory ${folderPath} ${fileTypeForSync}');
+    _log.d('retrieve directory $folderPath $fileTypeForSync');
     if (folderPath.trim().isEmpty) {
-      print('folder is not set');
+      _log.w('folder is not set');
       throw NASFileException('Empty folder path');
     }
 
-    final sc = await _httpSecurityContext;
+    // final sc = await _httpSecurityContext;
 
     final dioClient = Dio(_baseOptions);
 
-    (dioClient.httpClientAdapter as DefaultHttpClientAdapter)
-        .onHttpClientCreate = (client) {
-      return HttpClient(context: sc);
-    };
+    // (dioClient.httpClientAdapter as DefaultHttpClientAdapter)
+    //     .onHttpClientCreate = (client) {
+    //   return HttpClient(context: sc);
+    // };
 
     try {
 //or works once
@@ -143,15 +143,15 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
             .map<NASFileItem>((json) => NASFileItem.fromJson(json))
             .toList();
       } else {
-        print(response.data);
+        _log.d(response.data);
         throw NASFileException(
             'Failed to load NASFileItem list - Http code: ${response.statusCode}');
       }
     } catch (err) {
-      print('Caught error: $err');
+      _log.e('Caught error:', err);
       // closeConnection(client);
       throw NASFileException(
-          'Connection to the ${dioClient.options.baseUrl}/folderItems : ${err}');
+          'Connection to the ${dioClient.options.baseUrl}/folderItems : $err');
     }
   }
 
@@ -173,20 +173,20 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
 
     _log.d('send files');
     if (transferringFileList.isEmpty) {
-      print('there is no transferring files');
+      _log.i('there is no transferring files');
       //vraci  Stream . empty(), listener of the stream get only onDone event
       return; //Stream generator is quit, Stream is not activated, Stream is not sending any items.
     }
 
-    final sc = await _httpSecurityContext;
+    // final sc = await _httpSecurityContext;
 
     _baseOptions.receiveTimeout = 1 * 60 * 60 * 1000;
     final dioClient = Dio(_baseOptions);
 
-    (dioClient.httpClientAdapter as DefaultHttpClientAdapter)
-        .onHttpClientCreate = (client) {
-      return HttpClient(context: sc);
-    };
+    // (dioClient.httpClientAdapter as DefaultHttpClientAdapter)
+    //     .onHttpClientCreate = (client) {
+    //   return HttpClient(context: sc);
+    // };
 
     for (var file in transferringFileList) {
       /*
@@ -205,11 +205,11 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
       // await Future.delayed(Duration(seconds: 1));
 
       // /media/nasraid1/shared/public/photos/miron/phonePhotos/2021/
-      var uploadFileData;
+      FormData uploadFileData;
       try {
         uploadFileData = await _createFormData(file, nasFolderPath, fileType);
       } catch (err) {
-        print('Caught error: $err');
+        _log.e('Caught error:', err);
         throw NASFileException(
             'Failed to prepare uploading data. The sending file ${file.path}');
       }
@@ -232,15 +232,15 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
           // throw Exception('Failed to load NASFileItem list');
           final errorJson = response.data;
 
-          print(errorJson);
+          _log.e(errorJson);
 
           throw NASFileException(
-              'Failed to send file ${file.path} - Http code: ${response.statusCode} - error: ${errorJson}');
+              'Failed to send file ${file.path} - Http code: ${response.statusCode} - error: $errorJson');
         }
       } catch (err) {
-        print('Caught error: $err');
+        _log.e('Caught error:', err);
         throw NASFileException(
-            'Request to ${dioClient.options.baseUrl}/upload ERROR : ${err}');
+            'Request to ${dioClient.options.baseUrl}/upload ERROR : $err');
       }
     }
   }
@@ -268,26 +268,27 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
   Future<List<String>> listSambaFolders(String baseFolder) async {
     _log.d('list folders');
     if (baseFolder.trim().isEmpty) {
-      print('base folder is not set');
+      _log.w('base folder is not set');
       throw NASFileException(
           'List samba folder error - base folder is not set');
     }
 
-    final sc = await _httpSecurityContext;
+    // final sc = await _httpSecurityContext;
 
     final dioClient = Dio(_baseOptions);
-
-    (dioClient.httpClientAdapter as DefaultHttpClientAdapter)
-        .onHttpClientCreate = (client) {
-      return HttpClient(context: sc);
-    };
-
+    
+    // (dioClient.httpClientAdapter as DefaultHttpClientAdapter)
+    //     .onHttpClientCreate = (client) {
+    //   return HttpClient(context: sc);
+    // };
+    
     // final bodyToSend = 'path=${folderPath}';
     try {
-//or works once
-      final response =
-          await dioClient.post('/folders', data: {'path': baseFolder});
+    //or works once
+          final response =
+              await dioClient.post('/folders', data: {'path': baseFolder});
 
+    
       if (response.statusCode == 200) {
         // Use the compute function to run parsePhotos in a separate isolate.
         // return compute(_parseNASFileItems, response.data.toString());
@@ -298,19 +299,21 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
           throw NASFileException(
               'Bad response type - response is not type of List');
         }
+
         return (response.data as List)
-            .map<String>((item) => '${item}')
+            .map<String>((item) => '$item')
             .toList();
       } else {
-        print(response.data);
+        _log.e(response.data);
         throw NASFileException(
             'Failed get list folders - status code: ${response.statusCode}, status message: ${response.statusMessage}');
       }
     } catch (err) {
-      print('Caught error: $err');
+      _log.e('Caught error:', err);
       // closeConnection(client);
       throw NASFileException(
-          'Connection to the ${dioClient.options.baseUrl}/folders : ${err}');
+          'Connection to the ${dioClient.options.baseUrl}/folders : $err');
     }
   }
+
 }

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:iothub/src/data_source/auth_repository.dart';
 import 'package:iothub/src/data_source/cfs_repository.dart';
@@ -16,7 +15,7 @@ class IOTHubsMainPage extends StatelessWidget {
   static final InjectedAuth<User, UserParam> user =
       RM.injectAuth<User, UserParam>(
     () => FirebaseAuthRepository(),
-    unsignedUser: LoggedOutUser(),
+    unsignedUser: const LoggedOutUser(),
     onAuthStream: (repo) =>
         (repo as FirebaseAuthRepository).currentUser().asStream(),
     sideEffects: SideEffects.onError(
@@ -38,7 +37,7 @@ class IOTHubsMainPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('IOT Hub main page'),
         leading: IconButton(
-            icon: Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back),
             tooltip: 'Close IOT HUb',
             onPressed: () async {
               await user.auth.signOut();
@@ -59,9 +58,9 @@ class IOTHubsMainPage extends StatelessWidget {
             password: 'Flutter753123',
             signIn: SignIn.withEmailAndPassword));
 
-        return LoggingIndicator();
+        return const LoggingIndicator();
       },
-      onWaiting: () => LoggingIndicator(),
+      onWaiting: () => const LoggingIndicator(),
       onUnsigned: () => const HomePage(),
       onSigned: () => const IOTHubList(),
       useRouteNavigation: true,

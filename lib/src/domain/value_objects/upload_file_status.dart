@@ -6,7 +6,7 @@ class UploadFileStatus {
   final DateTime timestamp;
   final bool uploaded;
 
-  UploadFileStatus({required this.uploadingFilePath, required this.timestamp, this.uploaded = false});
+  const UploadFileStatus({required this.uploadingFilePath, required this.timestamp, this.uploaded = false});
 
   static UploadFileStatus copyOf(UploadFileStatus newStatus) {
     return UploadFileStatus(

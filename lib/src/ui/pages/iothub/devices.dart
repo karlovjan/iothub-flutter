@@ -10,7 +10,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 class IOTHubDeviceListPage extends StatelessWidget {
   final IOTHub? _selectedIOTHub;
 
-  const IOTHubDeviceListPage(this._selectedIOTHub);
+  const IOTHubDeviceListPage(this._selectedIOTHub, {Key? key,}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,7 @@ class IOTHubDeviceListPage extends StatelessWidget {
       body: OnFutureBuilder<List<Device>>(
         future: () => IOTHubsMainPage.iotHubService.state
             .loadAllDevices(_selectedIOTHub!.id),
-        onWaiting: () => CommonDataLoadingIndicator(),
+        onWaiting: () => const CommonDataLoadingIndicator(),
         onError: (error, refresher) =>
             Text(ErrorHandler.getErrorMessage(error)), //Future can be reinvoked
         onData: (data, refresh) => _buildList(context, data),

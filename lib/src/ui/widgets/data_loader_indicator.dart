@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 abstract class DataLoadingIndicator extends StatelessWidget {
-  DataLoadingIndicator(this._title);
+  const DataLoadingIndicator(this._title, {Key? key,}) : super(key: key);
 
   // Fields in a Widget subclass are always marked "final".
 
@@ -12,7 +12,7 @@ abstract class DataLoadingIndicator extends StatelessWidget {
     return Center(
       child: Column(
         children: [
-          CircularProgressIndicator(),
+          const CircularProgressIndicator(),
           _title,
         ],
       ),
@@ -21,7 +21,7 @@ abstract class DataLoadingIndicator extends StatelessWidget {
 }
 
 class DataLoadingIndicatorTitle extends StatelessWidget {
-  DataLoadingIndicatorTitle(this._title);
+  const DataLoadingIndicatorTitle(this._title, {Key? key,}) : super(key: key);
 
   final String _title;
 
@@ -37,11 +37,11 @@ class DataLoadingIndicatorTitle extends StatelessWidget {
 class CommonDataLoadingIndicator extends DataLoadingIndicator {
   static const LOADING_TEXT = 'Data loading ...';
 
-  CommonDataLoadingIndicator() : super(DataLoadingIndicatorTitle(LOADING_TEXT));
+  const CommonDataLoadingIndicator({Key? key,}) : super(const DataLoadingIndicatorTitle(LOADING_TEXT), key: key);
 }
 
 class LoggingIndicator extends DataLoadingIndicator {
   static const LOGGING_TEXT = 'Logging ...';
 
-  LoggingIndicator() : super(DataLoadingIndicatorTitle(LOGGING_TEXT));
+  const LoggingIndicator({Key? key,}) : super(const DataLoadingIndicatorTitle(LOGGING_TEXT), key: key);
 }

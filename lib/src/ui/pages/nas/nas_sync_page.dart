@@ -118,7 +118,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Synchronize to NAS',
         ),
       ),
@@ -140,17 +140,17 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
         padding: const EdgeInsets.all(0.0),
         children: <Widget>[
           _getForm(),
-          Divider(),
+          const Divider(),
           _createTransferingStatusBar(),
-          Divider(),
+          const Divider(),
           OnBuilder<NASFileSyncState>.orElse(
             listenTo: NASSyncMainPage.nasFileSyncState,
             watch: () =>
                 NASSyncMainPage.nasFileSyncState.state.transferringFileList,
             orElse: (data) =>
                 _showFilesToTransfer(context, data.transferringFileList),
-            onWaiting: () => CommonDataLoadingIndicator(),
-            onIdle: () => Center(
+            onWaiting: () => const CommonDataLoadingIndicator(),
+            onIdle: () => const Center(
               child: Text('Waiting for files to synchronize...'),
             ),
           ),
@@ -173,10 +173,10 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
             children: [
               Expanded(
                 child: TextFormField(
-                  key: Key('__LocalFolderField'),
+                  key: const Key('__LocalFolderField'),
                   // initialValue: '', nesmi byt nastaven kdyz se pouzije controller
                   style: Theme.of(context).textTheme.headline5,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Enter local folder',
                   ),
                   validator: (val) =>
@@ -195,7 +195,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                         'Opening a folder is not allowed on the Web!');
                   }
                 },
-                child: Text('Pick local folder'),
+                child: const Text('Pick local folder'),
               ),
             ],
           ),
@@ -207,7 +207,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: ElevatedButton(
-                  child: Text('Show files'),
+                  child: const Text('Show files'),
                   onPressed: () {
                     if (_uploading) {
                       return;
@@ -256,7 +256,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                       (s) => s.clearShowingFiles(),
                     );
                   },
-                  child: Text('Clear files'),
+                  child: const Text('Clear files'),
                 ),
               ),
             ],
@@ -278,16 +278,16 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('Transferred / All - '),
+                    const Text('Transferred / All - '),
                     Text('${data.transferredFilesCount}'),
-                    Text('/'),
+                    const Text('/'),
                     Text('${data.allTransferringFilesCount}'),
                   ],
                 ),
                 _uploadingFileStatusBar(),
               ],
             )
-          : SizedBox.shrink(),
+          : const SizedBox.shrink(),
     );
   }
 
@@ -324,7 +324,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
             ],
           );
         }
-        return SizedBox.shrink();
+        return const SizedBox.shrink();
       },
     );
   }
@@ -375,7 +375,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               backgroundColor: Theme.of(context).backgroundColor,
-              padding: EdgeInsets.only(left: 10, right: 10),
+              padding: const EdgeInsets.only(left: 10, right: 10),
               action: SnackBarAction(
                 label: 'Remove',
                 onPressed: () {
@@ -565,21 +565,21 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
         } else if (snapshot.hasError) {
           return ErrorHandler.getErrorDialog(snapshot.error);
         } else {
-          return Text('Loading server folders ...');
+          return const Text('Loading server folders ...');
         }
         return DropdownButtonFormField<String>(
-          key: Key('__NASFolderField'),
+          key: const Key('__NASFolderField'),
           value: _nasFolder,
           icon: const Icon(Icons.arrow_downward),
           iconSize: 24,
           elevation: 16,
           isExpanded: true,
-          disabledHint: Text('Not supported on Web'),
+          disabledHint: const Text('Not supported on Web'),
           autofocus: false,
-          hint: Text('Select NAS folder'),
+          hint: const Text('Select NAS folder'),
           style: Theme.of(context).textTheme.headline5,
-          decoration: InputDecoration(
-            contentPadding: const EdgeInsets.all(0.0),
+          decoration: const InputDecoration(
+            contentPadding: EdgeInsets.all(0.0),
             enabledBorder: UnderlineInputBorder(
               borderSide: BorderSide(color: Colors.deepPurple),
             ),

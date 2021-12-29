@@ -7,6 +7,6 @@ class SyncFolderResult {
   final int? transferredFileCount;
   final int? transferredBytes;
 
-  SyncFolderResult({this.sourceFolderPath, this.targetFolderPath,
+  const SyncFolderResult({this.sourceFolderPath, this.targetFolderPath,
       this.transferredFileCount, this.transferredBytes});
 }

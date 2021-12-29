@@ -18,10 +18,11 @@ Future<void> main() async {
   final dio = Dio();
 
   dio.options
-    ..baseUrl = 'https://smbrest.home/'
+    ..baseUrl = 'http://smbrest.home/'
     ..connectTimeout = 5000 //5s
     ..receiveTimeout = 5000
     ..sendTimeout = 5000
+    ..contentType = Headers.formUrlEncodedContentType
     ..validateStatus = (int? status) {
       return status != null && status > 0;
     };
@@ -110,7 +111,7 @@ Future<void> main() async {
   for (var i = 0; i < 1; i++) {
     // await uploadFilesTest();
     // await retrieveDirectoryItemsTest();
-    // await listNasFoldersRequestTest();
+    await listNasFoldersRequestTest();
     // await listNasFoldersDioRequestTest(); //nefunguje asi kvuli certifikatum
     // await googleRequestTest();
     print('$i. request');

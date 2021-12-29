@@ -11,7 +11,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 class IOTHubDashboardPage extends StatelessWidget {
   final IOTHub? _selectedIOTHub;
 
-  const IOTHubDashboardPage(this._selectedIOTHub);
+  const IOTHubDashboardPage(this._selectedIOTHub, {Key? key,}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class IOTHubDashboardPage extends StatelessWidget {
             icon: const Icon(Icons.build),
             tooltip: 'Manage Dashboard',
             onPressed: () {
-              RM.navigate.to(DashboardManagerPage());
+              RM.navigate.to(const DashboardManagerPage());
             },
           ),
         ],
@@ -35,11 +35,11 @@ class IOTHubDashboardPage extends StatelessWidget {
 
   Widget _buildDashboardBody(BuildContext context) {
     if(_selectedIOTHub == null) {
-      return Text('No IotHub selected!');
+      return const Text('No IotHub selected!');
     }
     return OnFutureBuilder<List<Device>>(
       future: () => IOTHubsMainPage.iotHubService.state.loadAllDevices(_selectedIOTHub!.id),
-      onWaiting: () => CommonDataLoadingIndicator(),
+      onWaiting: () => const CommonDataLoadingIndicator(),
       onError: (error, refresher) => Text(ErrorHandler.getErrorMessage(error)), //Future can be reinvoked
       onData: (data, refresh) => DashboardDeviceCard(_selectedIOTHub!, data),
     );

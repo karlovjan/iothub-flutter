@@ -60,7 +60,7 @@ class FirebaseAuthRepository
   }
 
   Future<iothub_user.User> currentUser() async {
-    final firebaseUser = await _firebaseAuth.currentUser;
+    final firebaseUser = _firebaseAuth.currentUser;
     return _fromFireBaseUserToUser(firebaseUser);
   }
 
@@ -85,7 +85,7 @@ class FirebaseAuthRepository
 
   iothub_user.User _fromFireBaseUserToUser(User? user) {
     if (user == null) {
-      return iothub_user.LoggedOutUser();
+      return const iothub_user.LoggedOutUser();
     }
     return iothub_user.User(
         uid: user.uid,

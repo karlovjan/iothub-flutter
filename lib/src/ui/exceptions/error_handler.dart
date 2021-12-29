@@ -32,7 +32,7 @@ class ErrorHandler {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Icon(
+          const Icon(
             Icons.error_outline,
             color: Colors.yellow,
           ),
@@ -47,14 +47,14 @@ class ErrorHandler {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Icon(
+          const Icon(
             Icons.error_outline,
             color: Colors.yellow,
           ),
           Text(ErrorHandler.getErrorMessage(error)),
           ElevatedButton(
             onPressed: () => RM.navigate.back(),
-            child: Text('Back to home'),
+            child: const Text('Back to home'),
           ),
         ],
       ),
@@ -87,8 +87,8 @@ class ErrorHandler {
         content: Row(
           children: <Widget>[
             Text(ErrorHandler.getErrorMessage(error)),
-            Spacer(),
-            Icon(Icons.error_outline, color: Colors.yellow)
+            const Spacer(),
+            const Icon(Icons.error_outline, color: Colors.yellow)
           ],
         ),
       ),

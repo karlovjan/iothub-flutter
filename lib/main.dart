@@ -13,10 +13,12 @@ import 'src/ui/routes/main_routes.dart';
 
 void main() {
   RM.navigate.transitionsBuilder = RM.transitions.leftToRight();
-  runApp(IOTHubApp());
+  runApp(const IOTHubApp());
 }
 
 class IOTHubApp extends TopStatelessWidget {
+  const IOTHubApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     //uncomment this line to consol log and see the notification timeline

@@ -6,7 +6,7 @@ class TileNavigationButton extends StatelessWidget {
   final String title;
 
   //I want to create an unchangeable object, all fields must be final
-  const TileNavigationButton({required this.routeName, required this.title});
+  const TileNavigationButton({required this.routeName, required this.title, Key? key,}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

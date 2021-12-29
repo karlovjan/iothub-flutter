@@ -7,7 +7,7 @@ class MeasuredProperty {
   final String? description;
   final DateTime? createdAt;
 
-  MeasuredProperty(this.name, this.unit, {this.description, this.createdAt});
+  const MeasuredProperty(this.name, this.unit, {this.description, this.createdAt});
 
   static MeasuredProperty copyOf(MeasuredProperty measuredProperty) {
     return MeasuredProperty(
