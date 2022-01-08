@@ -20,7 +20,7 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
   final String _serverName;
   final String _caCertPath;
   final String _pkcs12Path;
-  final _cancelRequestToken = CancelToken();
+  var cancelRequestToken = CancelToken();
 
   final _log = Logger(
     printer: PrettyPrinter(
@@ -178,6 +178,10 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
       return; //Stream generator is quit, Stream is not activated, Stream is not sending any items.
     }
 
+    if(cancelRequestToken.isCancelled){
+      //reset cancel token
+      cancelRequestToken = CancelToken();
+    }
     // final sc = await _httpSecurityContext;
 
     _baseOptions.receiveTimeout = 1 * 60 * 60 * 1000;
@@ -218,7 +222,7 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
         final response = await dioClient.post(
           '/upload',
           data: uploadFileData,
-          cancelToken: _cancelRequestToken,
+          cancelToken: cancelRequestToken,
         );
 
         if (response.statusCode == 200) {
@@ -261,7 +265,7 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
 
   @override
   void cancelRequest() {
-    _cancelRequestToken.cancel();
+    cancelRequestToken.cancel();
   }
 
   @override

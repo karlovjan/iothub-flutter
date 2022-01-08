@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iothub/src/data_source/http_dio_nas_file_sync_service.dart';
@@ -24,7 +24,8 @@ class NASSyncMainPage extends StatefulWidget {
   //TODO prevest do konfigurace, staci jen staticke - a zavisle na prostredi - devel, test, produkce - nas.local:8443
   static late final nasFileSyncState = RM.inject<NASFileSyncState>(
     () => NASFileSyncState(
-        DIOHTTPNASFileSyncService('smbrest.home', 'assets/certs/ca.crt',
+      //smbrest.home
+        DIOHTTPNASFileSyncService('192.168.0.24', 'assets/certs/ca.crt',
             'assets/certs/smbresthomeclient.p12'),
         LocalFileSystemUtil()),
     sideEffects: SideEffects.onError(
@@ -52,8 +53,6 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   final _multiPick = true;
   final _pickingType = FileType.any;
   List<PlatformFile>? _paths;
-
-  var _uploading = false;
 
   String get _joinedSambaFolder =>
       p.join(NASFileSyncState.BASE_SAMBA_FOLDER, _nasFolder).toString();
@@ -209,7 +208,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                 child: ElevatedButton(
                   child: const Text('Show files'),
                   onPressed: () {
-                    if (_uploading) {
+                    if (NASSyncMainPage.nasFileSyncState.state.uploading) {
                       return;
                     }
                     final form = _formKey.currentState!;
@@ -219,8 +218,15 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                       if (NASSyncMainPage.nasFileSyncState.state
                               .allTransferringFilesCount !=
                           0) {
+
+                        if(NASSyncMainPage.nasFileSyncState.state.transferringFileList.isEmpty) {
+                          NASSyncMainPage.nasFileSyncState.setState(
+                                (s) => s.showFirstFiles(),
+                          );
+                        }
                         return;
                       }
+
                       NASSyncMainPage.nasFileSyncState.setState(
                         (s) => s.getFilesForSynchronization(
                             _localFolderPathTextFieldController.value.text,
@@ -229,15 +235,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                             _selectedDateFrom,
                             _selectedDateTo),
                         sideEffects: SideEffects.onOrElse(
-                          onWaiting: () => print('Waiting'),
                           orElse: (data) => data.showFirstFiles(),
                         ),
-                        shouldOverrideDefaultSideEffects: (snap) =>
-                            snap.isWaiting,
-                        debounceDelay: 1000,
-                        throttleDelay: 2000,
-                        skipWaiting: false,
-                        shouldAwait: true,
                       );
                     }
                   },
@@ -248,7 +247,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                     vertical: 16.0, horizontal: 16.0),
                 child: ElevatedButton(
                   onPressed: () {
-                    if (_uploading) {
+                    if (NASSyncMainPage.nasFileSyncState.state.uploading) {
                       return;
                     }
 
@@ -270,7 +269,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
     return OnBuilder<NASFileSyncState>.data(
       listenTo: NASSyncMainPage.nasFileSyncState,
       watch: () => NASSyncMainPage.nasFileSyncState.state.transferredFilesCount,
-      builder: (data) => _uploading && data.transferredFilesCount > 0
+      builder: (data) => data.uploading
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -296,7 +295,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
       listenTo: NASSyncMainPage.nasFileSyncState,
       watch: () => NASSyncMainPage.nasFileSyncState.state.uploadingFileStatus,
       builder: (data) {
-        if (_uploading && !data.uploadingFileStatus.uploaded) {
+        if (data.uploading && !data.uploadingFileStatus.uploaded) {
           return Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -310,11 +309,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                   alignment: Alignment.centerRight,
                   child: ElevatedButton(
                     onPressed: () {
-                      if (_uploading) {
-                        print('Cancel upload');
+                      if (data.uploading) {
                         data.cancelUploading();
-                      } else {
-                        print('No file is uploading! Canceling is dismissed');
                       }
                     },
                     child: const Text('Cancel'),
@@ -482,16 +478,16 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   }
 
   Future<void> _uploadingFileButtonOnPressed() async {
-    if (_uploading) {
-      return null; //disable button
+    if (NASSyncMainPage.nasFileSyncState.state.uploading) {
+      return; //disable button
     }
-    print('uploading starting');
+    if (kDebugMode) {
+      print('uploading starting');
+    }
 
     final form = _formKey.currentState!;
     if (form.validate()) {
       form.save();
-
-      _uploading = true;
 
       // try {
       await NASSyncMainPage.nasFileSyncState.setState(
@@ -509,8 +505,6 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
               s.filesForUploading, _joinedSambaFolder, _fileTypeForSync);
         },
         sideEffects: SideEffects.onError((err, refresh) {
-          print('Error syncFolderWithNAS in uploading');
-          _uploading = false;
           ErrorHandler.showErrorDialog(err);
         }),
         shouldOverrideDefaultSideEffects: (snap) => true,

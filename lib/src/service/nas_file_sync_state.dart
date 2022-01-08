@@ -35,6 +35,8 @@ class NASFileSyncState {
 
   int transferredFilesCount = 0;
 
+  bool uploading = false;
+
   List<File> get filesForUploading => List.of(_allTransferringFileList);
 
   Stream<void> syncFolderWithNAS(List<File> uploadingFiles,
@@ -46,6 +48,8 @@ class NASFileSyncState {
       _uploadingFileStatus = UploadFileStatus.empty();
       yield null;
     }
+
+    uploading = true;
 
     try {
       await for (UploadFileStatus sentFile in _remoteFileTransferService
@@ -64,6 +68,7 @@ class NASFileSyncState {
     } finally {
       _log.i('uploading finished');
       _uploadingFileStatus = UploadFileStatus.empty();
+      uploading = false;
       yield null;
     }
   }
@@ -101,10 +106,6 @@ class NASFileSyncState {
     _allTransferringFileList.addAll(filesForSync);
   }
 
-  DateTime _dateToMidnight(DateTime dateTo) {
-    return DateUtils.dateOnly(dateTo);
-  }
-
   void clearShowingFiles() {
     _log.i('clear showing files');
     transferringFileList = <File>[];
@@ -126,6 +127,7 @@ class NASFileSyncState {
       _log.e('Canceling of uploading files failed:', err);
     } finally {
       _uploadingFileStatus = UploadFileStatus.empty();
+      uploading = false;
     }
   }
 
