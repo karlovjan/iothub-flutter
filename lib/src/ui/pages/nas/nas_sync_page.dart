@@ -208,9 +208,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                 child: ElevatedButton(
                   child: const Text('Show files'),
                   onPressed: () {
-                    if (NASSyncMainPage.nasFileSyncState.state.uploading) {
-                      return;
-                    }
+
                     final form = _formKey.currentState!;
                     if (form.validate()) {
                       form.save();
@@ -234,8 +232,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                             _fileTypeForSync,
                             _selectedDateFrom,
                             _selectedDateTo),
-                        sideEffects: SideEffects.onOrElse(
-                          orElse: (data) => data.showFirstFiles(),
+                        sideEffects: SideEffects.onData(
+                          (data) => data.showFirstFiles(),
                         ),
                       );
                     }
@@ -247,9 +245,6 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
                     vertical: 16.0, horizontal: 16.0),
                 child: ElevatedButton(
                   onPressed: () {
-                    if (NASSyncMainPage.nasFileSyncState.state.uploading) {
-                      return;
-                    }
 
                     NASSyncMainPage.nasFileSyncState.setState(
                       (s) => s.clearShowingFiles(),

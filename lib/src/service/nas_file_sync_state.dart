@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:iothub/src/domain/value_objects/upload_file_status.dart';
 import 'package:iothub/src/service/common/datetime_ext.dart';
 import 'package:iothub/src/service/exceptions/nas_file_sync_exception.dart';
@@ -36,14 +35,14 @@ class NASFileSyncState {
   int transferredFilesCount = 0;
 
   bool uploading = false;
+  bool _showFiles = false;
 
   List<File> get filesForUploading => List.of(_allTransferringFileList);
 
   Stream<void> syncFolderWithNAS(List<File> uploadingFiles,
       String nasFolderPath, FileTypeForSync fileType) async* {
-
     _log.d('Start uploading files...');
-    if(uploadingFiles.isEmpty){
+    if (uploadingFiles.isEmpty) {
       _log.i('uploading finished');
       _uploadingFileStatus = UploadFileStatus.empty();
       yield null;
@@ -108,6 +107,7 @@ class NASFileSyncState {
 
   void clearShowingFiles() {
     _log.i('clear showing files');
+    _showFiles = false;
     transferringFileList = <File>[];
   }
 
@@ -146,15 +146,24 @@ class NASFileSyncState {
     if (removingFile.path.isNotEmpty) {
       _allTransferringFileList.remove(removingFile);
 
-      showFirstFiles();
+      _showFirstFilesInternal();
+    }
+  }
+
+  void _showFirstFilesInternal([int filesCount = 20]) {
+    if (_showFiles) {
+      _log.d('show first $filesCount files - internal...');
+      final fileListLength = allTransferringFilesCount;
+      final endIndex =
+          filesCount <= fileListLength ? filesCount : fileListLength;
+      transferringFileList = _allTransferringFileList.sublist(0, endIndex);
     }
   }
 
   void showFirstFiles([int filesCount = 20]) {
     _log.d('show first $filesCount files...');
-    final fileListLength = allTransferringFilesCount;
-    final endIndex = filesCount <= fileListLength ? filesCount : fileListLength;
-    transferringFileList = _allTransferringFileList.sublist(0, endIndex);
+    _showFiles = true;
+    _showFirstFilesInternal(filesCount);
   }
 
   Future<List<String>> listSambaFolders(String baseFolder) async {
