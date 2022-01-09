@@ -50,6 +50,15 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
     sendTimeout: 60000,
   );
 
+  late final _uploadOptions = BaseOptions(
+    baseUrl: 'http://$_serverName',
+    responseType: ResponseType.json,
+    contentType: Headers.formUrlEncodedContentType,
+    connectTimeout: 60000,
+    receiveTimeout: 0,
+    sendTimeout: 1 * 60 * 60 * 1000,
+  );
+
   late final _httpSecurityContext = _createSecurityContext();
 
   Future<ByteData> _loadFile(String path) async {
@@ -184,8 +193,7 @@ class DIOHTTPNASFileSyncService implements NASFileSyncService {
     }
     // final sc = await _httpSecurityContext;
 
-    _baseOptions.receiveTimeout = 1 * 60 * 60 * 1000;
-    final dioClient = Dio(_baseOptions);
+    final dioClient = Dio(_uploadOptions);
 
     // (dioClient.httpClientAdapter as DefaultHttpClientAdapter)
     //     .onHttpClientCreate = (client) {

@@ -452,6 +452,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
 
   Widget showFileAsText(BuildContext context, List<File> transferringFileList) {
     return ListView(
+      shrinkWrap: true,
+      physics: const ClampingScrollPhysics(),
       padding: const EdgeInsets.only(top: 20.0),
       children: transferringFileList
           .map((file) => _buildListFileTextItem(context, file))
