@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:iothub/src/ui/pages/preferences/global_preferences_page.dart';
 import 'package:iothub/src/ui/routes/main_routes.dart';
 import 'package:iothub/src/ui/widgets/tile_navigation_button.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({
@@ -12,6 +14,14 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home page'),
+        actions: [IconButton(
+          icon: const Icon(Icons.build),
+          tooltip: 'Preferences',
+          onPressed: () {
+            RM.navigate.to(const GlobalPreferencesPage());
+          },
+        ),
+        ],
       ),
       // body is the majority of the screen.
       body: GridView.count(

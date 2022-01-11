@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:iothub/src/data_source/global_preferences_repository.dart';
 import 'package:iothub/src/domain/entities/iothub.dart';
 import 'package:iothub/src/ui/pages/home_page/home_page.dart';
 import 'package:iothub/src/ui/pages/iothub/iothub_main.dart';
+import 'package:iothub/src/ui/pages/preferences/global_preferences_page.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'src/ui/pages/iothub/dashboard.dart';
@@ -11,7 +14,7 @@ import 'src/ui/pages/nas/nas_sync_page.dart';
 import 'src/ui/routes/iothub_routes.dart';
 import 'src/ui/routes/main_routes.dart';
 
-void main() {
+void main() async {
   RM.navigate.transitionsBuilder = RM.transitions.leftToRight();
   runApp(const IOTHubApp());
 }
@@ -20,13 +23,30 @@ class IOTHubApp extends TopStatelessWidget {
   const IOTHubApp({Key? key}) : super(key: key);
 
   @override
+  List<Future> ensureInitialization() => [
+    //Plugins can be initialized, to display our Splash screen
+    RM.storageInitializer(GlobalPreferencesRepository()),
+  ];
+
+  @override
+  Widget? splashScreen() => const MaterialApp(
+    home: Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(),
+      ),
+    ),
+  );
+
+  @override
   Widget build(BuildContext context) {
     //uncomment this line to consol log and see the notification timeline
     // RM.debugPrintActiveRM = true;
 
     return MaterialApp(
       title: 'IOT hub',
-      theme: ThemeData.dark(),
+      theme: theme.lightTheme,
+      darkTheme: theme.darkTheme,
+      themeMode: theme.themeMode,
       navigatorKey: RM.navigate.navigatorKey,
       onGenerateRoute: RM.navigate.onGenerateRoute(
         {
