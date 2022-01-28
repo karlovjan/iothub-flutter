@@ -2,7 +2,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 class GlobalPreferencesRepository implements IPersistStore {
-  late Box box;
+  late final Box box;
   static const boxName = 'preferences';
 
   @override
