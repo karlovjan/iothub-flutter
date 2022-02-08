@@ -4,16 +4,16 @@ import 'package:flutter/foundation.dart';
 
 import '../../service/nas_file_sync_state.dart';
 
-@immutable
+// @immutable
 class SyncFormData {
-  final String name;
-  final String localFolder;
-  final String remoteFolder;
-  final DateTime from;
-  final DateTime to;
-  final FileTypeForSync fileType;
+  String name;
+  String localFolder;
+  String remoteFolder;
+  DateTime from;
+  DateTime to;
+  FileTypeForSync fileType;
 
-  const SyncFormData(this.name,
+  SyncFormData(this.name,
       this.localFolder, this.remoteFolder, this.from, this.to, this.fileType);
 
   @override

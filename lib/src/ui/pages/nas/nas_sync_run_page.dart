@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:iothub/src/domain/value_objects/sync_form_data.dart';
 import 'package:iothub/src/service/nas_file_sync_state.dart';
@@ -16,16 +16,20 @@ import 'nas_sync_range_date_bar.dart';
 //https://flutter.dev/docs/cookbook/forms
 //https://github.com/miguelpruivo/flutter_file_picker/blob/master/example/lib/src/file_picker_demo.dart
 
-///Class showing a page for setting a NAS folder
-class NASSyncRunPage extends StatelessWidget {
-  final SyncFormData syncData;
+class NASSyncRunPage extends StatefulWidget {
+  final int syncDataIndex;
 
-  final NasSyncRangeDateBar _dateBar;
+  const NASSyncRunPage({Key? key, required this.syncDataIndex})
+      : super(key: key);
 
-  NASSyncRunPage({Key? key, required this.syncData})
-      : _dateBar = NasSyncRangeDateBar(
-            key: UniqueKey(), dateFrom: syncData.to, dateTo: DateTime.now()),
-        super(key: key);
+  @override
+  _NASSyncRunPageState createState() => _NASSyncRunPageState();
+}
+
+class _NASSyncRunPageState extends State<NASSyncRunPage> {
+  final _rangeDateFormKey = GlobalKey<FormState>();
+  late final SyncFormData syncData = SyncFormData.fromJson(
+      NASSyncMainPage.syncPreferencesRepository.readAt(widget.syncDataIndex));
 
   String get _joinedSambaFolder => p
       .join(NASFileSyncState.BASE_SAMBA_FOLDER, syncData.remoteFolder)
@@ -66,6 +70,8 @@ class NASSyncRunPage extends StatelessWidget {
         children: <Widget>[
           _getFileSyncDetail(),
           const Divider(),
+          _createButtonBar(),
+          const Divider(),
           _createTransferingStatusBar(),
           const Divider(),
           OnBuilder<NASFileSyncState>.orElse(
@@ -90,7 +96,73 @@ class NASSyncRunPage extends StatelessWidget {
         Text('From: ' + syncData.localFolder),
         Text('To: ' + syncData.remoteFolder),
         Text('Type: ' + syncData.fileType.name),
-        _dateBar,
+        Form(
+          key: _rangeDateFormKey,
+          autovalidateMode: AutovalidateMode.always,
+          onWillPop: () {
+            return Future(() => true);
+          },
+          child: NasSyncRangeDateBar(
+            dateFrom: syncData.to, //take last sync date
+            dateTo: DateTime.now(),
+            onDateFromSaved: (value) => syncData.from = value,
+            onDateToSaved: (value) => syncData.to = value,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _createButtonBar() {
+    return Row(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          child: ElevatedButton(
+            child: const Text('Show files'),
+            onPressed: () {
+              final rangeDateFormState = _rangeDateFormKey.currentState!;
+              if (rangeDateFormState.validate()) {
+                rangeDateFormState.save();
+
+                if (NASSyncMainPage
+                        .nasFileSyncState.state.allTransferringFilesCount !=
+                    0) {
+                  if (NASSyncMainPage
+                      .nasFileSyncState.state.transferringFileList.isEmpty) {
+                    NASSyncMainPage.nasFileSyncState.setState(
+                      (s) => s.showFirstFiles(),
+                    );
+                  }
+                  return;
+                }
+
+                NASSyncMainPage.nasFileSyncState.setState(
+                  (s) => s.getFilesForSynchronization(
+                      syncData.localFolder,
+                      _joinedSambaFolder,
+                      syncData.fileType,
+                      syncData.from,
+                      syncData.to),
+                  sideEffects: SideEffects.onData(
+                    (data) => data.showFirstFiles(),
+                  ),
+                );
+              }
+            },
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+          child: ElevatedButton(
+            onPressed: () {
+              NASSyncMainPage.nasFileSyncState.setState(
+                (s) => s.clearShowingFiles(),
+              );
+            },
+            child: const Text('Clear files'),
+          ),
+        ),
       ],
     );
   }
@@ -255,9 +327,18 @@ class NASSyncRunPage extends StatelessWidget {
     if (NASSyncMainPage.nasFileSyncState.state.uploading) {
       return; //disable button
     }
-    if (kDebugMode) {
-      print('uploading starting');
+
+    printDebug('uploading starting');
+
+    final rangeDateFormState = _rangeDateFormKey.currentState!;
+    if (!rangeDateFormState.validate()) {
+      printDebug('range date bar is not valid');
+      return;
     }
+    rangeDateFormState.save();
+
+    NASSyncMainPage.syncPreferencesRepository
+        .update(widget.syncDataIndex, syncData.toJson());
 
     // try {
     await NASSyncMainPage.nasFileSyncState.setState(
@@ -267,8 +348,8 @@ class NASSyncRunPage extends StatelessWidget {
               syncData.localFolder,
               _joinedSambaFolder,
               syncData.fileType,
-              _dateBar.dateFrom,
-              _dateBar.dateTo);
+              syncData.from,
+              syncData.to);
         }
 
         return s.syncFolderWithNAS(
@@ -279,5 +360,11 @@ class NASSyncRunPage extends StatelessWidget {
       }),
       shouldOverrideDefaultSideEffects: (snap) => true,
     );
+  }
+
+  void printDebug(String text) {
+    if (kDebugMode) {
+      print(text);
+    }
   }
 }

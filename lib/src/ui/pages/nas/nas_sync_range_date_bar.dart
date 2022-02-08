@@ -1,16 +1,27 @@
 import 'package:flutter/material.dart';
 
-class NasSyncRangeDateBar extends StatelessWidget {
-  //TODO mam to predelat na Stateful widget?
+class NasSyncRangeDateBar extends StatefulWidget {
   //now -> date input field format datetime to only date
-  DateTime _selectedDateFrom;
-  DateTime _selectedDateTo; //date up to now including time
+  final DateTime selectedDateFrom;
+  final DateTime selectedDateTo; //date up to now including time
+  final ValueChanged<DateTime>? onDateFromSaved;
+  final ValueChanged<DateTime>? onDateToSaved;
 
-  NasSyncRangeDateBar({Key? key, DateTime? dateFrom, DateTime? dateTo})
-      : _selectedDateFrom = DateUtils.dateOnly(dateFrom ?? DateTime.now()),
-        _selectedDateTo = dateTo ?? DateTime.now(),
+  NasSyncRangeDateBar(
+      {Key? key,
+      DateTime? dateFrom,
+      DateTime? dateTo,
+      this.onDateFromSaved,
+      this.onDateToSaved})
+      : selectedDateFrom = DateUtils.dateOnly(dateFrom ?? DateTime.now()),
+        selectedDateTo = dateTo ?? DateTime.now(),
         super(key: key);
 
+  @override
+  State<StatefulWidget> createState() => _NasSyncRangeDateBarState();
+}
+
+class _NasSyncRangeDateBarState extends State<NasSyncRangeDateBar> {
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -21,8 +32,9 @@ class NasSyncRangeDateBar extends StatelessWidget {
             lastDate: DateTime.now(),
             fieldHintText: 'date from',
             fieldLabelText: 'Date from',
-            initialDate: _selectedDateFrom,
-            onDateSaved: (value) => _selectedDateFrom = value,
+            initialDate: widget.selectedDateFrom,
+            onDateSaved: widget.onDateFromSaved,
+            onDateSubmitted: widget.onDateFromSaved,
           ),
         ),
         Expanded(
@@ -31,15 +43,12 @@ class NasSyncRangeDateBar extends StatelessWidget {
             lastDate: DateTime.now(),
             fieldHintText: 'date to',
             fieldLabelText: 'Date to',
-            initialDate: _selectedDateTo,
-            onDateSaved: (value) => _selectedDateTo = value,
+            initialDate: widget.selectedDateTo,
+            onDateSaved: widget.onDateToSaved,
+            onDateSubmitted: widget.onDateToSaved,
           ),
         ),
       ],
     );
   }
-
-  DateTime get dateFrom => _selectedDateFrom;
-
-  DateTime get dateTo => _selectedDateTo;
 }

@@ -1,52 +1,61 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:iothub/src/domain/value_objects/sync_form_data.dart';
 
 import '../../../service/exceptions/nas_file_sync_exception.dart';
 import '../../../service/nas_file_sync_state.dart';
-import '../../exceptions/error_handler.dart';
 import 'nas_sync_page.dart';
 import 'nas_sync_range_date_bar.dart';
 
 class NasSyncFormWidget extends StatefulWidget {
-  const NasSyncFormWidget({Key? key}) : super(key: key);
+  final SyncFormData initialValue;
 
+  final bool showRangeDateBar;
+
+  const NasSyncFormWidget(
+      {Key? key, required this.initialValue, this.showRangeDateBar = true})
+      : super(key: key);
 
   @override
-  _NasSyncFormWidgetState createState() => _NasSyncFormWidgetState();
-
-
+  NasSyncFormWidgetState createState() => NasSyncFormWidgetState();
 }
 
-class _NasSyncFormWidgetState extends State<NasSyncFormWidget> {
+class NasSyncFormWidgetState extends State<NasSyncFormWidget> {
+  // static final _data = SyncFormData('', '', '', DateTime.now(), DateTime.now(), FileTypeForSync.image);
+  late final SyncFormData _value = widget.initialValue;
+
+  SyncFormData get value => _value;
+
   final _formKey = GlobalKey<FormState>();
+
   final _localFolderPathTextFieldController = TextEditingController();
-  final _syncNameTextFieldController = TextEditingController();
-  var _fileTypeForSync = FileTypeForSync.image;
+
+  // final _syncNameTextFieldController = TextEditingController();
+  // var _fileTypeForSync = FileTypeForSync.image;
 
   // Here we use a StatefulWidget to hold local fields _nasFolder and _localFolder
-  String? _nasFolder;
+  // String? _nasFolder;
 
-  String? _extension;
-  final _multiPick = true;
-  final _pickingType = FileType.any;
-  List<PlatformFile>? _paths;
+  // String? _extension;
+  // final _multiPick = true;
+  // final _pickingType = FileType.any;
+  // List<PlatformFile>? _paths;
 
-  late final Future<List<String>> _nasFoldersFuture = _listSambaFolders();
+  late final Future<List<String>> _nasFoldersFuture = NASSyncMainPage
+      .nasFileSyncState.state
+      .listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER);
 
-  Future<List<String>> _listSambaFolders() async {
-    return await NASSyncMainPage.nasFileSyncState.state
-        .listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER);
+  @override
+  void initState() {
+    super.initState();
+    _localFolderPathTextFieldController.text = _value.localFolder;
   }
-
-  final _dateBar = NasSyncRangeDateBar(
-      key: UniqueKey(), dateFrom: DateTime.now(), dateTo: DateTime.now());
 
   @override
   void dispose() {
     _localFolderPathTextFieldController.dispose();
-    _syncNameTextFieldController.dispose();
+    // _syncNameTextFieldController.dispose();
     _clearCachedFiles();
     super.dispose();
   }
@@ -57,28 +66,28 @@ class _NasSyncFormWidgetState extends State<NasSyncFormWidget> {
     });
   }
 
-  void _openFileExplorer() async {
-    try {
-      _paths = (await FilePicker.platform.pickFiles(
-        type: _pickingType,
-        allowMultiple: _multiPick,
-        allowedExtensions: (_extension?.isNotEmpty ?? false)
-            ? _extension?.replaceAll(' ', '').split(',')
-            : null,
-      ))
-          ?.files;
-    } on PlatformException catch (e) {
-      print('Unsupported operation' + e.toString());
-    } catch (ex) {
-      print(ex);
-    }
-    if (!mounted) return;
-    setState(() {
-      // _loadingPath = false;
-      _localFolderPathTextFieldController.text =
-          _paths != null ? _paths!.map((e) => e.name).toString() : '...';
-    });
-  }
+  // void _openFileExplorer() async {
+  //   try {
+  //     _paths = (await FilePicker.platform.pickFiles(
+  //       type: _pickingType,
+  //       allowMultiple: _multiPick,
+  //       allowedExtensions: (_extension?.isNotEmpty ?? false)
+  //           ? _extension?.replaceAll(' ', '').split(',')
+  //           : null,
+  //     ))
+  //         ?.files;
+  //   } on PlatformException catch (e) {
+  //     print('Unsupported operation' + e.toString());
+  //   } catch (ex) {
+  //     print(ex);
+  //   }
+  //   if (!mounted) return;
+  //   setState(() {
+  //     // _loadingPath = false;
+  //     _localFolderPathTextFieldController.text =
+  //         _paths != null ? _paths!.map((e) => e.name).toString() : '...';
+  //   });
+  // }
 
   void _clearCachedFiles() {
     if (kIsWeb) {
@@ -117,30 +126,32 @@ class _NasSyncFormWidgetState extends State<NasSyncFormWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           TextFormField(
-            key: const Key('__SyncNameField'),
-            // initialValue: '', nesmi byt nastaven kdyz se pouzije controller
+            key: const Key('__SyncName'),
+            initialValue: _value.name,
+            //nesmi byt nastaven kdyz se pouzije controller
             style: Theme.of(context).textTheme.headline5,
             decoration: const InputDecoration(
-              hintText: 'Enter name of synchronization',
+              hintText: 'Enter sync name',
             ),
             validator: (val) => val!.trim().isEmpty ? 'Cannot be empty' : null,
-            controller: _syncNameTextFieldController,
-            // onSaved: (value) => _localFolder = value,
+            // controller: _syncNameTextFieldController,
+            onSaved: (value) => _value.name = value!,
           ),
           Row(
             children: [
               Expanded(
                 child: TextFormField(
-                  key: const Key('__LocalFolderField'),
-                  // initialValue: '', nesmi byt nastaven kdyz se pouzije controller
+                  key: const Key('__SyncLocalFolderField'),
+                  // initialValue: _value.localFolder,
+                  //nesmi byt nastaven kdyz se pouzije controller
                   style: Theme.of(context).textTheme.headline5,
                   decoration: const InputDecoration(
-                    hintText: 'Enter local folder',
+                    hintText: 'Enter local path',
                   ),
                   validator: (val) =>
                       val!.trim().isEmpty ? 'Cannot be empty' : null,
                   controller: _localFolderPathTextFieldController,
-                  // onSaved: (value) => _localFolder = value,
+                  onSaved: (value) => _value.localFolder = value!,
                 ),
               ),
               ElevatedButton(
@@ -157,8 +168,15 @@ class _NasSyncFormWidgetState extends State<NasSyncFormWidget> {
               ),
             ],
           ),
+          //remote folder selector
           createDropDownButtonExtLoaded(),
-          _dateBar,
+          if (widget.showRangeDateBar)
+            NasSyncRangeDateBar(
+              dateFrom: _value.from,
+              dateTo: _value.to,
+              onDateFromSaved: (value) => _value.from = value,
+              onDateToSaved: (value) => _value.to = value,
+            ),
           createRadiobuttonFileTypeList(),
         ],
       ),
@@ -183,13 +201,26 @@ class _NasSyncFormWidgetState extends State<NasSyncFormWidget> {
             );
           }).toList();
         } else if (snapshot.hasError) {
-          return ErrorHandler.getErrorDialog(snapshot.error);
+          // ErrorHandler.showSnackBar(snapshot.error);
+
+          return TextFormField(
+            key: const Key('__SyncNasFolderTextField'),
+            initialValue: _value.remoteFolder,
+            //nesmi byt nastaven kdyz se pouzije controller
+            style: Theme.of(context).textTheme.headline5,
+            decoration: const InputDecoration(
+              hintText: 'Enter remote folder path',
+            ),
+            validator: (val) => val!.trim().isEmpty ? 'Cannot be empty' : null,
+            // controller: _syncNameTextFieldController,
+            onSaved: (value) => _value.remoteFolder = value!,
+          );
         } else {
           return const Text('Loading server folders ...');
         }
         return DropdownButtonFormField<String>(
           key: const Key('__NASFolderField'),
-          value: _nasFolder,
+          // value: _value.remoteFolder, pokud value neni null tak to pada
           icon: const Icon(Icons.arrow_downward),
           iconSize: 24,
           elevation: 16,
@@ -206,7 +237,7 @@ class _NasSyncFormWidgetState extends State<NasSyncFormWidget> {
           ),
           onChanged: (String? newValue) {
             setState(() {
-              _nasFolder = newValue;
+              _value.remoteFolder = newValue!;
             });
           },
           items: comboItems,
@@ -230,10 +261,10 @@ class _NasSyncFormWidgetState extends State<NasSyncFormWidget> {
               title: const Text('Images'),
               dense: true,
               value: FileTypeForSync.image,
-              groupValue: _fileTypeForSync,
+              groupValue: _value.fileType,
               onChanged: (FileTypeForSync? value) {
                 setState(() {
-                  _fileTypeForSync = value!;
+                  _value.fileType = value!;
                 });
               },
             ),
@@ -246,10 +277,10 @@ class _NasSyncFormWidgetState extends State<NasSyncFormWidget> {
               title: const Text('Videos'),
               dense: true,
               value: FileTypeForSync.video,
-              groupValue: _fileTypeForSync,
+              groupValue: _value.fileType,
               onChanged: (FileTypeForSync? value) {
                 setState(() {
-                  _fileTypeForSync = value!;
+                  _value.fileType = value!;
                 });
               },
             ),
@@ -262,10 +293,10 @@ class _NasSyncFormWidgetState extends State<NasSyncFormWidget> {
               title: const Text('Docs'),
               dense: true,
               value: FileTypeForSync.doc,
-              groupValue: _fileTypeForSync,
+              groupValue: _value.fileType,
               onChanged: (FileTypeForSync? value) {
                 setState(() {
-                  _fileTypeForSync = value!;
+                  _value.fileType = value!;
                 });
               },
             ),
@@ -273,5 +304,24 @@ class _NasSyncFormWidgetState extends State<NasSyncFormWidget> {
         ),
       ],
     );
+  }
+
+  bool validate() {
+    FormState? formState = _formKey.currentState;
+    // NasSyncRangeDateBarState? dateBarState =
+    //     _rangeDateBarGlobalKey.currentState;
+    // return formState!.validate() && dateBarState!.validate();
+    return formState?.validate() ?? false;
+  }
+
+  void save() {
+    FormState? formState = _formKey.currentState;
+    // NasSyncRangeDateBarState? dateBarState =
+    //     _rangeDateBarGlobalKey.currentState;
+    formState?.save();
+    // dateBarState!.save();
+
+    // _value.from = dateBarState!.dateFrom;
+    // _value.to = dateBarState.dateTo;
   }
 }
