@@ -25,7 +25,8 @@ class NasSyncFormWidgetState extends State<NasSyncFormWidget> {
   // static final _data = SyncFormData('', '', '', DateTime.now(), DateTime.now(), FileTypeForSync.image);
   late final SyncFormData _value = widget.initialValue;
 
-  SyncFormData get value => _value;
+  //immuteble - not to modify internal data object _value
+  SyncFormData get value => SyncFormData.copyOf(_value);
 
   final _formKey = GlobalKey<FormState>();
 
@@ -35,7 +36,7 @@ class NasSyncFormWidgetState extends State<NasSyncFormWidget> {
   // var _fileTypeForSync = FileTypeForSync.image;
 
   // Here we use a StatefulWidget to hold local fields _nasFolder and _localFolder
-  // String? _nasFolder;
+  String? _nasFolder;
 
   // String? _extension;
   // final _multiPick = true;
@@ -50,6 +51,9 @@ class NasSyncFormWidgetState extends State<NasSyncFormWidget> {
   void initState() {
     super.initState();
     _localFolderPathTextFieldController.text = _value.localFolder;
+    if (_value.remoteFolder.isNotEmpty) {
+      _nasFolder = _value.remoteFolder;
+    }
   }
 
   @override
@@ -191,15 +195,42 @@ class NasSyncFormWidgetState extends State<NasSyncFormWidget> {
     return FutureBuilder(
       future: _nasFoldersFuture,
       builder: (context, AsyncSnapshot<List<String>> snapshot) {
-        var comboItems = <DropdownMenuItem<String>>[];
         if (snapshot.hasData) {
-          comboItems =
+          final comboItems =
               snapshot.data!.map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
               value: value,
               child: Text(value),
             );
           }).toList();
+
+          return DropdownButtonFormField<String>(
+            key: const Key('__NASFolderField'),
+            value: _nasFolder,
+            icon: const Icon(Icons.arrow_downward),
+            iconSize: 24,
+            elevation: 16,
+            isExpanded: true,
+            disabledHint: const Text('Not supported on Web'),
+            autofocus: false,
+            hint: const Text('Select NAS folder'),
+            style: Theme.of(context).textTheme.headline5,
+            decoration: const InputDecoration(
+              contentPadding: EdgeInsets.all(0.0),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.deepPurple),
+              ),
+            ),
+            onChanged: (String? newValue) {
+              setState(() {
+                _nasFolder = newValue!; //items values are not null
+              });
+            },
+            items: comboItems,
+            validator: (val) =>
+                (val == null || val.trim().isEmpty) ? 'Cannot be empty' : null,
+            onSaved: (newValue) => _value.remoteFolder = newValue!,
+          );
         } else if (snapshot.hasError) {
           // ErrorHandler.showSnackBar(snapshot.error);
 
@@ -218,32 +249,6 @@ class NasSyncFormWidgetState extends State<NasSyncFormWidget> {
         } else {
           return const Text('Loading server folders ...');
         }
-        return DropdownButtonFormField<String>(
-          key: const Key('__NASFolderField'),
-          // value: _value.remoteFolder, pokud value neni null tak to pada
-          icon: const Icon(Icons.arrow_downward),
-          iconSize: 24,
-          elevation: 16,
-          isExpanded: true,
-          disabledHint: const Text('Not supported on Web'),
-          autofocus: false,
-          hint: const Text('Select NAS folder'),
-          style: Theme.of(context).textTheme.headline5,
-          decoration: const InputDecoration(
-            contentPadding: EdgeInsets.all(0.0),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.deepPurple),
-            ),
-          ),
-          onChanged: (String? newValue) {
-            setState(() {
-              _value.remoteFolder = newValue!;
-            });
-          },
-          items: comboItems,
-          validator: (val) =>
-              (val == null || val.trim().isEmpty) ? 'Cannot be empty' : null,
-        );
       },
     );
   }

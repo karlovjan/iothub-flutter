@@ -84,12 +84,15 @@ class NASFileSyncState {
 
     clearFiles();
 
+    DateTime dateToMidnight =
+        DateTime(dateTo.year, dateTo.month, dateTo.day, 23, 59, 59, 0, 0);
+
     // throw NASFileException("message test");
     final allTargetFolderFiles =
         await _remoteFileTransferService.retrieveDirectoryItems(
             nasFolderPath,
             dateFrom.secondsSinceEpoch,
-            dateTo.secondsSinceEpoch,
+            dateToMidnight.secondsSinceEpoch,
             fileTypeForSync);
 
     final filesForSync = await _localFileSystemService.matchLocalFiles(
@@ -97,7 +100,7 @@ class NASFileSyncState {
         recursive,
         fileTypeForSync,
         dateFrom,
-        dateTo,
+        dateToMidnight,
         allTargetFolderFiles);
 
     _log.d('files for uploading is ${filesForSync.length}');

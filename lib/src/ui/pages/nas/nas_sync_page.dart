@@ -3,13 +3,14 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:iothub/src/data_source/http_dio_nas_file_sync_service.dart';
-import 'package:iothub/src/data_source/nas_sync_add_page.dart';
 import 'package:iothub/src/data_source/nas_sync_preferences_repository.dart';
 import 'package:iothub/src/domain/value_objects/sync_form_data.dart';
 import 'package:iothub/src/service/local_file_system_util.dart';
 import 'package:iothub/src/service/nas_file_sync_state.dart';
 import 'package:iothub/src/ui/exceptions/error_handler.dart';
+import 'package:iothub/src/ui/pages/nas/nas_sync_add_page.dart';
 import 'package:iothub/src/ui/pages/nas/nas_sync_run_page.dart';
+import 'package:iothub/src/ui/pages/nas/nas_sync_update_page.dart';
 import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -115,13 +116,13 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
             children: <Widget>[
               IconButton(
                   tooltip: 'Edit sync data',
-                  onPressed: () {},
+                  onPressed: () =>
+                      RM.navigate.to(NasSyncUpdatePage(syncDataIndex: index)),
                   icon: const Icon(Icons.edit)),
               IconButton(
                   tooltip: 'remove sync data',
-                  onPressed: () {
-                    NASSyncMainPage.syncPreferencesRepository.deleteAt(index);
-                  },
+                  onPressed: () =>
+                      NASSyncMainPage.syncPreferencesRepository.deleteAt(index),
                   icon: const Icon(Icons.delete_forever)),
             ],
           ),

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:iothub/src/domain/value_objects/sync_form_data.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import '../service/nas_file_sync_state.dart';
-import '../ui/pages/nas/nas_sync_form_widget.dart';
-import '../ui/pages/nas/nas_sync_page.dart';
+import '../../../service/nas_file_sync_state.dart';
+import 'nas_sync_form_widget.dart';
+import 'nas_sync_page.dart';
 
 class NasSyncAddPage extends StatefulWidget {
   const NasSyncAddPage({Key? key}) : super(key: key);

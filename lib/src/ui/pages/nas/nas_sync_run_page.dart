@@ -28,11 +28,11 @@ class NASSyncRunPage extends StatefulWidget {
 
 class _NASSyncRunPageState extends State<NASSyncRunPage> {
   final _rangeDateFormKey = GlobalKey<FormState>();
-  late final SyncFormData syncData = SyncFormData.fromJson(
+  late final _syncData = SyncFormData.fromJson(
       NASSyncMainPage.syncPreferencesRepository.readAt(widget.syncDataIndex));
 
-  String get _joinedSambaFolder => p
-      .join(NASFileSyncState.BASE_SAMBA_FOLDER, syncData.remoteFolder)
+  get _joinedSambaFolder => p
+      .join(NASFileSyncState.BASE_SAMBA_FOLDER, _syncData.remoteFolder)
       .toString();
 
   @override
@@ -93,9 +93,9 @@ class _NASSyncRunPageState extends State<NASSyncRunPage> {
   Widget _getFileSyncDetail() {
     return Column(
       children: <Widget>[
-        Text('From: ' + syncData.localFolder),
-        Text('To: ' + syncData.remoteFolder),
-        Text('Type: ' + syncData.fileType.name),
+        Text('From: ' + _syncData.localFolder),
+        Text('To: ' + _syncData.remoteFolder),
+        Text('Type: ' + _syncData.fileType.name),
         Form(
           key: _rangeDateFormKey,
           autovalidateMode: AutovalidateMode.always,
@@ -103,10 +103,10 @@ class _NASSyncRunPageState extends State<NASSyncRunPage> {
             return Future(() => true);
           },
           child: NasSyncRangeDateBar(
-            dateFrom: syncData.to, //take last sync date
+            dateFrom: _syncData.to, //take last sync date
             dateTo: DateTime.now(),
-            onDateFromSaved: (value) => syncData.from = value,
-            onDateToSaved: (value) => syncData.to = value,
+            onDateFromSaved: (value) => _syncData.from = value,
+            onDateToSaved: (value) => _syncData.to = value,
           ),
         ),
       ],
@@ -139,11 +139,11 @@ class _NASSyncRunPageState extends State<NASSyncRunPage> {
 
                 NASSyncMainPage.nasFileSyncState.setState(
                   (s) => s.getFilesForSynchronization(
-                      syncData.localFolder,
+                      _syncData.localFolder,
                       _joinedSambaFolder,
-                      syncData.fileType,
-                      syncData.from,
-                      syncData.to),
+                      _syncData.fileType,
+                      _syncData.from,
+                      _syncData.to),
                   sideEffects: SideEffects.onData(
                     (data) => data.showFirstFiles(),
                   ),
@@ -229,7 +229,7 @@ class _NASSyncRunPageState extends State<NASSyncRunPage> {
 
   Widget _showFilesToTransfer(
       BuildContext context, List<File> transferringFileList) {
-    switch (syncData.fileType) {
+    switch (_syncData.fileType) {
       case FileTypeForSync.image:
         return _showImagesToTransfer(context, transferringFileList);
       case FileTypeForSync.video:
@@ -338,22 +338,22 @@ class _NASSyncRunPageState extends State<NASSyncRunPage> {
     rangeDateFormState.save();
 
     NASSyncMainPage.syncPreferencesRepository
-        .update(widget.syncDataIndex, syncData.toJson());
+        .update(widget.syncDataIndex, _syncData.toJson());
 
     // try {
     await NASSyncMainPage.nasFileSyncState.setState(
       (s) async {
         if (s.allTransferringFilesCount == 0) {
           await s.getFilesForSynchronization(
-              syncData.localFolder,
+              _syncData.localFolder,
               _joinedSambaFolder,
-              syncData.fileType,
-              syncData.from,
-              syncData.to);
+              _syncData.fileType,
+              _syncData.from,
+              _syncData.to);
         }
 
         return s.syncFolderWithNAS(
-            s.filesForUploading, _joinedSambaFolder, syncData.fileType);
+            s.filesForUploading, _joinedSambaFolder, _syncData.fileType);
       },
       sideEffects: SideEffects.onError((err, refresh) {
         ErrorHandler.showErrorDialog(err);

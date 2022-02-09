@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:iothub/src/domain/entities/nas_file_item.dart';
 import 'package:iothub/src/service/interfaces/local_file_system_service.dart';
 import 'package:iothub/src/service/nas_file_sync_state.dart';
@@ -11,7 +10,6 @@ import 'common/datetime_ext.dart';
 import 'exceptions/nas_file_sync_exception.dart';
 
 class LocalFileSystemUtil implements LocalFileSystemService {
-
   LocalFileSystemUtil();
 
   final _log = Logger(
@@ -19,8 +17,13 @@ class LocalFileSystemUtil implements LocalFileSystemService {
   );
 
   @override
-  Future<List<File>> matchLocalFiles(String localFolderPath, bool recursive, FileTypeForSync fileTypeForSync,
-      DateTime dateFrom, DateTime dateTo, List<NASFileItem> allTargetFolderFiles) async {
+  Future<List<File>> matchLocalFiles(
+      String localFolderPath,
+      bool recursive,
+      FileTypeForSync fileTypeForSync,
+      DateTime dateFrom,
+      DateTime dateTo,
+      List<NASFileItem> allTargetFolderFiles) async {
     final fileList = <File>[];
 
     final localDir = Directory(localFolderPath);
@@ -32,7 +35,9 @@ class LocalFileSystemUtil implements LocalFileSystemService {
     try {
       await for (FileSystemEntity entity in entityList) {
         final fileType = await FileSystemEntity.type(entity.path);
-        if (!recursive && fileType == FileSystemEntityType.file && filterFileByType(entity, fileTypeForSync)) {
+        if (!recursive &&
+            fileType == FileSystemEntityType.file &&
+            filterFileByType(entity, fileTypeForSync)) {
           final dateInRange = await isDateInRange(entity, dateFrom, dateTo);
           if (dateInRange) {
             if (!_isFileInNasList(entity.path, allTargetFolderFiles)) {
@@ -57,7 +62,8 @@ class LocalFileSystemUtil implements LocalFileSystemService {
 
   bool _isFileInNasList(String filePath, List<NASFileItem> nasFiles) {
     return nasFiles
-        .firstWhere((nasFile) => filePath.endsWith(nasFile.fileName), orElse: () => NASFileItem('', DateTime.now()))
+        .firstWhere((nasFile) => filePath.endsWith(nasFile.fileName),
+            orElse: () => NASFileItem('', DateTime.now()))
         .fileName
         .isNotEmpty;
   }
@@ -76,14 +82,13 @@ class LocalFileSystemUtil implements LocalFileSystemService {
     }
   }
 
-  Future<bool> isDateInRange(FileSystemEntity entity, DateTime dateFrom, DateTime dateTo) async {
+  Future<bool> isDateInRange(
+      FileSystemEntity entity, DateTime dateFrom, DateTime dateTo) async {
     final fileStat = await entity.stat();
 
     var modified = fileStat.modified;
 
     // final result = modified.isAtSameMomentAs(dateFrom) || (modified.isAfter(dateFrom) && modified.isBefore(dateTo));
-    return modified.isBetween(dateFrom, DateUtils.dateOnly(dateTo));
+    return modified.isBetween(dateFrom, dateTo);
   }
-
-
 }

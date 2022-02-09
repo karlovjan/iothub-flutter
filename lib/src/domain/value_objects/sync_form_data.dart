@@ -13,8 +13,16 @@ class SyncFormData {
   DateTime to;
   FileTypeForSync fileType;
 
-  SyncFormData(this.name,
-      this.localFolder, this.remoteFolder, this.from, this.to, this.fileType);
+  SyncFormData(this.name, this.localFolder, this.remoteFolder, this.from,
+      this.to, this.fileType);
+
+  factory SyncFormData.copyOf(SyncFormData newData) => SyncFormData(
+      newData.name,
+      newData.localFolder,
+      newData.remoteFolder,
+      newData.from,
+      newData.to,
+      newData.fileType);
 
   @override
   bool operator ==(Object other) =>
