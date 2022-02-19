@@ -1,4 +1,4 @@
-import 'dart:io';
+ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -30,6 +30,15 @@ void main() {
         .injectMock(() => NASFileSyncState(_mockService, _mockLocalFileSystem));
   });
 
+  group('open nas synch main page', () {
+  testWidgets('', (tester) async {
+
+    await tester.pumpWidget(const MaterialApp(home: NASSyncMainPage()));
+    expect(find.byType(NASSyncMainPage), findsOneWidget);
+
+  });
+  });
+  
   group('open nas sync page', () {
     testWidgets('first opened page', (tester) async {
       const nasFoldersRespData = ['path1', 'path2', 'path3'];

@@ -46,6 +46,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
   @override
   void dispose() {
     NASSyncMainPage.nasFileSyncState.state.clearFiles();
+    NASSyncMainPage.syncPreferencesRepository.dispose();
     super.dispose();
   }
 
@@ -79,7 +80,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
             } else {
               return ValueListenableBuilder(
                 valueListenable:
-                    Hive.box(NasSyncPreferencesRepository.boxName).listenable(),
+                Hive.box(NasSyncPreferencesRepository.boxName).listenable(),
                 builder: (context, Box box, _) => _syncDataListView(box),
               );
             }

@@ -32,6 +32,8 @@ class HomePage extends StatelessWidget {
               routeName: StaticPages.iotHUBApp.routeName, title: 'IOT Hub'),
           TileNavigationButton(
               routeName: StaticPages.nasSync.routeName, title: 'NAS Sync'),
+          TileNavigationButton(
+              routeName: StaticPages.bluetoothApp.routeName, title: 'Bluetooth'),
         ],
       ),
     );

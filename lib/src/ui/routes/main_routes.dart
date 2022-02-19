@@ -1,4 +1,4 @@
-enum StaticPages { home, globalPreferences, iotHUBApp, nasSync }
+enum StaticPages { home, globalPreferences, iotHUBApp, nasSync, bluetoothApp }
 
 extension StaticPageRoute on StaticPages {
   String get routeName {
@@ -13,9 +13,10 @@ extension StaticPageRoute on StaticPages {
         return '/iotHUBApp';
       case StaticPages.nasSync:
         return '/nasSync';
+      case StaticPages.bluetoothApp:
+        return '/bluetoothApp';
       default:
         return defaultRoute;
     }
-
   }
 }

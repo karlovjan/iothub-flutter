@@ -12,6 +12,10 @@ class NasSyncPreferencesRepository {
     }
   }
 
+  Future<void> dispose() async {
+    await _box.close();
+  }
+
   int get itemsCount => _box.length;
 
   String readAt(int index) {
