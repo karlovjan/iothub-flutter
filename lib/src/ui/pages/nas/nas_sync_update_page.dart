@@ -42,8 +42,8 @@ class _NasSyncUpdatePageState extends State<NasSyncUpdatePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           NasSyncFormWidgetState? formState = _syncFormGlobalKey.currentState;
-          if (formState?.validate() ?? false) {
-            formState!.save();
+          if (formState.validate() ?? false) {
+            formState.save();
 
             await NASSyncMainPage.syncPreferencesRepository
                 .update(widget.syncDataIndex, formState.value.toJson());

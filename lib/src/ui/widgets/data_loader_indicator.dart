@@ -35,7 +35,7 @@ class DataLoadingIndicatorTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       _title,
-      style: Theme.of(context).primaryTextTheme.headline6,
+      style: Theme.of(context).primaryTextTheme.headlineMedium,
     );
   }
 }

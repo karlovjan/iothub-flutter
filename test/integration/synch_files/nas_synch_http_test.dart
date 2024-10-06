@@ -1,12 +1,8 @@
-import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iothub/src/data_source/http_dio_nas_file_sync_service.dart';
 import 'package:iothub/src/domain/value_objects/upload_file_status.dart';
@@ -19,21 +15,24 @@ Future<void> main() async {
 
   dio.options
     ..baseUrl = 'http://smbrest.home/'
-    ..connectTimeout = 5000 //5s
-    ..receiveTimeout = 5000
-    ..sendTimeout = 5000
+    ..connectTimeout = Duration(seconds: 5) //5s
+    ..receiveTimeout = Duration(seconds: 5)
+    ..sendTimeout = Duration(seconds: 5)
     ..contentType = Headers.formUrlEncodedContentType
     ..validateStatus = (int? status) {
       return status != null && status > 0;
     };
 
-  (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
-      (client) {
-    client.badCertificateCallback =
-        (X509Certificate cert, String host, int port) {
-      return true;
-    };
-  };
+  dio.httpClientAdapter = IOHttpClientAdapter(
+    createHttpClient: () {
+      final client = HttpClient(
+        context: SecurityContext(withTrustedRoots: false),
+      );
+      // You can test the intermediate / root cert here. We just ignore it.
+      client.badCertificateCallback = (cert, host, port) => true;
+      return client;
+    },
+  );
 
   Future<void> googleRequestTest() async {
     final response = await dio.get('https://www.google.com/');

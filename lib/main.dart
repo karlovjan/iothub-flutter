@@ -7,7 +7,6 @@ import 'package:iothub/src/ui/pages/iothub/iothub_main.dart';
 import 'package:iothub/src/ui/pages/preferences/global_preferences_page.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import 'src/data_source/nas_sync_preferences_repository.dart';
 import 'src/global_objects.dart';
 import 'src/ui/pages/iothub/dashboard.dart';
 import 'src/ui/pages/iothub/devices.dart';
