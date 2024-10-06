@@ -2,23 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:iothub/src/domain/entities/device.dart';
 import 'package:iothub/src/domain/entities/iothub.dart';
 import 'package:iothub/src/domain/entities/measurement.dart';
+import 'package:iothub/src/global_objects.dart';
 import 'package:iothub/src/ui/exceptions/error_handler.dart';
 import 'package:iothub/src/ui/pages/iothub/iothub_main.dart';
 import 'package:iothub/src/ui/widgets/data_loader_indicator.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
 
 class DashboardDeviceCard extends StatelessWidget {
   final List<Device> _devices;
   final IOTHub _selectedIOTHub;
 
-  const DashboardDeviceCard(this._selectedIOTHub, this._devices, {Key? key,}) : super(key: key);
+  const DashboardDeviceCard(
+    this._selectedIOTHub,
+    this._devices, {
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: ListView(
         padding: const EdgeInsets.only(top: 10.0),
-        children: _devices.map((device) => _buildCard(context, device)).toList(),
+        children:
+            _devices.map((device) => _buildCard(context, device)).toList(),
       ),
     );
   }
@@ -31,7 +36,8 @@ class DashboardDeviceCard extends StatelessWidget {
           leading: const Icon(Icons.attach_file),
           trailing: const Icon(Icons.addchart),
           title: Text(device.name),
-          subtitle: Text((device.description ?? '') + ' - ' + (device.vendor ?? '')),
+          subtitle:
+              Text((device.description ?? '') + ' - ' + (device.vendor ?? '')),
         ),
         _deviceGaugeChart(context, device),
       ]),
@@ -39,19 +45,15 @@ class DashboardDeviceCard extends StatelessWidget {
   }
 
   Widget _deviceGaugeChart(BuildContext context, Device device) {
-    return OnBuilder<List<Measurement>>.createFuture(
-      creator: () => IOTHubsMainPage.iotHubService.state.loadLastMeasurement(_selectedIOTHub.id, device), 
-      builder: (rmMeassurments) => _measurmentWidget(rmMeassurments.state),
-      sideEffects: SideEffects.onAll(
+    return getFutureBuilder<List<Measurement>>(
+        creator: () => IOTHubsMainPage.iotHubService.state
+            .loadLastMeasurement(_selectedIOTHub.id, device),
+        builder: (rmMeasurements) => _measurementWidget(rmMeasurements.state),
         onWaiting: () => const CommonDataLoadingIndicator(),
-        onError: (err, refresh) => Text(ErrorHandler.getErrorMessage(err)),
-        onData: (data) {
-          
-        },)
-    );
+        onError: (err, refresh) => Text(ErrorHandler.getErrorMessage(err)));
   }
 
-  Widget _measurmentWidget(List<Measurement<dynamic>> measurements) {
+  Widget _measurementWidget(List<Measurement<dynamic>> measurements) {
     return Container(
       padding: const EdgeInsets.all(10),
       child: Column(
@@ -60,7 +62,8 @@ class DashboardDeviceCard extends StatelessWidget {
     );
   }
 
-  List<Widget> _listMeasurementWidgets(List<Measurement<dynamic>> measurements) {
+  List<Widget> _listMeasurementWidgets(
+      List<Measurement<dynamic>> measurements) {
     if (measurements.isEmpty) {
       return [const Text('No Device data... ')];
     }
@@ -71,7 +74,10 @@ class DashboardDeviceCard extends StatelessWidget {
       style: const TextStyle(fontWeight: FontWeight.bold),
     ));
 
-    final isThermometer = measurements.where((element) => element.property.name == 'temperature').take(1).isNotEmpty;
+    final isThermometer = measurements
+        .where((element) => element.property.name == 'temperature')
+        .take(1)
+        .isNotEmpty;
 
     if (isThermometer) {
       widgets.addAll(_temperatureSensorDashboardWidget(measurements));
@@ -108,7 +114,8 @@ class DashboardDeviceCard extends StatelessWidget {
     );
   }
 
-  List<Widget> _temperatureSensorDashboardWidget(final List<Measurement<dynamic>> measurements) {
+  List<Widget> _temperatureSensorDashboardWidget(
+      final List<Measurement<dynamic>> measurements) {
     assert(measurements.isNotEmpty);
 
     late Measurement<dynamic> temperature;
@@ -136,8 +143,10 @@ class DashboardDeviceCard extends StatelessWidget {
         verticalDirection: VerticalDirection.down,
         children: [
           _termometerMeasurementWidget(temperature, Colors.deepOrange),
-          if (humidity != null) _termometerMeasurementWidget(humidity, Colors.green),
-          if (pressure != null) _termometerMeasurementWidget(pressure, Colors.blue),
+          if (humidity != null)
+            _termometerMeasurementWidget(humidity, Colors.green),
+          if (pressure != null)
+            _termometerMeasurementWidget(pressure, Colors.blue),
         ],
       ),
     );
@@ -149,7 +158,8 @@ class DashboardDeviceCard extends StatelessWidget {
     return widgets;
   }
 
-  Widget _termometerMeasurementWidget(final Measurement<dynamic> measurement, final MaterialColor color) {
+  Widget _termometerMeasurementWidget(
+      final Measurement<dynamic> measurement, final MaterialColor color) {
     return Text.rich(
       TextSpan(
         text: '${measurement.property.name}\n',

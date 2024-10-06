@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iothub/src/domain/entities/device.dart';
 import 'package:iothub/src/domain/entities/iothub.dart';
+import 'package:iothub/src/global_objects.dart';
 import 'package:iothub/src/ui/exceptions/error_handler.dart';
 import 'package:iothub/src/ui/pages/iothub/iothub_main.dart';
 import 'package:iothub/src/ui/routes/iothub_routes.dart';
@@ -10,7 +11,10 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 class IOTHubDeviceListPage extends StatelessWidget {
   final IOTHub? _selectedIOTHub;
 
-  const IOTHubDeviceListPage(this._selectedIOTHub, {Key? key,}) : super(key: key);
+  const IOTHubDeviceListPage(
+    this._selectedIOTHub, {
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -23,16 +27,16 @@ class IOTHubDeviceListPage extends StatelessWidget {
     }
     return Scaffold(
       appBar: AppBar(
-        title: Text(_selectedIOTHub!.name),
+        title: Text(_selectedIOTHub.name),
       ),
       // body is the majority of the screen.
-      body: OnFutureBuilder<List<Device>>(
-        future: () => IOTHubsMainPage.iotHubService.state
-            .loadAllDevices(_selectedIOTHub!.id),
+      body: getFutureBuilder<List<Device>>(
+        creator: () => IOTHubsMainPage.iotHubService.state
+            .loadAllDevices(_selectedIOTHub.id),
         onWaiting: () => const CommonDataLoadingIndicator(),
         onError: (error, refresher) =>
-            Text(ErrorHandler.getErrorMessage(error)), //Future can be reinvoked
-        onData: (data, refresh) => _buildList(context, data),
+            Text(ErrorHandler.getErrorMessage(error)),
+        builder: (rmData) => _buildList(context, rmData.state),
       ),
     );
   }

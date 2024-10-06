@@ -123,9 +123,7 @@ class NasSyncFormWidgetState extends State<NasSyncFormWidget> {
     return Form(
       key: _formKey,
       autovalidateMode: AutovalidateMode.always,
-      onWillPop: () {
-        return Future(() => true);
-      },
+      canPop: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -133,7 +131,7 @@ class NasSyncFormWidgetState extends State<NasSyncFormWidget> {
             key: const Key('__SyncName'),
             initialValue: _value.name,
             //nesmi byt nastaven kdyz se pouzije controller
-            style: Theme.of(context).textTheme.headline5,
+            style: Theme.of(context).textTheme.headlineSmall,
             decoration: const InputDecoration(
               hintText: 'Enter sync name',
             ),
@@ -148,7 +146,7 @@ class NasSyncFormWidgetState extends State<NasSyncFormWidget> {
                   key: const Key('__SyncLocalFolderField'),
                   // initialValue: _value.localFolder,
                   //nesmi byt nastaven kdyz se pouzije controller
-                  style: Theme.of(context).textTheme.headline5,
+                  style: Theme.of(context).textTheme.headlineSmall,
                   decoration: const InputDecoration(
                     hintText: 'Enter local path',
                   ),
@@ -214,7 +212,7 @@ class NasSyncFormWidgetState extends State<NasSyncFormWidget> {
             disabledHint: const Text('Not supported on Web'),
             autofocus: false,
             hint: const Text('Select NAS folder'),
-            style: Theme.of(context).textTheme.headline5,
+            style: Theme.of(context).textTheme.headlineSmall,
             decoration: const InputDecoration(
               contentPadding: EdgeInsets.all(0.0),
               enabledBorder: UnderlineInputBorder(
@@ -238,7 +236,7 @@ class NasSyncFormWidgetState extends State<NasSyncFormWidget> {
             key: const Key('__SyncNasFolderTextField'),
             initialValue: _value.remoteFolder,
             //nesmi byt nastaven kdyz se pouzije controller
-            style: Theme.of(context).textTheme.headline5,
+            style: Theme.of(context).textTheme.headlineSmall,
             decoration: const InputDecoration(
               hintText: 'Enter remote folder path',
             ),

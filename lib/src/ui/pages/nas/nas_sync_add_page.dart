@@ -40,7 +40,7 @@ class _NasSyncAddPageState extends State<NasSyncAddPage> {
         onPressed: () async {
           NasSyncFormWidgetState? formState =
               (_syncForm.key as GlobalKey<NasSyncFormWidgetState>).currentState;
-          if (formState.validate()) {
+          if (formState!.validate()) {
             formState.save();
 
             await NASSyncMainPage.syncPreferencesRepository

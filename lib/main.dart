@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:iothub/src/data_source/global_preferences_repository.dart';
 import 'package:iothub/src/domain/entities/iothub.dart';
 import 'package:iothub/src/ui/pages/home_page/home_page.dart';
 import 'package:iothub/src/ui/pages/iothub/iothub_main.dart';
@@ -25,18 +23,18 @@ class IOTHubApp extends TopStatelessWidget {
 
   @override
   List<Future> ensureInitialization() => [
-    //Plugins can be initialized, to display our Splash screen
-    RM.storageInitializer(preferences),
-  ];
+        //Plugins can be initialized, to display our Splash screen
+        RM.storageInitializer(preferences),
+      ];
 
   @override
   Widget? splashScreen() => const MaterialApp(
-    home: Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
-    ),
-  );
+        home: Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {

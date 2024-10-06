@@ -27,7 +27,7 @@ class ErrorHandler {
     return Error.safeToString(error);
   }
 
-  static Widget getErrorDialog(dynamic error){
+  static Widget getErrorDialog(dynamic error) {
     return AlertDialog(
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -42,7 +42,7 @@ class ErrorHandler {
     );
   }
 
-  static Widget getErrorDialogWithBackButton(dynamic error){
+  static Widget getErrorDialogWithBackButton(dynamic error) {
     return AlertDialog(
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -62,7 +62,6 @@ class ErrorHandler {
   }
 
   static void showErrorDialog(dynamic error) {
-
     //Flutter Way
     // showDialog(
     //   context: context,
@@ -81,7 +80,7 @@ class ErrorHandler {
     if (error == null) {
       return;
     }
-    RM.scaffold.removeCurrentSnackBarm();
+    RM.scaffold.removeCurrentSnackBar();
     RM.scaffold.showSnackBar(
       SnackBar(
         content: Row(

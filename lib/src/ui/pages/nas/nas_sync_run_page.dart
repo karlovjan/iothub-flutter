@@ -99,9 +99,7 @@ class _NASSyncRunPageState extends State<NASSyncRunPage> {
         Form(
           key: _rangeDateFormKey,
           autovalidateMode: AutovalidateMode.always,
-          onWillPop: () {
-            return Future(() => true);
-          },
+          canPop: true,
           child: NasSyncRangeDateBar(
             dateFrom: _syncData.to, //take last sync date
             dateTo: DateTime.now(),
@@ -272,7 +270,7 @@ class _NASSyncRunPageState extends State<NASSyncRunPage> {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              backgroundColor: Theme.of(context).backgroundColor,
+              backgroundColor: Theme.of(context).dialogBackgroundColor,
               padding: const EdgeInsets.only(left: 10, right: 10),
               action: SnackBarAction(
                 label: 'Remove',
@@ -283,7 +281,7 @@ class _NASSyncRunPageState extends State<NASSyncRunPage> {
                       ScaffoldMessenger.of(context).hideCurrentSnackBar();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          backgroundColor: Theme.of(context).backgroundColor,
+                          backgroundColor: Theme.of(context).dialogBackgroundColor,
                           content: const Text('File removed'),
                         ),
                       );

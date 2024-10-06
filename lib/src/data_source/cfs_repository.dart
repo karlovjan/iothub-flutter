@@ -133,6 +133,6 @@ class CloudFileStoreDBRepository implements IOTHubRepository {
   }
 
   void _printError(Error e) {
-    log.e('Stream measurement error', e);
+    log.e('Stream measurement error', error: e);
   }
 }

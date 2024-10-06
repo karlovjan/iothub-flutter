@@ -49,15 +49,11 @@ class LocalFileSystemUtil implements LocalFileSystemService {
         //TODO implemnts recurcive and file updated
       }
     } catch (err) {
-      _log.e('Caught error:', err);
+      _log.e('Caught error:', error: err);
       throw NASFileException('Error: $err');
     }
 
     return fileList;
-  }
-
-  void _onListingFileError(Object error, StackTrace stackTrace) {
-    _log.e('Caught error:', error, stackTrace);
   }
 
   bool _isFileInNasList(String filePath, List<NASFileItem> nasFiles) {

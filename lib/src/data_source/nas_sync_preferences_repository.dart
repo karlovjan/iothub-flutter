@@ -1,5 +1,4 @@
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:iothub/src/domain/value_objects/sync_form_data.dart';
 
 class NasSyncPreferencesRepository {
   static const boxName = 'nas_sync';

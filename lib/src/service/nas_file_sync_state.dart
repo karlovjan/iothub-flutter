@@ -62,7 +62,7 @@ class NASFileSyncState {
         }
       }
     } catch (err) {
-      _log.e('Caught error:', err);
+      _log.e('Caught error:', error: err);
       throw NASFileException('Error: $err');
     } finally {
       _log.i('uploading finished');
@@ -127,7 +127,7 @@ class NASFileSyncState {
     try {
       _remoteFileTransferService.cancelRequest();
     } catch (err) {
-      _log.e('Canceling of uploading files failed:', err);
+      _log.e('Canceling of uploading files failed:', error: err);
     } finally {
       _uploadingFileStatus = UploadFileStatus.empty();
       uploading = false;
