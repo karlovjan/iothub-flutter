@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 abstract class DataLoadingIndicator extends StatelessWidget {
   const DataLoadingIndicator(
     this._title, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   // Fields in a Widget subclass are always marked "final".
 
@@ -26,8 +26,8 @@ abstract class DataLoadingIndicator extends StatelessWidget {
 class DataLoadingIndicatorTitle extends StatelessWidget {
   const DataLoadingIndicatorTitle(
     this._title, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   final String _title;
 

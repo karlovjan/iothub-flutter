@@ -9,8 +9,8 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 class IOTHubList extends StatelessWidget {
   const IOTHubList({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -60,9 +60,7 @@ class IOTHubList extends StatelessWidget {
         child: ListTile(
           title: Text(iotHub.name),
           subtitle: iotHub.gps != null
-              ? Text(iotHub.gps!.latitude.toString() +
-                  ';' +
-                  iotHub.gps!.longitude.toString())
+              ? Text('${iotHub.gps!.latitude};${iotHub.gps!.longitude}')
               : const Text(''),
           trailing: Text(iotHub.createdAt.toString()),
           onTap: () {

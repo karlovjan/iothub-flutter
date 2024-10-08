@@ -19,7 +19,7 @@ void main() async {
 }
 
 class IOTHubApp extends TopStatelessWidget {
-  const IOTHubApp({Key? key}) : super(key: key);
+  const IOTHubApp({super.key});
 
   @override
   List<Future> ensureInitialization() => [

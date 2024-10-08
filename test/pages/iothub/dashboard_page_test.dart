@@ -84,15 +84,17 @@ void main() {
 
       expect(find.byType(IOTHubDashboardPage), findsOneWidget);
       expect(find.byType(DashboardDeviceCard), findsOneWidget);
-      iotDevices.forEach((element) => expect(find.text(element.name), findsOneWidget));
+      for (var element in iotDevices) {
+        expect(find.text(element.name), findsOneWidget);
+      }
 
       expect(find.textContaining(deviceLastMeasurement1.first.property.name), findsNWidgets(2));
-      deviceLastMeasurement1.forEach((element) {
+      for (var element in deviceLastMeasurement1) {
         expect(find.textContaining(element.value.toString()), findsOneWidget);
-      });
-      deviceLastMeasurement2.forEach((element) {
+      }
+      for (var element in deviceLastMeasurement2) {
         expect(find.textContaining(element.value.toString()), findsOneWidget);
-      });
+      }
 
       verify(IOTHubsMainPage.iotHubService.state.loadAllIOTHubs()).called(1);
       verify(IOTHubsMainPage.iotHubService.state.loadAllDevices(iotHUBs[0].id)).called(1);

@@ -23,17 +23,17 @@ import 'nas_sync_page_test.mocks.dart';
 
 @GenerateMocks([NASFileSyncService, LocalFileSystemService])
 void main() {
-  final _mockService = MockNASFileSyncService();
-  final _mockLocalFileSystem = MockLocalFileSystemService();
+  final mockService = MockNASFileSyncService();
+  final mockLocalFileSystem = MockLocalFileSystemService();
   setUp(() {
     NASSyncMainPage.nasFileSyncState
-        .injectMock(() => NASFileSyncState(_mockService, _mockLocalFileSystem));
+        .injectMock(() => NASFileSyncState(mockService, mockLocalFileSystem));
   });
 
   group('open nas sync page', () {
     testWidgets('first opened page', (tester) async {
       const nasFoldersRespData = ['path1', 'path2', 'path3'];
-      when(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
+      when(mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
           .thenAnswer((_) => Future.delayed(Duration(seconds: 1))
               .then((_) => nasFoldersRespData));
       // when(NASSyncMainPage.nasFileSyncState.state.clearFiles()).thenReturn(null);
@@ -62,7 +62,7 @@ void main() {
       // expect(find.byType(DropdownButtonFormField), findsOneWidget);
       // expect(find.byType(DropdownButton), findsOneWidget);
 
-      verify(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
+      verify(mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
           .called(1);
     });
   });
@@ -71,7 +71,7 @@ void main() {
     testWidgets('loading nas folders fails', (tester) async {
 
       const errorMsg = 'test error';
-      when(_mockService.listSambaFolders(argThat(isNotNull)))
+      when(mockService.listSambaFolders(argThat(isNotNull)))
           .thenAnswer((_) => Future.delayed(Duration(seconds: 1))
           .then((_) => throw NASFileException(errorMsg)));
 
@@ -85,14 +85,14 @@ void main() {
       expect(find.text('Select NAS folder'), findsNothing);
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
 
-      verify(_mockService.listSambaFolders(argThat(isNotNull)))
+      verify(mockService.listSambaFolders(argThat(isNotNull)))
           .called(1);
     });
 
     testWidgets('send files - not entered local path to synch dir',
         (tester) async {
       const nasFoldersRespData = ['path1', 'path2', 'path3'];
-      when(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
+      when(mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
           .thenAnswer((_) => Future.delayed(Duration(seconds: 1))
               .then((_) => nasFoldersRespData));
       // when(NASSyncMainPage.nasFileSyncState.state.clearFiles()).thenReturn(null);
@@ -119,7 +119,7 @@ void main() {
       expect(find.text('Cannot be empty'), findsNWidgets(2));
       expect(find.text('Transferred / All - '), findsNothing);
 
-      verify(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
+      verify(mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
           .called(1);
     });
   });
@@ -127,7 +127,7 @@ void main() {
   group('Show files to transfer', () {
     testWidgets('default form values', (tester) async {
       const nasFoldersRespData = ['path1', 'path2', 'path3'];
-      when(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
+      when(mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
           .thenAnswer((_) => Future.delayed(Duration(seconds: 1))
               .then((_) => nasFoldersRespData));
 
@@ -153,13 +153,13 @@ void main() {
         NASFileItem(localFile3, dateFrom.add(const Duration(days: 2)))
       ];
 
-      when(_mockLocalFileSystem.matchLocalFiles(localFolderPath, false,
+      when(mockLocalFileSystem.matchLocalFiles(localFolderPath, false,
               fileTypeForSync, dateFrom, dateTo, targetFiles))
           .thenAnswer((_) => Future.delayed(const Duration(seconds: 1))
               .then((_) => localFiles));
       // when(_mockState.clearFiles()).thenReturn(null);
 
-      when(_mockService.retrieveDirectoryItems(fullNasFolderPath,
+      when(mockService.retrieveDirectoryItems(fullNasFolderPath,
               dateFromSeconds, dateToSeconds, fileTypeForSync))
           .thenAnswer((_) => Future.delayed(const Duration(seconds: 1))
               .then((_) => targetFiles));
@@ -180,7 +180,7 @@ void main() {
 
       await tester.pumpAndSettle(const Duration(seconds: 1));
 
-      verify(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
+      verify(mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
           .called(1);
 
       expect(NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount,
@@ -235,11 +235,11 @@ void main() {
       expect(find.byKey(ValueKey(localFile3)), findsNothing);
 
       verifyNever(
-          _mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER));
-      verify(_mockService.retrieveDirectoryItems(fullNasFolderPath,
+          mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER));
+      verify(mockService.retrieveDirectoryItems(fullNasFolderPath,
               dateFromSeconds, dateToSeconds, fileTypeForSync))
           .called(1);
-      verify(_mockLocalFileSystem.matchLocalFiles(localFolderPath, false,
+      verify(mockLocalFileSystem.matchLocalFiles(localFolderPath, false,
               fileTypeForSync, dateFrom, dateTo, targetFiles))
           .called(1);
     });
@@ -249,7 +249,7 @@ void main() {
   group('Upload files showing files', () {
     testWidgets('upload all showing files successfully', (tester) async {
       const nasFoldersRespData = ['path1', 'path2', 'path3'];
-      when(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
+      when(mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
           .thenAnswer((_) => Future.delayed(Duration(seconds: 1))
           .then((_) => nasFoldersRespData));
 
@@ -275,12 +275,12 @@ void main() {
         NASFileItem(localFile3, dateFrom.add(const Duration(days: 2)))
       ];
 
-      when(_mockLocalFileSystem.matchLocalFiles(localFolderPath, false,
+      when(mockLocalFileSystem.matchLocalFiles(localFolderPath, false,
           fileTypeForSync, dateFrom, dateTo, targetFiles))
           .thenAnswer((_) => Future.delayed(const Duration(seconds: 1))
           .then((_) => localFiles));
 
-      when(_mockService.retrieveDirectoryItems(fullNasFolderPath,
+      when(mockService.retrieveDirectoryItems(fullNasFolderPath,
           dateFromSeconds, dateToSeconds, fileTypeForSync))
           .thenAnswer((_) => Future.delayed(const Duration(seconds: 1))
           .then((_) => targetFiles));
@@ -292,7 +292,7 @@ void main() {
         Future.value(UploadFileStatus(uploadingFilePath: localFile2, timestamp: DateTime.now())),
         Future.delayed(const Duration(seconds: 1)).then((value) => UploadFileStatus(uploadingFilePath: localFile2, timestamp: DateTime.now(), uploaded: true)),
       ];
-      when(_mockService.sendFiles(localFiles, fullNasFolderPath, fileTypeForSync)).thenAnswer((realInvocation) => Stream.fromFutures(uploadingFiles));
+      when(mockService.sendFiles(localFiles, fullNasFolderPath, fileTypeForSync)).thenAnswer((realInvocation) => Stream.fromFutures(uploadingFiles));
 
       await tester.pumpWidget(IOTHubApp());
       await tester.pumpAndSettle();
@@ -356,15 +356,15 @@ void main() {
 
 
       verify(
-          _mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER)).called(1);
-      verify(_mockService.retrieveDirectoryItems(fullNasFolderPath,
+          mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER)).called(1);
+      verify(mockService.retrieveDirectoryItems(fullNasFolderPath,
           dateFromSeconds, dateToSeconds, fileTypeForSync))
           .called(1);
-      verify(_mockLocalFileSystem.matchLocalFiles(localFolderPath, false,
+      verify(mockLocalFileSystem.matchLocalFiles(localFolderPath, false,
           fileTypeForSync, dateFrom, dateTo, targetFiles))
           .called(1);
 
-      verify(_mockService.sendFiles(localFiles, fullNasFolderPath, fileTypeForSync)).called(1);
+      verify(mockService.sendFiles(localFiles, fullNasFolderPath, fileTypeForSync)).called(1);
 
     });
 
@@ -373,7 +373,7 @@ void main() {
 
   testWidgets('upload all files successfully - no sowing files', (tester) async {
     const nasFoldersRespData = ['path1', 'path2', 'path3'];
-    when(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
+    when(mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
         .thenAnswer((_) => Future.delayed(Duration(seconds: 1))
         .then((_) => nasFoldersRespData));
 
@@ -399,12 +399,12 @@ void main() {
       NASFileItem(localFile3, dateFrom.add(const Duration(days: 2)))
     ];
 
-    when(_mockLocalFileSystem.matchLocalFiles(localFolderPath, false,
+    when(mockLocalFileSystem.matchLocalFiles(localFolderPath, false,
         fileTypeForSync, dateFrom, dateTo, targetFiles))
         .thenAnswer((_) => Future.delayed(const Duration(seconds: 1))
         .then((_) => localFiles));
 
-    when(_mockService.retrieveDirectoryItems(fullNasFolderPath,
+    when(mockService.retrieveDirectoryItems(fullNasFolderPath,
         dateFromSeconds, dateToSeconds, fileTypeForSync))
         .thenAnswer((_) => Future.delayed(const Duration(seconds: 1))
         .then((_) => targetFiles));
@@ -416,7 +416,7 @@ void main() {
       Future.value(UploadFileStatus(uploadingFilePath: localFile2, timestamp: DateTime.now())),
       Future.delayed(const Duration(seconds: 1)).then((value) => UploadFileStatus(uploadingFilePath: localFile2, timestamp: DateTime.now(), uploaded: true)),
     ];
-    when(_mockService.sendFiles(localFiles, fullNasFolderPath, fileTypeForSync)).thenAnswer((realInvocation) => Stream.fromFutures(uploadingFiles));
+    when(mockService.sendFiles(localFiles, fullNasFolderPath, fileTypeForSync)).thenAnswer((realInvocation) => Stream.fromFutures(uploadingFiles));
 
     await tester.pumpWidget(IOTHubApp());
     await tester.pumpAndSettle();
@@ -467,15 +467,15 @@ void main() {
 
 
     verify(
-        _mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER)).called(1);
-    verify(_mockService.retrieveDirectoryItems(fullNasFolderPath,
+        mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER)).called(1);
+    verify(mockService.retrieveDirectoryItems(fullNasFolderPath,
         dateFromSeconds, dateToSeconds, fileTypeForSync))
         .called(1);
-    verify(_mockLocalFileSystem.matchLocalFiles(localFolderPath, false,
+    verify(mockLocalFileSystem.matchLocalFiles(localFolderPath, false,
         fileTypeForSync, dateFrom, dateTo, targetFiles))
         .called(1);
 
-    verify(_mockService.sendFiles(localFiles, fullNasFolderPath, fileTypeForSync)).called(1);
+    verify(mockService.sendFiles(localFiles, fullNasFolderPath, fileTypeForSync)).called(1);
 
   });
 
@@ -484,11 +484,11 @@ void main() {
 
     const errorMsg = 'retrieveDirectoryItems error';
     const nasFoldersRespData = ['path1', 'path2', 'path3'];
-    when(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
+    when(mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
         .thenAnswer((_) => Future.delayed(Duration(seconds: 1))
         .then((_) => nasFoldersRespData));
 
-    when(_mockService.retrieveDirectoryItems(argThat(isNotEmpty),
+    when(mockService.retrieveDirectoryItems(argThat(isNotEmpty),
         argThat(isNotNull), argThat(isNotNull), argThat(isNotNull)))
         .thenAnswer((_) => Future.delayed(const Duration(seconds: 1))
         .then((_) => throw NASFileException(errorMsg)));
@@ -523,13 +523,13 @@ void main() {
 
     expect(find.text(errorMsg), findsOneWidget);
 
-    verify(_mockService.listSambaFolders(argThat(isNotEmpty)))
+    verify(mockService.listSambaFolders(argThat(isNotEmpty)))
         .called(1);
   });
 
   testWidgets('clear showing files', (tester) async {
     const nasFoldersRespData = ['path1', 'path2', 'path3'];
-    when(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
+    when(mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
         .thenAnswer((_) => Future.delayed(Duration(seconds: 1))
         .then((_) => nasFoldersRespData));
 
@@ -555,13 +555,13 @@ void main() {
       NASFileItem(localFile3, dateFrom.add(const Duration(days: 2)))
     ];
 
-    when(_mockLocalFileSystem.matchLocalFiles(localFolderPath, false,
+    when(mockLocalFileSystem.matchLocalFiles(localFolderPath, false,
         fileTypeForSync, dateFrom, dateTo, targetFiles))
         .thenAnswer((_) => Future.delayed(const Duration(seconds: 1))
         .then((_) => localFiles));
     // when(_mockState.clearFiles()).thenReturn(null);
 
-    when(_mockService.retrieveDirectoryItems(fullNasFolderPath,
+    when(mockService.retrieveDirectoryItems(fullNasFolderPath,
         dateFromSeconds, dateToSeconds, fileTypeForSync))
         .thenAnswer((_) => Future.delayed(const Duration(seconds: 1))
         .then((_) => targetFiles));
@@ -571,7 +571,7 @@ void main() {
 
     await tester.pumpAndSettle(const Duration(seconds: 1));
 
-    verify(_mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
+    verify(mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER))
         .called(1);
 
     expect(NASSyncMainPage.nasFileSyncState.state.allTransferringFilesCount,
@@ -637,11 +637,11 @@ void main() {
 
 
     verifyNever(
-        _mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER));
-    verify(_mockService.retrieveDirectoryItems(fullNasFolderPath,
+        mockService.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER));
+    verify(mockService.retrieveDirectoryItems(fullNasFolderPath,
         dateFromSeconds, dateToSeconds, fileTypeForSync))
         .called(1);
-    verify(_mockLocalFileSystem.matchLocalFiles(localFolderPath, false,
+    verify(mockLocalFileSystem.matchLocalFiles(localFolderPath, false,
         fileTypeForSync, dateFrom, dateTo, targetFiles))
         .called(1);
   });

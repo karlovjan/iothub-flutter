@@ -32,7 +32,7 @@ void main() {
 
       final authRepo =
           IOTHubsMainPage.user.getRepoAs() as MockFirebaseAuthRepository;
-      when(authRepo.init()).thenAnswer((_) async => null);
+      when(authRepo.init()).thenAnswer((_) async {});
       when(authRepo.currentUser()).thenAnswer((_) async =>
           Future.delayed(Duration(seconds: 1)).then((_) => testUser));
       // when(IOTHubsMainPage.user.auth.injected.onAuthStream).thenReturn((_) async => Future.delayed(Duration(seconds: 1)).then((_) => testUser).asStream());
@@ -82,7 +82,7 @@ void main() {
       const errorMsg = 'Test error';
       final authRepo =
           IOTHubsMainPage.user.getRepoAs() as MockFirebaseAuthRepository;
-      when(authRepo.init()).thenAnswer((_) async => null);
+      when(authRepo.init()).thenAnswer((_) async {});
       when(authRepo.currentUser()).thenAnswer((_) async =>
           Future.delayed(Duration(seconds: 1)).then((_) => LoggedOutUser()));
 

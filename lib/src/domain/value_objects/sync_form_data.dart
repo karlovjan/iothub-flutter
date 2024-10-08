@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
-
 import '../../service/nas_file_sync_state.dart';
 
 // @immutable
@@ -52,7 +50,7 @@ class SyncFormData {
       'remoteFolder': remoteFolder,
       'from': from.toIso8601String(),
       'to': to.toIso8601String(),
-      'fileType': describeEnum(fileType),
+      'fileType': fileType.name,
     };
   }
 

@@ -13,8 +13,8 @@ class IOTHubDeviceListPage extends StatelessWidget {
 
   const IOTHubDeviceListPage(
     this._selectedIOTHub, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +60,7 @@ class IOTHubDeviceListPage extends StatelessWidget {
         ),
         child: ListTile(
           title: Text(device.name),
-          subtitle: Text(device.description! + ' - ' + device.vendor!),
+          subtitle: Text('${device.description!} - ${device.vendor!}'),
           trailing: Text(device.created.toString()),
           onTap: () {
             RM.navigate.toNamed(IOTHUBStaticPages.devices.fullPath);

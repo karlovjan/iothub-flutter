@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:iothub/src/data_source/http_dio_nas_file_sync_service.dart';
@@ -20,10 +19,10 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 ///Class showing a page for setting a NAS folder
 class NASSyncMainPage extends StatefulWidget {
-  const NASSyncMainPage({Key? key}) : super(key: key);
+  const NASSyncMainPage({super.key});
 
   //TODO prevest do konfigurace, staci jen staticke - a zavisle na prostredi - devel, test, produkce - nas.local:8443
-  static late final nasFileSyncState = RM.inject<NASFileSyncState>(
+  static final nasFileSyncState = RM.inject<NASFileSyncState>(
     () => NASFileSyncState(
         //smbrest.home
         DIOHTTPNASFileSyncService('192.168.0.24', 'assets/certs/ca.crt',
@@ -74,8 +73,7 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
 
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.hasError) {
-              return Text('cannot load saved synchronization items. Error: ' +
-                  ErrorHandler.getErrorMessage(snapshot.error));
+              return Text('cannot load saved synchronization items. Error: ${ErrorHandler.getErrorMessage(snapshot.error)}');
             } else {
               return ValueListenableBuilder(
                 valueListenable:
@@ -91,8 +89,8 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
         onPressed: () {
           RM.navigate.to(const NasSyncAddPage());
         },
-        child: const Icon(Icons.add),
         backgroundColor: Colors.green,
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -104,9 +102,9 @@ class _SyncPathEditFormState extends State<NASSyncMainPage> {
         SyncFormData item = SyncFormData.fromJson(box.getAt(index));
         return ListTile(
           key: ObjectKey(item),
-          title: Text(item.name + ' - ' + item.fileType.name),
+          title: Text('${item.name} - ${item.fileType.name}'),
           subtitle: Text(
-              item.remoteFolder + ' / ' + DateFormat.yMd().format(item.to)),
+              '${item.remoteFolder} / ${DateFormat.yMd().format(item.to)}'),
           leading: const IconButton(
             icon: Icon(Icons.open_in_new),
             onPressed: null,

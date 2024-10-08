@@ -15,14 +15,14 @@ class IOTHubDashboardPage extends StatelessWidget {
 
   const IOTHubDashboardPage(
     this._selectedIOTHub, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Dashboard - ' + _selectedIOTHub!.name),
+        title: Text('Dashboard - ${_selectedIOTHub!.name}'),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.build),

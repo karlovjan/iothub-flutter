@@ -8,14 +8,13 @@ class NasSyncRangeDateBar extends StatefulWidget {
   final ValueChanged<DateTime>? onDateToSaved;
 
   NasSyncRangeDateBar(
-      {Key? key,
+      {super.key,
       DateTime? dateFrom,
       DateTime? dateTo,
       this.onDateFromSaved,
       this.onDateToSaved})
       : selectedDateFrom = DateUtils.dateOnly(dateFrom ?? DateTime.now()),
-        selectedDateTo = dateTo ?? DateTime.now(),
-        super(key: key);
+        selectedDateTo = dateTo ?? DateTime.now();
 
   @override
   State<StatefulWidget> createState() => _NasSyncRangeDateBarState();

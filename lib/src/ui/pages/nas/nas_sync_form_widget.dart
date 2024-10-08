@@ -14,8 +14,7 @@ class NasSyncFormWidget extends StatefulWidget {
   final bool showRangeDateBar;
 
   const NasSyncFormWidget(
-      {Key? key, required this.initialValue, this.showRangeDateBar = true})
-      : super(key: key);
+      {super.key, required this.initialValue, this.showRangeDateBar = true});
 
   @override
   NasSyncFormWidgetState createState() => NasSyncFormWidgetState();

@@ -6,8 +6,8 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

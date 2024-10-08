@@ -19,7 +19,7 @@ final InjectedTheme theme = RM.injectTheme<AppTheme>(
 );
 
 class GlobalPreferencesPage extends StatelessWidget {
-  const GlobalPreferencesPage({Key? key}) : super(key: key);
+  const GlobalPreferencesPage({super.key});
 
   @override
   Widget build(BuildContext context) {

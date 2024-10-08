@@ -7,7 +7,7 @@ import 'nas_sync_form_widget.dart';
 import 'nas_sync_page.dart';
 
 class NasSyncAddPage extends StatefulWidget {
-  const NasSyncAddPage({Key? key}) : super(key: key);
+  const NasSyncAddPage({super.key});
 
   @override
   _NasSyncAddPageState createState() => _NasSyncAddPageState();
@@ -49,8 +49,8 @@ class _NasSyncAddPageState extends State<NasSyncAddPage> {
             RM.navigate.back();
           }
         },
-        child: const Icon(Icons.save_rounded),
         backgroundColor: Colors.green,
+        child: const Icon(Icons.save_rounded),
       ),
     );
   }

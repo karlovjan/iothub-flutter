@@ -56,13 +56,13 @@ Future<void> main() async {
 
   // TestWidgetsFlutterBinding.ensureInitialized();
 
-  final _httpClient = DIOHTTPNASFileSyncService(
+  final httpClient = DIOHTTPNASFileSyncService(
       'smbrest.home',
       '/home/mbaros/projects/my/flutter/iothub/assets/certs/ca.crt',
       '/home/mbaros/projects/my/flutter/iothub/assets/certs/smbresthomeclient.p12');
   Future<void> listNasFoldersRequestTest() async {
     var folders =
-        await _httpClient.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER);
+        await httpClient.listSambaFolders(NASFileSyncState.BASE_SAMBA_FOLDER);
 
     // final count = folders.length;
     assert(folders.length > 1);
@@ -77,7 +77,7 @@ Future<void> main() async {
     final dateFromSeconds = dateFrom.secondsSinceEpoch;
     final dateToSeconds = dateTo.secondsSinceEpoch;
 
-    var items = await _httpClient.retrieveDirectoryItems(
+    var items = await httpClient.retrieveDirectoryItems(
         fullNasFolderPath, dateFromSeconds, dateToSeconds, fileTypeForSync);
 
     // final count = folders.length;
@@ -97,7 +97,7 @@ Future<void> main() async {
     final fullNasFolderPath =
         path.join(NASFileSyncState.BASE_SAMBA_FOLDER, 'test/');
     final fileTypeForSync = FileTypeForSync.image;
-    await for (UploadFileStatus sentFile in _httpClient.sendFiles(
+    await for (UploadFileStatus sentFile in httpClient.sendFiles(
         localFileList, fullNasFolderPath, fileTypeForSync)) {
       if (sentFile.uploaded) {
         print('${sentFile.uploadingFilePath} uploaded');

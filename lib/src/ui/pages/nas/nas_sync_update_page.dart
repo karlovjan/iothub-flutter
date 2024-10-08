@@ -8,8 +8,7 @@ import 'nas_sync_page.dart';
 class NasSyncUpdatePage extends StatefulWidget {
   final int syncDataIndex;
 
-  const NasSyncUpdatePage({Key? key, required this.syncDataIndex})
-      : super(key: key);
+  const NasSyncUpdatePage({super.key, required this.syncDataIndex});
 
   @override
   _NasSyncUpdatePageState createState() => _NasSyncUpdatePageState();
@@ -51,8 +50,8 @@ class _NasSyncUpdatePageState extends State<NasSyncUpdatePage> {
             RM.navigate.back();
           }
         },
-        child: const Icon(Icons.save_rounded),
         backgroundColor: Colors.green,
+        child: const Icon(Icons.save_rounded),
       ),
     );
   }

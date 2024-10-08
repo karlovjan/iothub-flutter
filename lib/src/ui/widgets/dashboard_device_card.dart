@@ -14,8 +14,8 @@ class DashboardDeviceCard extends StatelessWidget {
   const DashboardDeviceCard(
     this._selectedIOTHub,
     this._devices, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +37,7 @@ class DashboardDeviceCard extends StatelessWidget {
           trailing: const Icon(Icons.addchart),
           title: Text(device.name),
           subtitle:
-              Text((device.description ?? '') + ' - ' + (device.vendor ?? '')),
+              Text('${device.description ?? ''} - ${device.vendor ?? ''}'),
         ),
         _deviceGaugeChart(context, device),
       ]),

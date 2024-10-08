@@ -19,8 +19,7 @@ import 'nas_sync_range_date_bar.dart';
 class NASSyncRunPage extends StatefulWidget {
   final int syncDataIndex;
 
-  const NASSyncRunPage({Key? key, required this.syncDataIndex})
-      : super(key: key);
+  const NASSyncRunPage({super.key, required this.syncDataIndex});
 
   @override
   _NASSyncRunPageState createState() => _NASSyncRunPageState();
@@ -56,8 +55,8 @@ class _NASSyncRunPageState extends State<NASSyncRunPage> {
         onPressed: () async {
           await _uploadingFileButtonOnPressed();
         },
-        child: const Icon(Icons.send),
         backgroundColor: Colors.green,
+        child: const Icon(Icons.send),
       ),
     );
   }
@@ -93,9 +92,9 @@ class _NASSyncRunPageState extends State<NASSyncRunPage> {
   Widget _getFileSyncDetail() {
     return Column(
       children: <Widget>[
-        Text('From: ' + _syncData.localFolder),
-        Text('To: ' + _syncData.remoteFolder),
-        Text('Type: ' + _syncData.fileType.name),
+        Text('From: ${_syncData.localFolder}'),
+        Text('To: ${_syncData.remoteFolder}'),
+        Text('Type: ${_syncData.fileType.name}'),
         Form(
           key: _rangeDateFormKey,
           autovalidateMode: AutovalidateMode.always,

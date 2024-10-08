@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class DashboardManagerPage extends StatelessWidget {
-  const DashboardManagerPage({Key? key}) : super(key: key);
+  const DashboardManagerPage({super.key});
 
   @override
   Widget build(BuildContext context) {
