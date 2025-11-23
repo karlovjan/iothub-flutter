@@ -203,7 +203,7 @@ class NasSyncFormWidgetState extends State<NasSyncFormWidget> {
 
           return DropdownButtonFormField<String>(
             key: const Key('__NASFolderField'),
-            value: _nasFolder,
+            initialValue: _nasFolder,
             icon: const Icon(Icons.arrow_downward),
             iconSize: 24,
             elevation: 16,
@@ -251,60 +251,41 @@ class NasSyncFormWidgetState extends State<NasSyncFormWidget> {
   }
 
   Widget createRadiobuttonFileTypeList() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Expanded(
-          child: SizedBox(
-            height: 50.0,
+    return RadioGroup<FileTypeForSync>(
+      groupValue: _value.fileType,
+      onChanged: (FileTypeForSync? value) {
+        setState(() {
+          _value.fileType = value!;
+        });
+      },
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Expanded(
             child: RadioListTile<FileTypeForSync>(
-              title: const Text('Images'),
+              title: Text('Images'),
               dense: true,
               value: FileTypeForSync.image,
-              groupValue: _value.fileType,
-              onChanged: (FileTypeForSync? value) {
-                setState(() {
-                  _value.fileType = value!;
-                });
-              },
             ),
           ),
-        ),
-        Expanded(
-          child: SizedBox(
-            height: 50.0,
+          Expanded(
             child: RadioListTile<FileTypeForSync>(
-              title: const Text('Videos'),
+              title: Text('Videos'),
               dense: true,
               value: FileTypeForSync.video,
-              groupValue: _value.fileType,
-              onChanged: (FileTypeForSync? value) {
-                setState(() {
-                  _value.fileType = value!;
-                });
-              },
             ),
           ),
-        ),
-        Expanded(
-          child: SizedBox(
-            height: 50.0,
+          Expanded(
             child: RadioListTile<FileTypeForSync>(
-              title: const Text('Docs'),
+              title: Text('Docs'),
               dense: true,
               value: FileTypeForSync.doc,
-              groupValue: _value.fileType,
-              onChanged: (FileTypeForSync? value) {
-                setState(() {
-                  _value.fileType = value!;
-                });
-              },
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

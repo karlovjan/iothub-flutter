@@ -43,6 +43,7 @@ class IOTHubDashboardPage extends StatelessWidget {
       return const Text('No IotHub selected!');
     }
     return getFutureBuilder<List<Device>>(
+      initialData: List.empty(),
       creator: () => IOTHubsMainPage.iotHubService.state
           .loadAllDevices(_selectedIOTHub.id),
       onWaiting: () => const CommonDataLoadingIndicator(),

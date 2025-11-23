@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:iothub/src/data_source/http_dio_nas_file_sync_service.dart';
 import 'package:iothub/src/data_source/nas_sync_preferences_repository.dart';

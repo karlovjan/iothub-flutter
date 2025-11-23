@@ -30,7 +30,7 @@ class _NASSyncRunPageState extends State<NASSyncRunPage> {
   late final _syncData = SyncFormData.fromJson(
       NASSyncMainPage.syncPreferencesRepository.readAt(widget.syncDataIndex));
 
-  get _joinedSambaFolder => p
+  String get _joinedSambaFolder => p
       .join(NASFileSyncState.BASE_SAMBA_FOLDER, _syncData.remoteFolder)
       .toString();
 
@@ -232,9 +232,7 @@ class _NASSyncRunPageState extends State<NASSyncRunPage> {
       case FileTypeForSync.video:
       case FileTypeForSync.doc:
         return showFileAsText(transferringFileList);
-      default:
-        return const Text('Unknown file sync type!!!!');
-    }
+      }
   }
 
   Widget _showImagesToTransfer(
@@ -269,7 +267,7 @@ class _NASSyncRunPageState extends State<NASSyncRunPage> {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              backgroundColor: Theme.of(context).dialogBackgroundColor,
+              backgroundColor: Theme.of(context).dialogTheme.backgroundColor,
               padding: const EdgeInsets.only(left: 10, right: 10),
               action: SnackBarAction(
                 label: 'Remove',
@@ -280,7 +278,7 @@ class _NASSyncRunPageState extends State<NASSyncRunPage> {
                       ScaffoldMessenger.of(context).hideCurrentSnackBar();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          backgroundColor: Theme.of(context).dialogBackgroundColor,
+                          backgroundColor: Theme.of(context).dialogTheme.backgroundColor,
                           content: const Text('File removed'),
                         ),
                       );

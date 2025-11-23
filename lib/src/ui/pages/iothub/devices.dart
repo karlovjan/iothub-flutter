@@ -31,6 +31,7 @@ class IOTHubDeviceListPage extends StatelessWidget {
       ),
       // body is the majority of the screen.
       body: getFutureBuilder<List<Device>>(
+        initialData: List.empty(),
         creator: () => IOTHubsMainPage.iotHubService.state
             .loadAllDevices(_selectedIOTHub.id),
         onWaiting: () => const CommonDataLoadingIndicator(),

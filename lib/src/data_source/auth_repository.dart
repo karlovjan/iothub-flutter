@@ -46,10 +46,7 @@ class FirebaseAuthRepository
           param.email!,
           param.password!,
         );
-
-      default:
-        throw UnimplementedError();
-    }
+      }
   }
 
   @override

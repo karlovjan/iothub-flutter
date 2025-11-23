@@ -61,7 +61,7 @@ void main() {
       expect(find.byType(IOTHubsMainPage), findsOneWidget);
       expect(find.byType(LoggingIndicator), findsOneWidget);
 
-      var count = await tester.pumpAndSettle();
+      await tester.pumpAndSettle();
       // await tester.pumpAndSettle(const Duration(seconds: 1));
 
       expect(find.byType(IOTHubList), findsOneWidget);
@@ -116,7 +116,7 @@ void main() {
       final authRepo =
           IOTHubsMainPage.user.getRepoAs() as MockFirebaseAuthRepository;
       when(authRepo.init()).thenAnswer((_) async {});
-      when(authRepo.dispose()).thenReturn(() {});
+      when(authRepo.dispose()).thenReturn(null);
       when(authRepo.currentUser()).thenAnswer((_) async =>
           Future.delayed(Duration(seconds: 1)).then((_) => testUser));
       // when(IOTHubsMainPage.user.auth.injected.onAuthStream).thenReturn((_) async => Future.delayed(Duration(seconds: 1)).then((_) => testUser).asStream());

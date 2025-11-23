@@ -1,4 +1,4 @@
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 class GlobalPreferencesRepository implements IPersistStore {
