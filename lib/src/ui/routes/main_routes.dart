@@ -13,9 +13,7 @@ extension StaticPageRoute on StaticPages {
         return '/iotHUBApp';
       case StaticPages.nasSync:
         return '/nasSync';
-      default:
-        return defaultRoute;
-    }
+      }
 
   }
 }

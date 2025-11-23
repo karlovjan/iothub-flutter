@@ -46,6 +46,7 @@ class DashboardDeviceCard extends StatelessWidget {
 
   Widget _deviceGaugeChart(BuildContext context, Device device) {
     return getFutureBuilder<List<Measurement>>(
+        initialData: List.empty(),
         creator: () => IOTHubsMainPage.iotHubService.state
             .loadLastMeasurement(_selectedIOTHub.id, device),
         builder: (rmMeasurements) => _measurementWidget(rmMeasurements.state),

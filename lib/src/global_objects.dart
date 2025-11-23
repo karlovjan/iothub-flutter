@@ -11,8 +11,10 @@ OnBuilder<T> getFutureBuilder<T>({
   required Widget Function(ReactiveModel<T> rm) builder,
   required void Function()? onWaiting,
   required void Function(dynamic err, VoidCallback refresh)? onError,
+  T? initialData,
 }) {
   return OnBuilder<T>.createFuture(
+      initialState: initialData,
       creator: creator,
       builder: builder,
       sideEffects: SideEffects.onAll(

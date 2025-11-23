@@ -73,9 +73,7 @@ class LocalFileSystemUtil implements LocalFileSystemService {
         return ['.mp4', '.avi', '.mkv'].contains(ext);
       case FileTypeForSync.doc:
         return ['.txt', '.pdf', '.docx', '.odt', '.doc'].contains(ext);
-      default:
-        throw NASFileException('Unknown file type!');
-    }
+      }
   }
 
   Future<bool> isDateInRange(
